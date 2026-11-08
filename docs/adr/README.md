@@ -46,8 +46,9 @@ scripts/               check-size.mjs
 | [0001](0001-tauri-app-with-rust-core.md) | Tauri app with the logic in Rust | Accepted |
 | [0002](0002-projects-from-disk-and-registry.md) | Projects come from the disk, PROJECTS.md stays the registry | Superseded by 0004 |
 | [0003](0003-workstations-and-starter-kit.md) | Several workstations per user, and a starter kit in the exe | Accepted (partly replaced by 0004, 0005) |
-| [0004](0004-projects-json-registry.md) | projects.json is the registry | Accepted (marker replaced by 0005) |
+| [0004](0004-projects-json-registry.md) | projects.json is the registry | Accepted (marker replaced by 0005, archiving by 0006) |
 | [0005](0005-workstations-added-by-hand.md) | Workstations are added by hand and recognized by projects.json | Accepted |
+| [0006](0006-archived-projects-leave-the-registry.md) | Archived projects leave projects.json | Accepted |
 
 ## Milestones
 

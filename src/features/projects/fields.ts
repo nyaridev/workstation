@@ -17,7 +17,7 @@ export const KINDS = [
 ] as const;
 
 /** Every allowed `status`, from first idea to done. */
-export const STATUSES = ["planning", "prototyping", "in-development", "released", "on-hold", "archived"] as const;
+export const STATUSES = ["planning", "prototyping", "in-development", "released", "on-hold"] as const;
 
 /** Lowercase kebab-case, the shape every tag has: "Co Op!" → "co-op". Empty when nothing usable is left. */
 export function toTag(text: string): string {

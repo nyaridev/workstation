@@ -1,6 +1,6 @@
 ---
 name: archive-project
-description: Archive a finished or abandoned workstation project — move it to archive/ at the same sub-path, mark it archived in projects.json, and optionally move its GitHub repo to the archive org. Use when the user says archive, retire, shelve, abandon or is done with a project.
+description: Archive a finished or abandoned workstation project — move it to archive/ at the same sub-path, remove its projects.json entry, and optionally move its GitHub repo to the archive org. Use when the user says archive, retire, shelve, abandon or is done with a project.
 argument-hint: "<project name or path>"
 ---
 
@@ -8,7 +8,7 @@ argument-hint: "<project name or path>"
 
 1. **Find it** in `projects.json`. Check every repo inside it: `git status` should be clean, with nothing unpushed. If
    not, show what's pending and ask whether to commit, push, or archive it as it is.
-2. **Confirm once:** `<path>` → `archive/<path>`, status `archived`, and whether to move the GitHub repo to
+2. **Confirm once:** `<path>` → `archive/<path>`, its `projects.json` entry removed, and whether to move the GitHub repo to
    the archive org from `AGENTS.md` → Names and owners (optional, for the user's own repos only, and only when
    that org is filled in).
 3. **Move** it with `Move-Item` to `archive/<same sub-path>`, creating the parent folders. If a running app is
@@ -18,6 +18,6 @@ argument-hint: "<project name or path>"
    2. Point the local remote at the new home: `git remote set-url origin https://github.com/<archive-org>/<repo>`.
    
    If the user would rather keep the repo where it is but read-only, offer `gh repo archive <owner>/<repo>` instead.
-5. **Update the `projects.json` entry:** the new path, status `archived`, the new owner if it was transferred, and the
-   date in `notes`. For a game home, also set the `game.json` status to `archived`.
-6. Nothing is deleted.
+5. **Remove its `projects.json` entry** (archived projects aren't registered: `.claude/rules/registry.md`). For a game
+   home, set the `game.json` status to `archived`.
+6. No files are deleted.

@@ -163,7 +163,7 @@ else {
 
 # projects.json: format in _meta/docs/projects-json.md
 $kinds = @("game", "mod", "emulator", "app", "tool", "framework", "suite", "asset-pack", "research", "idea", "external")
-$statuses = @("planning", "prototyping", "in-development", "released", "on-hold", "archived")
+$statuses = @("planning", "prototyping", "in-development", "released", "on-hold")
 $required = @("name", "path", "kind", "stack", "owner", "status", "description", "tags")
 
 $registry = @()
@@ -186,6 +186,7 @@ if (-not $inventory) {
 			if (-not $entry.path.EndsWith("/") -or $entry.path.Contains("\")) { $invalid += "${label}: path needs forward slashes and a trailing slash" }
 			if ($entry.kind -and $kinds -notcontains $entry.kind) { $invalid += "${label}: unknown kind '$($entry.kind)'" }
 			if ($entry.status -and $statuses -notcontains $entry.status) { $invalid += "${label}: unknown status '$($entry.status)'" }
+			if ($entry.path -like "archive/*") { $invalid += "${label}: archived projects aren't registered; remove the entry" }
 			foreach ($tag in @($entry.tags) | Where-Object { $_ -cnotmatch '^[a-z0-9]+(-[a-z0-9]+)*$' }) { $invalid += "${label}: tag '$tag' isn't kebab-case" }
 			if ($registry -contains $entry.path) { $invalid += "${label}: listed twice" }
 			$registry += $entry.path
@@ -193,7 +194,7 @@ if (-not $inventory) {
 		$sorted = [string[]]$registry.Clone(); [Array]::Sort($sorted, [StringComparer]::Ordinal)
 		if (($sorted -join "|") -cne ($registry -join "|")) { $invalid += "projects.json: entries aren't sorted by path" }
 	}
-	$found = @($results | Where-Object { $_.Kind -ne "sandbox" } | ForEach-Object { $_.Path })
+	$found = @($results | Where-Object { $_.Kind -ne "sandbox" -and $_.Kind -notlike "archived *" } | ForEach-Object { $_.Path })
 	$unregistered = @($found | Where-Object { $registry -notcontains $_ })
 	$missing = @($registry | Where-Object { -not (Test-Path -LiteralPath (Join-Path $Root $_)) })
 	$stale = @($results | Where-Object { $_.Kind -eq "sandbox" -and ((Get-Date) - [datetime]$_.Changed).Days -ge 60 })

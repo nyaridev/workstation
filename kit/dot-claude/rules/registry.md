@@ -1,6 +1,6 @@
 # projects.json, the registry
 
-`projects.json` lists every project: one entry each, sorted by `path`. Skills add, move and update
+`projects.json` lists every active project: one entry each, sorted by `path`. Skills add, move and update
 entries in the same task as the change.
 
 - **Format, fields, tag list and the entry template to copy:** `_meta/docs/projects-json.md`. Read
@@ -13,6 +13,8 @@ entries in the same task as the change.
   emulator home's emulators, in `notes`.
 - **Suites** get one entry for the suite and one per repo (`frameworks/<suite>/<repo>/`).
 - **Sandbox** folders, library asset sets and one-file scripts aren't registered.
-- **Archiving** changes the entry's `path` and sets `status` to `archived`; never remove an entry.
+- **Archived projects aren't registered.** Archiving removes the entry; nothing under `archive/` gets one. Promoting
+  a project back out of `archive/` adds a new entry.
 - `pwsh -NoProfile -File _meta/scripts/scan-projects.ps1` compares the file with the disk and checks
-  each entry. Fix every "invalid", "unregistered" or "missing" line it reports, and ask before removing an entry.
+  each entry. Fix every "invalid", "unregistered" or "missing" line it reports. Ask before removing an entry, except when
+  archiving.

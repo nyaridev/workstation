@@ -46,6 +46,8 @@ delete that file to see the first run again.
 - [ ] Break `projects.json` (delete a comma): a red banner names the line; folders are still listed; Register and Edit
       tags disappear. Fix it: everything comes back.
 - [ ] Save files inside a project, or run `pnpm install` in one: the list doesn't flicker or rescan.
+- [ ] Create `archive/tools/old/`: it shows in the Archive group with no flag and no Register button. Add an entry for
+      it to `projects.json` by hand: it's flagged "archived: remove from projects.json".
 
 ## 5. Registering and tags (test workstation)
 

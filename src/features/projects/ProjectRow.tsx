@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import type { GitStatus, Project } from "../../lib/types";
+import { registryFlag } from "./filter";
 import { GitBadges } from "./GitBadges";
 import { RegisterForm } from "./RegisterForm";
 import { TagEditor } from "./TagEditor";
@@ -29,6 +30,7 @@ const action =
 export function ProjectRow(props: Props) {
   const { root, project: p, git, selectedTags, suggestions, canWrite, onTag, onOpen, onSaved } = props;
   const [editing, setEditing] = useState<"register" | "tags" | null>(null);
+  const flag = registryFlag(p);
   const done = (saved: boolean) => {
     setEditing(null);
     if (saved) onSaved();
@@ -42,10 +44,13 @@ export function ProjectRow(props: Props) {
             <span className="font-medium text-zinc-100">{p.name}</span>
             {p.status && <span className="text-xs text-zinc-500">{p.status}</span>}
             <GitBadges git={git} />
-            {!p.registered && (
-              <span className="rounded bg-amber-900/50 px-1.5 text-amber-300 text-xs">not in projects.json</span>
+            {flag && (
+              <span
+                className={`rounded px-1.5 text-xs ${p.onDisk ? "bg-amber-900/50 text-amber-300" : "bg-red-900/50 text-red-300"}`}
+              >
+                {flag}
+              </span>
             )}
-            {!p.onDisk && <span className="rounded bg-red-900/50 px-1.5 text-red-300 text-xs">folder missing</span>}
           </div>
           {p.description && <p className="mt-0.5 text-sm text-zinc-400">{p.description}</p>}
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
@@ -65,7 +70,7 @@ export function ProjectRow(props: Props) {
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
-          {canWrite && !p.registered && (
+          {canWrite && !p.registered && !p.archived && (
             <button type="button" onClick={() => setEditing("register")} disabled={editing !== null} className={action}>
               Register…
             </button>

@@ -1,6 +1,6 @@
 # ADR-0004: projects.json is the registry
 
-**Status:** Accepted (the workstation marker replaced by ADR-0005)
+**Status:** Accepted (the workstation marker replaced by ADR-0005, archived entries by ADR-0006)
 **Date:** 2026-11-08
 **Supersedes:** ADR-0002
 

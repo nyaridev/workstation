@@ -75,7 +75,7 @@ Committed repos get shared, so they never reveal this PC's setup and must work w
 1. **Never delete** projects, assets, saves or originals. Move or archive instead; deleting is the user's job.
 2. **Moves copy first.** Verify (same git HEAD, same status, same file count), then register. The original stays
    until the user removes it.
-3. **Keep `projects.json` current** in the same task: new, cloned, moved, promoted, archived.
+3. **Keep `projects.json` current** in the same task: new, cloned, moved, promoted, archived (archiving removes the entry).
 4. **Nothing personal goes in someone else's repo.** For partner games, the user's files stay in the game home, beside `game/`.
 5. **Never commit** secrets (`.env`), game files the user doesn't own, or heavy sources that belong in `assets/`.
 6. **Temporary files** (test scaffolds, scratch scripts) go in the session scratchpad, not in the workspace.

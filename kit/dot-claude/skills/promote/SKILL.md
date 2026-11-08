@@ -20,7 +20,7 @@ argument-hint: "<path or name> [target kind or engine]"
    | **Other idea → project** | Create the project with `/new-project`'s recipe, then move the idea's `README.md` into it as `docs/idea.md` |
    | **Sandbox → category** | Move it, add what the category expects (`repo-base` with `-Merge`, git if missing), and register it |
    | **External fork → the user's own** | Move it to its category. Rename the remotes so the fork is `origin` and the original is `upstream`. Update the row's owner |
-   | **Archive → active** | Move it back to the path it had before archiving (`archive/<sub-path>` → `<sub-path>`), with status `in-development` |
+   | **Archive → active** | Move it back to the path it had before archiving (`archive/<sub-path>` → `<sub-path>`), and add a new `projects.json` entry with status `in-development` |
 
    **Game idea → game home.** The idea folder *becomes* the game home:
    1. Its `game.json`, `README.md`, `docs/`, `features/`, `scripts/` and `data/` stay at the home's root.
@@ -29,6 +29,6 @@ argument-hint: "<path or name> [target kind or engine]"
    3. Create the repo in `game/` as `/new-project` → `types/<engine>.md` describes (steps 2–4).
    4. Set the `game.json` status to `prototyping`.
 5. **Fix paths** that point at the old location: `git grep -n "<old path>"` in repos, plus `AGENTS.md`, `CLAUDE.md` and
-   configs. Update the `projects.json` entry (path, kind, stack, status). Check the instructions as `/new-project` step 4 does: every folder with its
+   configs. Update the `projects.json` entry (path, kind, stack, status), or add one if it had none. Check the instructions as `/new-project` step 4 does: every folder with its
    own rules is listed in its home's `CLAUDE.md`, and `scan-projects.ps1` prints no `not listed` line.
 6. Offer to switch the session into the new home.

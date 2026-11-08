@@ -34,7 +34,7 @@ to these entries by `path`.
 | `kind` | yes | `game` · `mod` · `emulator` · `app` · `tool` · `framework` · `suite` · `asset-pack` · `research` · `idea` · `external` |
 | `stack` | yes | Short list of what it's built with: `["Tauri", "React"]`, `["Godot 4.7", "GDScript"]`. `[]` when there's nothing to name |
 | `owner` | yes | GitHub owner of the main repo, `"local"` if it has no remote, `null` for plain folders |
-| `status` | yes | `planning` · `prototyping` · `in-development` · `released` · `on-hold` · `archived` |
+| `status` | yes | `planning` · `prototyping` · `in-development` · `released` · `on-hold` |
 | `description` | yes | One sentence: what it is. No history, no setup details |
 | `tags` | yes | What to sort and filter by (below). `[]` is fine |
 | `notes` | no | One line: partner or client, why it was cloned, setup history, gotchas |
@@ -60,7 +60,8 @@ one; the app lists every tag in use. Starter list:
 - Game homes, mod homes and emulator homes get one entry, with the home's path. Suites get one entry for the suite and
   one per repo.
 - Sandbox experiments, library asset sets and one-file scripts get no entry.
-- Never remove an entry when a project is archived: change its `path` and set `status` to `archived`.
+- Archived projects get no entry: archiving one removes its entry, and nothing under `archive/` is listed. The app
+  shows archived folders in its Archive group without flagging them.
 - Anything the app doesn't know (an extra key) is kept as it is when the app writes the file.
 
 ## New entry

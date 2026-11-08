@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fakeProjects } from "../../lib/fakeProjects";
-import { filterProjects, groupProjects, NO_FILTERS, tagsInUse } from "./filter";
+import { filterProjects, groupProjects, NO_FILTERS, registryFlag, tagsInUse } from "./filter";
 
 const all = NO_FILTERS;
 const names = (projects: { name: string }[]) => projects.map((p) => p.name);
@@ -39,6 +39,18 @@ describe("groupProjects", () => {
     const groups = groupProjects(fakeProjects);
     expect(groups.map((g) => g.label)).toEqual(["Games", "Apps", "Tools", "Research", "Archive"]);
     expect(names(groups[0].projects)).toEqual(["Swamp", "Fish Dive"]);
+  });
+});
+
+describe("registryFlag", () => {
+  it("flags drift, but never an archived folder without an entry", () => {
+    const flags = Object.fromEntries(fakeProjects.map((p) => [p.path, registryFlag(p)]));
+    expect(flags["archive/games/roblox/obby/"]).toBeNull();
+    expect(flags["apps/web/old-site/"]).toBe("folder missing");
+    expect(flags["tools/rename/"]).toBe("not in projects.json");
+    expect(flags["games/godot/swamp/"]).toBeNull();
+    const listed = fakeProjects.find((p) => p.archived);
+    expect(listed && registryFlag({ ...listed, registered: true })).toBe("archived: remove from projects.json");
   });
 });
 

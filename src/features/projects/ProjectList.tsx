@@ -2,7 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { openFolder } from "../../lib/backend";
-import { type Filters, filterProjects, groupProjects, NO_FILTERS, statusesInUse, tagsInUse } from "./filter";
+import {
+  type Filters,
+  filterProjects,
+  groupProjects,
+  NO_FILTERS,
+  registryFlag,
+  statusesInUse,
+  tagsInUse,
+} from "./filter";
 import { ProjectFilters } from "./ProjectFilters";
 import { ProjectRow } from "./ProjectRow";
 import { useGitStatus } from "./useGitStatus";
@@ -23,7 +31,7 @@ export function ProjectList({ root }: Props) {
   const shown = useMemo(() => filterProjects(projects, filters, git), [projects, filters, git]);
   const groups = useMemo(() => groupProjects(shown), [shown]);
   const tags = useMemo(() => tagsInUse(projects), [projects]);
-  const flagged = projects.filter((p) => !p.registered || !p.onDisk).length;
+  const flagged = projects.filter((p) => registryFlag(p) !== null).length;
 
   const toggleTag = (tag: string) =>
     setFilters((f) => ({ ...f, tags: f.tags.includes(tag) ? f.tags.filter((t) => t !== tag) : [...f.tags, tag] }));

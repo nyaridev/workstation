@@ -51,7 +51,7 @@ assets/
 ## Design and status
 
 A game home keeps its status in `docs/game.json` too, if it has one. The status runs `planning` → `prototyping` →
-`in-development` → `released` → `on-hold` → `archived`. Keep it in step with the game's `projects.json` entry.
+`in-development` → `released` → `on-hold` → `archived`. Keep it in step with the game's `projects.json` entry, which an archived game no longer has.
 
 ## Working here
 

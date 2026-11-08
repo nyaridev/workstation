@@ -14,8 +14,8 @@ pub const FILE_NAME: &str = "projects.json";
 /// The allowed `kind` values, as `scan-projects.ps1` checks them.
 const KINDS: [&str; 11] =
     ["game", "mod", "emulator", "app", "tool", "framework", "suite", "asset-pack", "research", "idea", "external"];
-/// The allowed `status` values.
-const STATUSES: [&str; 6] = ["planning", "prototyping", "in-development", "released", "on-hold", "archived"];
+/// The allowed `status` values. Archived projects have no entry, so no `archived` status.
+const STATUSES: [&str; 5] = ["planning", "prototyping", "in-development", "released", "on-hold"];
 
 // ── Types ─────────────────────────────────
 /// One `projects.json` entry, in the documented key order. Keys the app doesn't know are kept in `extra`.
@@ -156,6 +156,9 @@ pub fn read(root: &Path) -> Result<Vec<Entry>, String> {
 /// Adds an entry for a project folder that has none, at its place by path.
 pub fn add(root: &Path, mut entry: Entry) -> Result<(), String> {
     entry.path = normalize_path(&entry.path)?;
+    if same_path(entry.path.split('/').next().unwrap_or(""), "archive") {
+        return Err("Archived projects aren't registered in projects.json.".to_string());
+    }
     entry.name = entry.name.trim().to_string();
     entry.description = entry.description.trim().to_string();
     if entry.name.is_empty() || entry.description.is_empty() {
@@ -297,7 +300,10 @@ mod tests {
         let temp = Temp::new();
         temp.file(FILE_NAME, SAMPLE);
         temp.dir("tools/rename");
+        temp.dir("archive/tools/old");
         assert!(add(&temp.0, entry("tools/missing/")).is_err(), "no folder");
+        assert!(add(&temp.0, entry("Archive/tools/old/")).is_err(), "archived");
+        assert!(add(&temp.0, Entry { status: "archived".into(), ..entry("tools/rename/") }).is_err(), "archived status");
         assert!(add(&temp.0, entry("../outside/")).is_err(), "outside the workstation");
         assert!(add(&temp.0, entry("Tools/Zeta/")).is_err(), "already listed");
         assert!(add(&temp.0, Entry { kind: "thing".into(), ..entry("tools/rename/") }).is_err(), "unknown kind");

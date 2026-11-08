@@ -44,6 +44,13 @@ export function hasChanges(git: GitStatus | undefined): boolean {
   return !!git && (git.uncommitted > 0 || (git.unpushed ?? 0) > 0);
 }
 
+/** Why a project doesn't match projects.json, or null when it does. Archived folders must have no entry. */
+export function registryFlag(p: Project): string | null {
+  if (p.archived) return p.registered ? "archived: remove from projects.json" : null;
+  if (!p.registered) return "not in projects.json";
+  return p.onDisk ? null : "folder missing";
+}
+
 /** The projects that match the search text, every selected tag, the status, and the "has changes" switch. */
 export function filterProjects(projects: Project[], filters: Filters, git: GitStatuses = {}): Project[] {
   const words = filters.query.toLowerCase().split(/\s+/).filter(Boolean);
