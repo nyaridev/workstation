@@ -24,6 +24,7 @@ src/
 └─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
 kit/                   the starter workstation (stored as dot-* and *.kit.md), embedded at build time
 scripts/               check-size.mjs
+assets/brand/          the README's banners, dark and light
 ```
 
 ## Modules
