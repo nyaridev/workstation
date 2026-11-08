@@ -5,6 +5,7 @@
 use crate::git;
 use crate::kit;
 use crate::scan::{self, Entry, Scan};
+use crate::update::{self, Release};
 use crate::watch;
 use crate::workstations::{self, Listing};
 use serde::Serialize;
@@ -13,7 +14,19 @@ use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_opener::OpenerExt;
 
+// ── Constants ─────────────────────────────
+/// The running app's version (kept equal in Cargo.toml, tauri.conf.json and package.json by the `release` skill).
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 // ── Types ─────────────────────────────────
+/// The running version, and the newest release when it's newer.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateCheck {
+    current: &'static str,
+    latest: Option<Release>,
+}
+
 /// The result of setting up a workstation: the updated list, and how many kit files were written or already there.
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -26,6 +39,11 @@ pub struct SetupResult {
 // ── Private helpers ───────────────────────
 fn config_dir(app: &AppHandle) -> Result<PathBuf, String> {
     app.path().app_config_dir().map_err(|e| format!("No config folder: {e}"))
+}
+
+/// Where downloaded updates wait until the next start removes them.
+pub fn updates_dir(app: &AppHandle) -> Result<PathBuf, String> {
+    Ok(config_dir(app)?.join("updates"))
 }
 
 // Points the watcher at the open workstation (if it's reachable) after the list was read or changed.
@@ -108,4 +126,36 @@ pub fn set_tags(root: String, path: String, tags: Vec<String>) -> Result<(), Str
 pub fn open_folder(app: AppHandle, root: String, path: String) -> Result<(), String> {
     let folder = scan::folder(Path::new(&root), &path)?;
     app.opener().open_path(folder.to_string_lossy(), None::<&str>).map_err(|e| e.to_string())
+}
+
+// ── Updates ───────────────────────────────
+/// The running version and the newest release when it's newer. Runs off the main thread: it asks GitHub.
+#[tauri::command]
+pub async fn check_update() -> Result<UpdateCheck, String> {
+    let latest = tauri::async_runtime::spawn_blocking(|| update::check(VERSION)).await.map_err(|e| e.to_string())??;
+    Ok(UpdateCheck { current: VERSION, latest })
+}
+
+/// Installs `version` in place of the running exe, starts it and quits. A development build only says it can't.
+#[tauri::command]
+pub async fn install_update(app: AppHandle, version: String) -> Result<(), String> {
+    if cfg!(debug_assertions) {
+        return Err("This is a development build, so it doesn't replace itself.".to_string());
+    }
+    let exe = std::env::current_exe().map_err(|e| format!("Can't find the running exe: {e}"))?;
+    let dir = updates_dir(&app)?;
+    tauri::async_runtime::spawn_blocking(move || update::install(&version, VERSION, &exe, &dir))
+        .await
+        .map_err(|e| e.to_string())??;
+    app.exit(0);
+    Ok(())
+}
+
+/// Opens one of this app's release pages in the browser; any other address is refused.
+#[tauri::command]
+pub fn open_release_page(app: AppHandle, url: String) -> Result<(), String> {
+    if !url.starts_with(update::RELEASE_PAGES) {
+        return Err(format!("{url} isn't a Workstation release page."));
+    }
+    app.opener().open_url(url, None::<&str>).map_err(|e| e.to_string())
 }

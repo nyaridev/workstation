@@ -31,7 +31,7 @@ push. It only reads your projects; its only writes are to `projects.json` and to
 
 Download `Workstation.exe` and run it: nothing to install, on Windows 10 or 11. **Add a workstation** (a folder with
 `projects.json` at its top) or **Set up a new one** in an empty folder, then fill in the GitHub owners table in its
-`AGENTS.md`.
+`AGENTS.md`. When a new version is out, a button in the title bar installs it.
 
 ## Develop
 

@@ -3,13 +3,15 @@
 import { useMemo, useState } from "react";
 import { openFolder } from "../../lib/backend";
 import {
+  ANY,
   type Filters,
   filterProjects,
   groupProjects,
   NO_FILTERS,
+  nestProjects,
   registryFlag,
-  statusesInUse,
-  tagsInUse,
+  tagCounts,
+  valuesInUse,
 } from "./filter";
 import { ProjectFilters } from "./ProjectFilters";
 import { ProjectRow } from "./ProjectRow";
@@ -27,10 +29,22 @@ export function ProjectList({ root }: Props) {
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [openError, setOpenError] = useState<string | null>(null);
 
-  const projects = scan?.projects ?? [];
-  const shown = useMemo(() => filterProjects(projects, filters, git), [projects, filters, git]);
+  const projects = useMemo(() => scan?.projects ?? [], [scan]);
+  // A suite's repos are listed inside the suite's row, not on their own.
+  const { top, inside } = useMemo(() => nestProjects(projects), [projects]);
+  const shown = useMemo(() => filterProjects(top, filters, git, inside), [top, filters, git, inside]);
   const groups = useMemo(() => groupProjects(shown), [shown]);
-  const tags = useMemo(() => tagsInUse(projects), [projects]);
+  // The kind tabs count what the other filters let through, so each tab says what clicking it shows.
+  const kinds = useMemo(
+    () =>
+      groupProjects(filterProjects(top, { ...filters, group: ANY }, git, inside)).map((g) => ({
+        label: g.label,
+        count: g.projects.length,
+      })),
+    [top, inside, filters, git],
+  );
+  const counts = useMemo(() => tagCounts(projects), [projects]);
+  const tags = useMemo(() => counts.map(([tag]) => tag), [counts]);
   const flagged = projects.filter((p) => registryFlag(p) !== null).length;
 
   const toggleTag = (tag: string) =>
@@ -52,16 +66,28 @@ export function ProjectList({ root }: Props) {
         </p>
       ))}
       {flagged > 0 && (
-        <p className="border-amber-900/60 border-b bg-amber-950/30 px-4 py-2 text-amber-200 text-sm">
-          {flagged} project{flagged === 1 ? " doesn't" : "s don't"} match projects.json: look for the flags below.
+        <p className="flex items-center gap-3 border-amber-900/60 border-b bg-amber-950/30 px-4 py-2 text-amber-200 text-sm">
+          {flagged} project{flagged === 1 ? " doesn't" : "s don't"} match projects.json.
+          {!filters.flagged && (
+            <button
+              type="button"
+              onClick={() => setFilters({ ...filters, flagged: true })}
+              className="rounded px-2 py-0.5 font-medium hover:bg-amber-900/40"
+            >
+              Show them
+            </button>
+          )}
         </p>
       )}
       <ProjectFilters
         filters={filters}
-        tags={tags}
-        statuses={statusesInUse(projects)}
+        groups={kinds}
+        tags={counts}
+        statuses={valuesInUse(projects, (p) => [p.status])}
+        owners={valuesInUse(projects, (p) => [p.owner])}
+        stacks={valuesInUse(projects, (p) => p.stack)}
         shown={shown.length}
-        total={projects.length}
+        total={top.length}
         onChange={setFilters}
       />
       <div className="flex-1 overflow-y-auto">
@@ -80,7 +106,8 @@ export function ProjectList({ root }: Props) {
                   key={project.path}
                   root={root}
                   project={project}
-                  git={git[project.path]}
+                  inside={inside}
+                  git={git}
                   selectedTags={filters.tags}
                   suggestions={tags}
                   canWrite={scan.registryError === null}

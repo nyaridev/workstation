@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+/* A desktop app: the arrow over text, as in native windows; only fields you type in show the text cursor. */
+@layer base {
+  html {
+    cursor: default;
+  }
+
+  input:not([type="checkbox"], [type="radio"]),
+  textarea {
+    cursor: text;
+  }
+}

@@ -16,11 +16,13 @@ src-tauri/src/
 ├─ watch.rs            debounced watcher → `projects-changed`
 ├─ git.rs              branch, uncommitted, unpushed, remote owner (the `git` command, 8 repos at a time)
 ├─ kit.rs              the embedded starter kit and "set up here" (never overwrites)
+├─ update.rs           the app's own updates: check, download, SHA-256, swap the exe (gh or curl.exe)
 └─ test_support.rs     temp folders for tests (test builds only)
 src/
 ├─ app/                the window, its title bar, first-run screen, workstation switcher and status banner
-├─ features/projects/  project list: filter.ts (search, tags, grouping), fields.ts (kinds, statuses, tags), the
-│                      list, row, filters, Register form, tag editor and tag input, useProjects
+├─ features/projects/  project list: filter.ts (filters, nesting, grouping), fields.ts (kinds, statuses, tags), the
+│                      list, row (opens to inner projects and FolderRows), filters and TagPicker, Register form,
+│                      tag editor and tag input, useProjects
 └─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
 kit/                   the starter workstation (stored as dot-* and *.kit.md), embedded at build time
 scripts/               check-size.mjs
@@ -35,6 +37,7 @@ assets/brand/          the README's banners, dark and light
 | `scan/` | finding projects, reading and writing `projects.json` | nothing in the app |
 | `git.rs` | running `git` for status | nothing in the app |
 | `kit.rs` | copying the embedded kit | nothing in the app |
+| `update.rs` | the app's own updates from GitHub releases | nothing in the app |
 | `watch.rs` | the file watcher and its event | `scan/`, `tauri` |
 | `commands.rs`, `lib.rs` | the Tauri surface | every module above, `tauri` |
 | `src/lib/` | talking to Rust | `@tauri-apps/api` |
@@ -50,6 +53,7 @@ assets/brand/          the README's banners, dark and light
 | [0004](0004-projects-json-registry.md) | projects.json is the registry | Accepted (marker replaced by 0005, archiving by 0006) |
 | [0005](0005-workstations-added-by-hand.md) | Workstations are added by hand and recognized by projects.json | Accepted |
 | [0006](0006-archived-projects-leave-the-registry.md) | Archived projects leave projects.json | Accepted |
+| [0007](0007-self-update-from-github-releases.md) | Self-update from GitHub releases | Accepted |
 
 ## Milestones
 
@@ -64,8 +68,8 @@ assets/brand/          the README's banners, dark and light
 | M6 | Starter kit and first-run setup | done |
 | M7 | Release prep: app icon, README, manual check list, release build | done |
 | M8 | Custom title bar | done (real window: `docs/manual-check.md` → 2) |
-| M9 | Self-update from GitHub releases | next |
-| M10 | Verify and polish, then release | planned |
+| M9 | Self-update from GitHub releases | done (real install: `docs/manual-check.md` → 8, after the first release) |
+| M10 | Verify and polish, then release | next |
 
 ### M8: Custom title bar
 
@@ -77,9 +81,9 @@ assets/brand/          the README's banners, dark and light
 
 ### M9: Self-update from GitHub releases
 
-Steps shown before it starts. Check the latest release on start, every 6 hours and on demand; download with `gh`
-when it's logged in, else `curl.exe`; verify the SHA-256 GitHub publishes; swap the portable exe and restart; a
-`release` skill. Gets its own ADR.
+ADR-0007. `update.rs` checks the latest release (on start, every 6 hours, on focus at most every 10 minutes) with
+`gh` when it's logged in, else `curl.exe`; downloads `Workstation.exe`, checks GitHub's SHA-256, swaps the running exe
+and restarts. The title bar's `UpdateChip` offers it; the `release` skill makes releases it can install.
 
 ### M10: Verify and polish, then release
 

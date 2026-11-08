@@ -1,8 +1,10 @@
 // TitleBar: the window's own title bar (the window has no Windows frame): the mark and name, what the screen puts in
-// it, a drag area (double-click maximizes), then minimize, maximize and close.
+// it, a drag area (double-click maximizes), the update button when there's a newer release, then minimize, maximize
+// and close.
 
 import { type ReactNode, useEffect, useState } from "react";
 import { closeWindow, minimizeWindow, onMaximizedChange, toggleMaximizeWindow } from "../lib/backend";
+import { UpdateChip } from "./UpdateChip";
 
 interface Props {
   /** The screen's controls, after the name (the workstation switcher and path). */
@@ -45,6 +47,7 @@ export function TitleBar({ children }: Props) {
       </span>
       {children}
       <div data-tauri-drag-region className="h-full min-w-6 flex-1" />
+      <UpdateChip />
       <div className="flex h-full">
         <button type="button" aria-label="Minimize" onClick={minimizeWindow} className={button}>
           {glyph("M0 5.5h10")}

@@ -6,6 +6,7 @@ mod kit;
 mod scan;
 #[cfg(test)]
 mod test_support;
+mod update;
 mod watch;
 mod workstations;
 
@@ -15,6 +16,13 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(watch::Watcher::default())
+        .setup(|app| {
+            // Whatever the last update left behind: the old exe and the download.
+            if let (Ok(exe), Ok(dir)) = (std::env::current_exe(), commands::updates_dir(app.handle())) {
+                update::clean_up(&exe, &dir);
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::list_workstations,
             commands::add_workstation,
@@ -27,6 +35,9 @@ pub fn run() {
             commands::guess_stack,
             commands::register_project,
             commands::set_tags,
+            commands::check_update,
+            commands::install_update,
+            commands::open_release_page,
         ])
         .run(tauri::generate_context!())
         .expect("error while running the Workstation app");

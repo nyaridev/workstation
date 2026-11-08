@@ -41,6 +41,15 @@ export interface Project {
   onDisk: boolean;
   /** False when the folder exists but `projects.json` has no entry for it. */
   registered: boolean;
+  /** Important folders inside a project that isn't a repo itself; projects of their own aren't repeated here. */
+  folders: Folder[];
+}
+
+/** A folder inside a project worth showing: a repo, or one with its own docs or rules (`scan::Folder`). */
+export interface Folder {
+  path: string;
+  name: string;
+  repo: boolean;
 }
 
 /** What git says about a project's repo (`git::Status`). */
@@ -73,4 +82,18 @@ export interface Scan {
   projects: Project[];
   /** Why `projects.json` couldn't be read; the folders on disk are still listed. */
   registryError: string | null;
+}
+
+/** A release of the app (`update::Release`). */
+export interface Release {
+  /** `0.2.0`, without the `v`. */
+  version: string;
+  /** The release's page on GitHub. */
+  page: string;
+}
+
+/** The running version, and the newest release when it's newer (`commands::UpdateCheck`). */
+export interface UpdateCheck {
+  current: string;
+  latest: Release | null;
 }

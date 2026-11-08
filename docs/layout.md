@@ -26,4 +26,6 @@ WORKSTATION/
   a new workstation. It never overwrites a file, and never deletes or moves anything.
 - **Flags** folders that have no entry, and entries whose folder is gone. Folders under `archive/` are listed but never
   flagged.
+- **Checks** GitHub for a newer Workstation release (through `gh` when it's logged in, else Windows' `curl.exe`),
+  and installs it only when you click. That's its only network use.
 - **Remembers** your workstations per Windows user, in `%APPDATA%\com.nyaridev.workstation\workstations.json`.

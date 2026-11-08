@@ -1,12 +1,13 @@
 // Backend: every call to Rust (invoke and listen), with fake data when running in a plain browser.
-// In `pnpm dev`, add `?empty` to the URL to see the first-run screen, `?broken` for an unreadable projects.json.
+// In `pnpm dev`, add `?empty` to the URL to see the first-run screen, `?broken` for an unreadable projects.json,
+// `?update` for a newer release.
 
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-dialog";
 import { fakeProjects } from "./fakeProjects";
-import type { GitStatuses, Listing, NewEntry, Scan, SetupResult } from "./types";
+import type { GitStatuses, Listing, NewEntry, Scan, SetupResult, UpdateCheck } from "./types";
 
 // ── Fake backend ──────────────────────────
 const inTauri = "__TAURI_INTERNALS__" in window;
@@ -91,6 +92,10 @@ export async function gitStatus(root: string, paths: string[]): Promise<GitStatu
     "apps/desktop/workstation/": { branch: "main", uncommitted: 4, unpushed: 2, owner: "nyaridev" },
     "games/roblox/fish-dive/": { branch: "main", uncommitted: 0, unpushed: 0, owner: "nari-games" },
     "tools/rename/": { branch: "feature/batch", uncommitted: 1, unpushed: null, owner: "nyaridev" },
+    "frameworks/kit/kit-core/": { branch: "main", uncommitted: 0, unpushed: 0, owner: "nyaridev" },
+    "frameworks/kit/kit-ui/": { branch: "main", uncommitted: 3, unpushed: 1, owner: "nyaridev" },
+    "games/godot/swamp/game/": { branch: "main", uncommitted: 0, unpushed: 2, owner: "local" },
+    "games/godot/swamp/wiki/": { branch: "main", uncommitted: 0, unpushed: 0, owner: "local" },
   };
 }
 
@@ -123,6 +128,29 @@ export function onProjectsChanged(onChange: (root: string) => void): () => void 
 export async function openFolder(root: string, path: string): Promise<void> {
   if (inTauri) return invoke("open_folder", { root, path });
   window.alert(`Would open ${root}/${path}`);
+}
+
+// ── Updates ───────────────────────────────
+/** The running version, and the newest release on GitHub when it's newer. */
+export async function checkUpdate(): Promise<UpdateCheck> {
+  if (inTauri) return invoke("check_update");
+  const page = "https://github.com/nyaridev/workstation/releases/tag/v0.2.0";
+  return {
+    current: "0.1.0",
+    latest: new URLSearchParams(location.search).has("update") ? { version: "0.2.0", page } : null,
+  };
+}
+
+/** Downloads and checks `version`, swaps it in for the running app and restarts. Rejects with why it can't. */
+export async function installUpdate(version: string): Promise<void> {
+  if (inTauri) return invoke("install_update", { version });
+  throw "This is the browser preview, so it can't install anything.";
+}
+
+/** Opens a release page of this app in the browser. */
+export async function openReleasePage(url: string): Promise<void> {
+  if (inTauri) return invoke("open_release_page", { url });
+  window.open(url, "_blank", "noopener");
 }
 
 // ── Window ────────────────────────────────

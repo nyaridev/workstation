@@ -10,10 +10,11 @@ compares them with each workstation's `projects.json` (format and entry template
 them by tags, and watches for projects being added, moved or removed. The built app also carries a starter kit that
 sets up a new WORKSTATION. Public later: github.com/nyaridev/workstation.
 
-Stage: M8 done, not released. The window draws its own title bar (no Windows frame). The app lists a workstation's projects with search, tag, status and "has changes"
+Stage: M9 done, not released. The window draws its own title bar (no Windows frame) and the app updates itself from
+GitHub releases. The app lists a workstation's projects with search, tag, status and "has changes"
 filters, flags, git badges and "Open folder"; rescans on its own when projects or `projects.json` change; registers
-unregistered projects and edits tags; sets up new workstations from the built-in kit (`kit/`). Next: M9 (self-update),
-then M10 (verify, polish, release). In `pnpm dev`, `?empty` shows the first-run screen and `?broken` an unreadable `projects.json`.
+unregistered projects and edits tags; sets up new workstations from the built-in kit (`kit/`). Next: M10 (verify,
+polish, release). In `pnpm dev`, `?update` fakes a newer release. In `pnpm dev`, `?empty` shows the first-run screen and `?broken` an unreadable `projects.json`.
 
 ## Commands
 
@@ -24,7 +25,8 @@ then M10 (verify, polish, release). In `pnpm dev`, `?empty` shows the first-run 
 | `pnpm check`    | Size check + `tsc` + Biome + Vitest + `cargo test`; must pass before a task is done |
 | `build.bat`     | Portable `release\Workstation.exe`                                                  |
 
-Before a release, go through `docs/manual-check.md` in the real window: it covers what the tests can't.
+Before a release, go through `docs/manual-check.md` in the real window: it covers what the tests can't. Releases follow
+`.claude/skills/release/SKILL.md` (`/release <version>`): the app updates itself from them (ADR-0007).
 
 ## Architecture
 

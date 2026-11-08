@@ -2,7 +2,8 @@
 
 import type { Project } from "./types";
 
-const base = { archived: false, owner: "local", notes: null, onDisk: true, registered: true };
+const base = { archived: false, owner: "local", notes: null, onDisk: true, registered: true, folders: [] };
+const folder = (path: string, repo = false) => ({ path, name: path.split("/").at(-2) ?? path, repo });
 
 /** A small made-up workstation. */
 export const fakeProjects: Project[] = [
@@ -43,6 +44,38 @@ export const fakeProjects: Project[] = [
   },
   {
     ...base,
+    path: "frameworks/kit/",
+    name: "Kit",
+    kind: "suite",
+    stack: [],
+    owner: null,
+    status: "in-development",
+    description: "A family of repos released together.",
+    tags: ["kit"],
+    folders: [folder("frameworks/kit/notes/")],
+  },
+  {
+    ...base,
+    path: "frameworks/kit/kit-core/",
+    name: "kit-core",
+    kind: "framework",
+    stack: ["Rust"],
+    status: "released",
+    description: "The core library.",
+    tags: ["kit"],
+  },
+  {
+    ...base,
+    path: "frameworks/kit/kit-ui/",
+    name: "kit-ui",
+    kind: "framework",
+    stack: ["TypeScript"],
+    status: "in-development",
+    description: "Widgets on top of the core.",
+    tags: ["kit"],
+  },
+  {
+    ...base,
     path: "games/godot/swamp/",
     name: "Swamp",
     kind: "game",
@@ -51,6 +84,12 @@ export const fakeProjects: Project[] = [
     description: "Co-op swamp survival for up to 4 players.",
     tags: ["godot", "co-op", "survival"],
     notes: "Steam via Spacewar until its own AppID.",
+    folders: [
+      folder("games/godot/swamp/assets/"),
+      folder("games/godot/swamp/docs/"),
+      folder("games/godot/swamp/game/", true),
+      folder("games/godot/swamp/wiki/", true),
+    ],
   },
   {
     ...base,
