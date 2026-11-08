@@ -11,7 +11,9 @@ interface Props {
   onRemove: (root: string) => void;
 }
 
-/** The header controls for switching workstations. */
+const action = "h-7 rounded-md px-2.5 text-xs hover:bg-zinc-800";
+
+/** The title bar's controls for switching workstations. */
 export function WorkstationSwitcher({ listing, current, onOpen, onAdd, onSetup, onRemove }: Props) {
   const confirmRemove = () => {
     const question = `Remove "${current.name}" from the list?\nIts folder and files stay as they are.`;
@@ -19,15 +21,15 @@ export function WorkstationSwitcher({ listing, current, onOpen, onAdd, onSetup, 
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <label htmlFor="workstation" className="text-sm text-zinc-400">
+    <div className="flex shrink-0 items-center gap-1">
+      <label htmlFor="workstation" className="sr-only">
         Workstation
       </label>
       <select
         id="workstation"
         value={current.root}
         onChange={(e) => onOpen(e.target.value)}
-        className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm"
+        className="mr-1 h-7 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-sm"
       >
         {listing.workstations.map((w) => (
           <option key={w.root} value={w.root}>
@@ -35,17 +37,13 @@ export function WorkstationSwitcher({ listing, current, onOpen, onAdd, onSetup, 
           </option>
         ))}
       </select>
-      <button type="button" onClick={onAdd} className="rounded-md bg-zinc-800 px-3 py-1 text-sm hover:bg-zinc-700">
+      <button type="button" onClick={onAdd} className={`${action} text-zinc-300`}>
         Add…
       </button>
-      <button type="button" onClick={onSetup} className="rounded-md bg-zinc-800 px-3 py-1 text-sm hover:bg-zinc-700">
+      <button type="button" onClick={onSetup} className={`${action} text-zinc-300`}>
         Set up new…
       </button>
-      <button
-        type="button"
-        onClick={confirmRemove}
-        className="rounded-md px-3 py-1 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-      >
+      <button type="button" onClick={confirmRemove} className={`${action} text-zinc-500 hover:text-zinc-200`}>
         Remove from list
       </button>
     </div>

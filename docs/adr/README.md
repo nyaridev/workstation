@@ -18,7 +18,7 @@ src-tauri/src/
 ├─ kit.rs              the embedded starter kit and "set up here" (never overwrites)
 └─ test_support.rs     temp folders for tests (test builds only)
 src/
-├─ app/                the window, first-run screen, workstation switcher and status banner
+├─ app/                the window, its title bar, first-run screen, workstation switcher and status banner
 ├─ features/projects/  project list: filter.ts (search, tags, grouping), fields.ts (kinds, statuses, tags), the
 │                      list, row, filters, Register form, tag editor and tag input, useProjects
 └─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
@@ -63,9 +63,25 @@ assets/brand/          the README's banners, dark and light
 | M5 | Git status per repo | done |
 | M6 | Starter kit and first-run setup | done |
 | M7 | Release prep: app icon, README, manual check list, release build | done |
-| M8 | Verify and polish, then release | next |
+| M8 | Custom title bar | done (real window: `docs/manual-check.md` → 2) |
+| M9 | Self-update from GitHub releases | next |
+| M10 | Verify and polish, then release | planned |
 
-### M8: Verify and polish, then release
+### M8: Custom title bar
+
+1. A frameless main window (`decorations: false`); the window permissions for minimize, maximize, close and dragging.
+2. `src/app/TitleBar.tsx`: the mark and name, the workstation switcher and path, a drag area (double-click
+   maximizes), a slot for M9's update button, then minimize, maximize/restore and close.
+3. The title bar on every screen: loading, first run, and the open workstation.
+4. A title bar section in `docs/manual-check.md`.
+
+### M9: Self-update from GitHub releases
+
+Steps shown before it starts. Check the latest release on start, every 6 hours and on demand; download with `gh`
+when it's logged in, else `curl.exe`; verify the SHA-256 GitHub publishes; swap the portable exe and restart; a
+`release` skill. Gets its own ADR.
+
+### M10: Verify and polish, then release
 
 1. The owner goes through `docs/manual-check.md` in the real window; fix what it turns up.
 2. The owner reviews `kit/` (what it says about Roblox with Rojo, ideas without game-forge, the owners placeholders)

@@ -12,7 +12,7 @@ interface Props {
 /** Explains what a workstation is and offers to add an existing one or set up a new one. */
 export function EmptyState({ banner, onAdd, onSetup }: Props) {
   return (
-    <main className="grid min-h-screen place-items-center bg-zinc-950 p-6 text-zinc-200">
+    <main className="grid flex-1 place-items-center overflow-y-auto p-6">
       <div className="max-w-md text-center">
         <h1 className="font-semibold text-2xl">Workstation</h1>
         <p className="mt-3 text-sm text-zinc-400">

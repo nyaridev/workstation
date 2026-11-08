@@ -3,6 +3,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-dialog";
 import { fakeProjects } from "./fakeProjects";
 import type { GitStatuses, Listing, NewEntry, Scan, SetupResult } from "./types";
@@ -122,6 +123,32 @@ export function onProjectsChanged(onChange: (root: string) => void): () => void 
 export async function openFolder(root: string, path: string): Promise<void> {
   if (inTauri) return invoke("open_folder", { root, path });
   window.alert(`Would open ${root}/${path}`);
+}
+
+// ── Window ────────────────────────────────
+/** Minimizes the window (the title bar draws its own buttons). Does nothing in a browser. */
+export async function minimizeWindow(): Promise<void> {
+  if (inTauri) await getCurrentWindow().minimize();
+}
+
+/** Maximizes the window, or restores it when it's maximized. */
+export async function toggleMaximizeWindow(): Promise<void> {
+  if (inTauri) await getCurrentWindow().toggleMaximize();
+}
+
+/** Closes the window, which quits the app. */
+export async function closeWindow(): Promise<void> {
+  if (inTauri) await getCurrentWindow().close();
+}
+
+/** Calls `onChange` now and whenever the window is maximized or restored; returns a function that stops. */
+export function onMaximizedChange(onChange: (maximized: boolean) => void): () => void {
+  if (!inTauri) return () => {};
+  const win = getCurrentWindow();
+  const update = () => void win.isMaximized().then(onChange);
+  update();
+  const unlisten = win.onResized(update);
+  return () => void unlisten.then((stop) => stop());
 }
 
 /** Asks for a folder; null when cancelled. */

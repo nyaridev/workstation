@@ -22,7 +22,17 @@ delete that file to see the first run again.
 - [ ] **Remove from list** asks first, removes it from the dropdown, and leaves the folder untouched.
 - [ ] Close and reopen the app: the list and the open workstation are remembered.
 
-## 2. The project list (real workstation, read-only)
+## 2. The title bar
+
+- [ ] No Windows frame: the app's own bar, with the mark, the switcher and the path. On Windows 11 the corners are
+      round and the window has its shadow.
+- [ ] Dragging the empty part of the bar, the name or the path moves the window; dragging to the top edge maximizes,
+      to a side snaps it. Double-clicking the empty part maximizes and restores.
+- [ ] Minimize, Maximize (its icon turns into Restore) and Close work; Close quits the app.
+- [ ] The switcher's dropdown and buttons still work inside the bar, and clicking them doesn't drag.
+- [ ] The first-run screen has the bar too.
+
+## 3. The project list (real workstation, read-only)
 
 - [ ] Groups appear in order (Games, Apps, Tools, Frameworks, Research, Ideas, Archive…) with counts.
 - [ ] Every project in `projects.json` is there, with its description, path, stack and tags.
@@ -31,14 +41,14 @@ delete that file to see the first run again.
 - [ ] The status picker filters.
 - [ ] **Open folder** opens the project in Explorer.
 
-## 3. Git
+## 4. Git
 
 - [ ] Repos show their branch; ones with changes show "N uncommitted" and "N unpushed" (compare with `git status`).
 - [ ] Plain folders (ideas, research, suites) show no badges.
 - [ ] "Has changes" keeps only repos with uncommitted or unpushed work.
 - [ ] Commit something in a terminal, switch back to the app: the badge updates.
 
-## 4. Live updates (test workstation)
+## 5. Live updates (test workstation)
 
 - [ ] Create `tools/hello/` in Explorer: within a second it appears, flagged "not in projects.json".
 - [ ] Rename it: the old row goes, the new one appears. Delete it: it goes.
@@ -49,7 +59,7 @@ delete that file to see the first run again.
 - [ ] Create `archive/tools/old/`: it shows in the Archive group with no flag and no Register button. Add an entry for
       it to `projects.json` by hand: it's flagged "archived: remove from projects.json".
 
-## 5. Registering and tags (test workstation)
+## 6. Registering and tags (test workstation)
 
 - [ ] On `tools/hello/` (create it again), **Register…** opens a prefilled form: name, kind `tool`, status, owner,
       and a stack guessed from its files (add a `Cargo.toml` or `package.json` to see the guess).
@@ -60,7 +70,7 @@ delete that file to see the first run again.
 - [ ] **Edit tags** on a registered project: remove one, add one, save. Only that entry's `tags` changed.
 - [ ] A repo with a GitHub remote prefills Owner with the remote's owner; a repo without one says `local`.
 
-## 6. Release build
+## 7. Release build
 
 - [ ] `build.bat` makes `release\Workstation.exe`; it starts with no console window and shows the app icon in the
       title bar and taskbar.
