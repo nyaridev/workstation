@@ -1,0 +1,15 @@
+# Copy into an asset's folder as asset.yaml and keep it current when the asset changes.
+id: ui/hud/oxygen_tank            # its path under assets/
+name: Oxygen tank                 # human-readable name
+status: draft                     # draft | wip | final
+origin: user                      # user | claude | ai_tool | third_party
+made_with:                        # app, script (parameters in source/) or prompt file
+license: own                      # own | CC0 | CC-BY-4.0 | bought | …
+source_url:                       # third-party assets only
+library_set:                      # assets/library/... when copied from the library
+files:                            # what export/ holds
+  - oxygen_tank.png
+in_game: false                    # true once the game uses it (copied into game/ or uploaded)
+roblox_asset_id:                  # rbxassetid once uploaded (Roblox games)
+notes: >
+  Anything the next person editing it should know (size, palette, attachment points).

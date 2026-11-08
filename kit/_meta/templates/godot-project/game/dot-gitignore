@@ -1,0 +1,12 @@
+# Godot
+.godot/
+/android/
+*.tmp
+
+# Builds go to the game home's builds/, never into the repo
+*.exe
+*.pck
+
+# Local
+CLAUDE.local.md
+.claude/settings.local.json

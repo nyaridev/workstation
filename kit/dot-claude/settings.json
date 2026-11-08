@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "PowerShell(git clone *)",
+      "PowerShell(git init *)",
+      "PowerShell(git add *)",
+      "PowerShell(git commit *)",
+      "Bash(git clone *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ],
+    "ask": [
+      "PowerShell(git push *)",
+      "PowerShell(git -C * push *)",
+      "Bash(git push *)",
+      "Bash(git -C * push *)",
+      "PowerShell(gh repo create *)",
+      "PowerShell(gh repo edit *)",
+      "PowerShell(gh repo rename *)",
+      "PowerShell(gh repo archive *)",
+      "Bash(gh repo create *)",
+      "Bash(gh repo edit *)",
+      "Bash(gh repo rename *)",
+      "Bash(gh repo archive *)"
+    ],
+    "deny": [
+      "PowerShell(git clean *)",
+      "PowerShell(git -C * clean *)",
+      "Bash(git clean *)",
+      "Bash(git -C * clean *)",
+      "PowerShell(gh repo delete *)",
+      "Bash(gh repo delete *)"
+    ]
+  }
+}

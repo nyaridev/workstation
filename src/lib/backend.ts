@@ -1,0 +1,132 @@
+// Backend: every call to Rust (invoke and listen), with fake data when running in a plain browser.
+// In `pnpm dev`, add `?empty` to the URL to see the first-run screen, `?broken` for an unreadable projects.json.
+
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import { open } from "@tauri-apps/plugin-dialog";
+import { fakeProjects } from "./fakeProjects";
+import type { GitStatuses, Listing, NewEntry, Scan, SetupResult } from "./types";
+
+// ── Fake backend ──────────────────────────
+const inTauri = "__TAURI_INTERNALS__" in window;
+
+let fake: Listing = new URLSearchParams(location.search).has("empty")
+  ? { workstations: [], open: null }
+  : {
+      workstations: [
+        { name: "WORKSTATION", root: "C:/path/to/WORKSTATION", available: true },
+        { name: "work", root: "D:/work", available: false },
+      ],
+      open: "C:/path/to/WORKSTATION",
+    };
+
+function fakeAdd(root: string): Listing {
+  if (!fake.workstations.some((w) => w.root === root)) {
+    const name = root.split(/[\\/]/).filter(Boolean).pop() ?? root;
+    fake = { ...fake, workstations: [...fake.workstations, { name, root, available: true }] };
+  }
+  fake = { ...fake, open: root };
+  return fake;
+}
+
+let fakeList = fakeProjects;
+
+function fakeRegister(entry: NewEntry) {
+  fakeList = fakeList.map((p) => (p.path === entry.path ? { ...p, ...entry, notes: null, registered: true } : p));
+}
+
+function fakeRemove(root: string): Listing {
+  const workstations = fake.workstations.filter((w) => w.root !== root);
+  fake = { workstations, open: fake.open === root ? (workstations[0]?.root ?? null) : fake.open };
+  return fake;
+}
+
+// ── Workstations ──────────────────────────
+/** The saved workstations and which one is open. */
+export async function listWorkstations(): Promise<Listing> {
+  return inTauri ? invoke("list_workstations") : fake;
+}
+
+/** Adds a workstation root and opens it. Rejects with a message when the folder isn't a workstation. */
+export async function addWorkstation(root: string): Promise<Listing> {
+  if (inTauri) return invoke("add_workstation", { root });
+  // The fake treats only folders named like a workstation as one, so the setup offer can be tried.
+  if (!/workstation/i.test(root)) throw `${root} isn't a workstation: it has no projects.json.`;
+  return fakeAdd(root);
+}
+
+/** Writes the starter kit into `root` (never overwriting a file), adds it as a workstation and opens it. */
+export async function setupWorkstation(root: string): Promise<SetupResult> {
+  if (inTauri) return invoke("setup_workstation", { root });
+  return { listing: fakeAdd(root), written: 108, skipped: 0 };
+}
+
+/** Forgets a workstation; its folder is untouched. */
+export async function removeWorkstation(root: string): Promise<Listing> {
+  return inTauri ? invoke("remove_workstation", { root }) : fakeRemove(root);
+}
+
+/** Switches to another listed workstation. */
+export async function openWorkstation(root: string): Promise<Listing> {
+  if (inTauri) return invoke("open_workstation", { root });
+  fake = { ...fake, open: root };
+  return fake;
+}
+
+// ── Projects ──────────────────────────────
+/** Every project of the workstation at `root`. */
+export async function scanWorkstation(root: string): Promise<Scan> {
+  if (inTauri) return invoke("scan_workstation", { root });
+  const broken = new URLSearchParams(location.search).has("broken");
+  return broken
+    ? { projects: fakeList.filter((p) => !p.registered), registryError: "projects.json can't be read: line 3" }
+    : { projects: fakeList, registryError: null };
+}
+
+/** Git status of the repos among `paths`; plain folders are left out. */
+export async function gitStatus(root: string, paths: string[]): Promise<GitStatuses> {
+  if (inTauri) return invoke("git_status", { root, paths });
+  return {
+    "apps/desktop/workstation/": { branch: "main", uncommitted: 4, unpushed: 2, owner: "nyaridev" },
+    "games/roblox/fish-dive/": { branch: "main", uncommitted: 0, unpushed: 0, owner: "nari-games" },
+    "tools/rename/": { branch: "feature/batch", uncommitted: 1, unpushed: null, owner: "nyaridev" },
+  };
+}
+
+/** A guess at a project's stack from its files. */
+export async function guessStack(root: string, path: string): Promise<string[]> {
+  return inTauri ? invoke("guess_stack", { root, path }) : ["Rust"];
+}
+
+/** Adds a `projects.json` entry for an unregistered project. Rejects with a message when Rust refuses it. */
+export async function registerProject(root: string, entry: NewEntry): Promise<void> {
+  if (inTauri) return invoke("register_project", { root, entry });
+  if (!entry.description.trim()) throw "A project needs a name and a one-sentence description.";
+  fakeRegister(entry);
+}
+
+/** Replaces a project's tags in `projects.json`. */
+export async function setTags(root: string, path: string, tags: string[]): Promise<void> {
+  if (inTauri) return invoke("set_tags", { root, path, tags });
+  fakeList = fakeList.map((p) => (p.path === path ? { ...p, tags } : p));
+}
+
+/** Calls `onChange` with the workstation root whenever its projects may have changed; returns a function that stops. */
+export function onProjectsChanged(onChange: (root: string) => void): () => void {
+  if (!inTauri) return () => {};
+  const unlisten = listen<string>("projects-changed", (event) => onChange(event.payload));
+  return () => void unlisten.then((stop) => stop());
+}
+
+/** Opens a project folder (`path` relative to `root`) in the file explorer. */
+export async function openFolder(root: string, path: string): Promise<void> {
+  if (inTauri) return invoke("open_folder", { root, path });
+  window.alert(`Would open ${root}/${path}`);
+}
+
+/** Asks for a folder; null when cancelled. */
+export async function pickFolder(): Promise<string | null> {
+  if (!inTauri) return window.prompt("Workstation folder", "C:/path/to/another");
+  const picked = await open({ directory: true, title: "Pick a workstation folder" });
+  return typeof picked === "string" ? picked : null;
+}

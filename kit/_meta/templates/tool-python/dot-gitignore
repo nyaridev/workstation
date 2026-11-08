@@ -1,0 +1,24 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+dist/
+build/
+*.egg-info/
+
+# Inputs and outputs
+input/
+output/
+
+# Local settings and secrets
+.env
+.env.*
+!.env.example
+CLAUDE.local.md
+.claude/settings.local.json
+
+# OS and editor noise
+Thumbs.db
+*.log
+.vscode/*
+!.vscode/extensions.json

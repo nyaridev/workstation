@@ -1,39 +1,63 @@
 # Workstation
 
-A desktop app that keeps an eye on your **WORKSTATION**: one folder that holds every project you have (games, apps,
-tools, mods, ideas, research), each in a predictable place. Workstation lists them all, flags the ones missing from
-your `PROJECTS.md` registry, and updates live as projects are added, moved or removed.
+A Windows desktop app for people who keep every project in one folder: games, apps, tools, mods, ideas, research.
+Workstation lists them all, sorts and filters them by tags, shows which repos have uncommitted or unpushed work, and
+updates on its own as projects are added, moved or removed.
 
-> Work in progress. The first usable version lists projects and watches for changes.
+> Work in progress: not released yet.
 
-## The layout it expects
+## What it does
+
+- **Lists every project** in your WORKSTATION folder, grouped by kind (games, apps, tools, frameworks, research…).
+- **Search and filter** by text, tags, status, or "has changes".
+- **Git at a glance:** each repo's branch, uncommitted changes and unpushed commits.
+- **Keeps the registry honest:** projects on disk that aren't in `projects.json` are flagged, and so are entries whose
+  folder is gone. Register a project or edit its tags right from the list.
+- **Live:** create, move or delete a project folder, or edit `projects.json`, and the list updates by itself.
+- **Several workstations:** work and personal, or one per person on a shared PC. Each Windows user has their own list.
+- **Starts you off:** set up a new workstation in an empty folder and get the folder layout, agent rules for Claude
+  Code (and other agents), project templates and an empty `projects.json`. Nothing that's already there is overwritten.
+
+Workstation only reads your projects. Its only writes are to `projects.json` (when you register a project or edit
+tags) and the starter files when you set up a new workstation. It never deletes or moves anything.
+
+## Get started
+
+1. Download `Workstation.exe` and run it. There's nothing to install; it needs Windows 10 or 11 (WebView2 ships with
+   them).
+2. Either **Add a workstation** (a folder with `projects.json` at its top) or **Set up a new one** in an empty folder.
+3. In a new workstation, open `AGENTS.md` and fill in the GitHub owners table, so agents know where your repos go.
+
+Git status needs [git](https://git-scm.com/) on your PATH; without it the list still works, just without the badges.
+
+## The layout
 
 ```
 WORKSTATION/
-├─ PROJECTS.md          the registry: one row per project
-├─ AGENTS.md            where things go, for you and your AI agents
-├─ games/<engine>/<game>/
+├─ projects.json            the registry: one entry per project, with tags
+├─ AGENTS.md  CLAUDE.md     where things go, for you and your AI agents
+├─ games/<engine>/<game>/   a game home: docs, assets and saves beside the game's repo in game/
 ├─ apps/web|desktop|bots/<name>/
 ├─ tools/<name>/
-├─ frameworks/<name>/
-├─ mods/<target-game>/   emulators/<game>/
+├─ frameworks/<name>/       or frameworks/<suite>/<repo>/
+├─ mods/<target-game>/      emulators/<game>/
 ├─ assets/  ideas/  research/  external/<owner>/<repo>/
 ├─ sandbox/  archive/
 └─ _meta/  _toolchains/  _cache/
 ```
 
-Don't have one yet? The app will set it up for you in an empty folder of your choice, without touching anything that's
-already there.
+The registry's format, an entry template and a starter list of tags are in
+[`docs/projects-json.md`](docs/projects-json.md).
 
-## Several workstations
+## Build from source
 
-Add as many as you like (work and personal, or one per person on a shared PC) and switch between them in the app.
+Needs Node 22.18+, pnpm and Rust (stable).
 
-## Run from source
+| Run | To |
+| --- | --- |
+| `start-dev.bat` | run the app with hot reload |
+| `pnpm dev` | the UI alone in a browser at http://localhost:4420, with fake data |
+| `pnpm check` | type checks, lint and every test |
+| `build.bat` | build the portable `release\Workstation.exe` |
 
-Needs Node 22.18+, pnpm and Rust. Clone into your workstation as `apps/desktop/workstation`, then:
-
-| Do              | To                                         |
-| --------------- | ------------------------------------------ |
-| `start-dev.bat` | run it with hot reload                     |
-| `build.bat`     | build a portable `release\Workstation.exe` |
+How it's built: [`docs/adr/`](docs/adr/README.md).

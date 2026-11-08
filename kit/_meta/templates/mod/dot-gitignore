@@ -1,0 +1,16 @@
+# The game's files and dumps never go in this repo
+*.pak
+*.utoc
+*.ucas
+*.exe
+*.dll
+dumps/
+saves/
+dist/
+
+# Local
+.env
+CLAUDE.local.md
+.claude/settings.local.json
+Thumbs.db
+*.log

@@ -1,0 +1,22 @@
+# Dependencies and builds
+node_modules/
+.venv/
+venv/
+__pycache__/
+dist/
+build/
+target/
+
+# Local settings and secrets
+.env
+.env.*
+!.env.example
+CLAUDE.local.md
+.claude/settings.local.json
+
+# OS and editor noise
+Thumbs.db
+.DS_Store
+*.log
+.vscode/*
+!.vscode/extensions.json

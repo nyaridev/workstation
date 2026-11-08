@@ -1,0 +1,42 @@
+---
+paths:
+  - "src-tauri/**"
+---
+
+# Rust backend
+
+- Logic modules (`workstations.rs`, `scan/`, `git.rs`, `kit.rs`) never `use tauri`. They take plain paths and return
+  `Result<T, String>` or their own error type. Only `lib.rs`, `commands.rs` and `watch.rs` touch Tauri.
+- Commands in `commands.rs` stay thin: parse arguments, call one logic function, return its result. No file work in a
+  command.
+- Every struct the UI sees derives `serde::Serialize` with `#[serde(rename_all = "camelCase")]` and has a matching
+  type in `src/lib/types.ts`.
+- Run `git` through `std::process::Command` with `CREATE_NO_WINDOW` on Windows, so no console flashes.
+- Paths that cross to the UI are relative to the workstation root, with forward slashes and a trailing slash
+  (`games/roblox/fish-dive/`), the same form as `projects.json`.
+- Tests build fake workstations in a temp folder (`std::env::temp_dir()` plus a unique name) and clean them up.
+- `projects.json` follows `docs/projects-json.md`. Writes go through `scan/registry.rs` only: sorted by `path`,
+  two-space indent, documented key order, unknown keys kept (`#[serde(flatten)]` map), written to a temp file and
+  renamed over the original. Never remove an entry.
+- A `projects.json` that doesn't parse is reported with its line and column; never overwrite it.
+
+## How to add a registry field
+
+1. Add the key to `docs/projects-json.md` (Fields table and both templates).
+2. Add the field to the entry struct in `scan/registry.rs`, in the documented key order, with a test.
+3. Add it to `src/lib/types.ts` and show it in `src/features/projects/`.
+4. If agents must fill it, update the workstation's `.claude/rules/registry.md` and `kit/`.
+
+## How to add a command
+
+1. Write the logic as a public function in its logic module, with a test.
+2. Add a `#[tauri::command]` in `commands.rs` that calls it, and register it in `lib.rs`'s `generate_handler!`.
+3. Add a wrapper in `src/lib/backend.ts` (with fake data for the browser) and its types in `src/lib/types.ts`.
+4. If it needs a new plugin permission, add it to `capabilities/default.json`.
+
+## How to add a project kind
+
+1. Add a row to the place table in `scan/layout.rs` (the folder pattern, kind and shape).
+2. Add a folder for it to the fake workstation in `scan/`'s test and the expected result.
+3. Make the same change in the workstation's `_meta/scripts/scan-projects.ps1` and in `kit/`.
+4. If the UI groups by it, add its label in `src/features/projects/`.

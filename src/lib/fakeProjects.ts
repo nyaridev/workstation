@@ -1,0 +1,87 @@
+// Fake projects for `pnpm dev` in a plain browser, covering every flag and a few kinds.
+
+import type { Project } from "./types";
+
+const base = { archived: false, owner: "local", notes: null, onDisk: true, registered: true };
+
+/** A small made-up workstation. */
+export const fakeProjects: Project[] = [
+  {
+    ...base,
+    path: "apps/desktop/workstation/",
+    name: "Workstation",
+    kind: "app",
+    stack: ["Tauri", "Rust", "React"],
+    owner: "nyaridev",
+    status: "prototyping",
+    description: "Overseer for WORKSTATION folders.",
+    tags: ["desktop", "workstation"],
+  },
+  {
+    ...base,
+    path: "apps/web/old-site/",
+    name: "Old Site",
+    kind: "app",
+    stack: ["HTML"],
+    status: "on-hold",
+    description: "A site whose folder was moved away.",
+    tags: ["web"],
+    onDisk: false,
+  },
+  {
+    ...base,
+    path: "archive/games/roblox/obby/",
+    name: "Obby",
+    kind: "game",
+    archived: true,
+    stack: ["Roblox"],
+    status: "archived",
+    description: "First obby, finished.",
+    tags: ["roblox"],
+  },
+  {
+    ...base,
+    path: "games/godot/swamp/",
+    name: "Swamp",
+    kind: "game",
+    stack: ["Godot 4.7", "GDScript"],
+    status: "in-development",
+    description: "Co-op swamp survival for up to 4 players.",
+    tags: ["godot", "co-op", "survival"],
+    notes: "Steam via Spacewar until its own AppID.",
+  },
+  {
+    ...base,
+    path: "games/roblox/fish-dive/",
+    name: "Fish Dive",
+    kind: "game",
+    stack: ["Roblox", "ume"],
+    owner: "nari-games",
+    status: "prototyping",
+    description: "Dive deeper, catch rarer fish, upgrade your gear.",
+    tags: ["roblox", "ume", "simulator"],
+  },
+  {
+    ...base,
+    path: "research/2026-10-loops/",
+    name: "Roblox Game Loops",
+    kind: "research",
+    stack: ["Markdown"],
+    owner: null,
+    status: "released",
+    description: "Core loops of top Roblox games.",
+    tags: ["roblox", "game-design"],
+  },
+  {
+    ...base,
+    path: "tools/rename/",
+    name: "rename",
+    kind: "tool",
+    stack: [],
+    owner: null,
+    status: "",
+    description: "",
+    tags: [],
+    registered: false,
+  },
+];
