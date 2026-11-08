@@ -1,12 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <title>Workstation</title>
-  <!-- The lit tile: four project folders, one lit (the open workstation). Same mark as assets/brand/. -->
-  <rect x="16" y="16" width="480" height="480" rx="112" fill="#0e0f11" stroke="#2a2c31" stroke-width="8"/>
-  <g fill="#38bdf8" fill-opacity="0.32">
-    <rect x="104" y="104" width="136" height="136" rx="28"/>
-    <rect x="104" y="272" width="136" height="136" rx="28"/>
-    <rect x="272" y="272" width="136" height="136" rx="28"/>
+  <!-- The lit tile: four project folders, one lit (the open workstation), on no background. Same mark as assets/brand/. -->
+  <g fill="#38bdf8" fill-opacity="0.4">
+    <rect x="8" y="8" width="232" height="232" rx="56"/>
+    <rect x="8" y="272" width="232" height="232" rx="56"/>
+    <rect x="272" y="272" width="232" height="232" rx="56"/>
   </g>
-  <rect x="272" y="104" width="136" height="136" rx="28" fill="#38bdf8"/>
-  <circle cx="340" cy="172" r="22" fill="#0e0f11"/>
+  <!-- The lit square, its dot cut out so whatever is behind the icon shows through. -->
+  <path fill="#38bdf8" fill-rule="evenodd" d="M328 8H448A56 56 0 0 1 504 64V184A56 56 0 0 1 448 240H328A56 56 0 0 1 272 184V64A56 56 0 0 1 328 8ZM372 76H404A32 32 0 0 1 436 108V140A32 32 0 0 1 404 172H372A32 32 0 0 1 340 140V108A32 32 0 0 1 372 76Z"/>
 </svg>

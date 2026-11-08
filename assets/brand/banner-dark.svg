@@ -2,8 +2,8 @@
   <title id="t">Workstation</title>
   <desc id="d">Every project in one folder, at a glance. Lists a WORKSTATION folder's projects, their tags and their git status.</desc>
   <rect width="1280" height="320" rx="24" fill="#0e0f11"/>
-  <g fill="#38bdf8"><rect x="110" y="80" width="70" height="70" rx="16" fill-opacity="0.4"/><rect x="200" y="80" width="70" height="70" rx="16"/><rect x="110" y="170" width="70" height="70" rx="16" fill-opacity="0.4"/><rect x="200" y="170" width="70" height="70" rx="16" fill-opacity="0.4"/></g>
-  <circle cx="235" cy="115" r="11" fill="#0e0f11"/>
+  <g fill="#38bdf8"><rect x="110" y="80" width="70" height="70" rx="17" fill-opacity="0.4"/><rect x="200" y="80" width="70" height="70" rx="17"/><rect x="110" y="170" width="70" height="70" rx="17" fill-opacity="0.4"/><rect x="200" y="170" width="70" height="70" rx="17" fill-opacity="0.4"/></g>
+  <rect x="220.5" y="100.5" width="29" height="29" rx="10" fill="#0e0f11"/>
   <g transform="translate(339 43.4) scale(0.8)">
     <path d="M0 114.8L15 170.8L32 126L49 170.8L64 114.8M100 142.8A28 28 0 1 0 156 142.8A28 28 0 1 0 100 142.8ZM196 114.8V170.8M196 142.8A28 28 0 0 1 238 118.6M276 75.6V170.8M316 114.8L278 148M292 137L318 170.8M391 120.5Q383 114.8 373 114.8A20 14 0 0 0 373 142.8A20 14 0 0 1 373 170.8Q362 170.8 354 165M437 84V152A18.8 18.8 0 0 0 455 170.8M423 114.8H453M491 142.8A28 28 0 1 0 547 142.8A28 28 0 1 0 491 142.8ZM547 114.8V170.8M593 84V152A18.8 18.8 0 0 0 611 170.8M579 114.8H609M649 114.8V170.8M683 142.8A28 28 0 1 0 739 142.8A28 28 0 1 0 683 142.8ZM779 114.8V170.8M779 142.8A28 28 0 0 1 835 142.8V170.8" fill="none" stroke="#ececee" stroke-width="22.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="649" cy="76.7" r="13.4" fill="#ececee"/>
