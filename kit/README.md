@@ -42,7 +42,7 @@ Your home for every project. Open Claude Code in this folder and say what you wa
 | `archive/` | Finished or abandoned projects |
 | `_meta/` | Templates, scripts, docs and decisions (ADRs) |
 | `_toolchains/` | Shared engines: Godot versions, shims |
-| `_cache/` | Shared caches (pnpm store); safe to empty any time |
+| `_cache/` | Shared caches (pnpm store); safe to empty any time (`_cache/README.md`) |
 
 ## A game
 

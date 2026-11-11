@@ -9,7 +9,7 @@ and `_meta/docs/adr/` holds the decisions behind them.
 
 | Folder | Holds | Shape |
 |---|---|---|
-| `games/<engine>/<game>/` | the user's games: `roblox/`, `godot/`, `rust/`, another engine's folder when its first game arrives | game home |
+| `games/<engine>/<game>/` | the user's games: `roblox/`, `godot/`, another engine's folder when its first game arrives | game home |
 | `mods/<target-game>/<mod>/` | Mods, modpacks, skins and content packs for someone else's game | mod home |
 | `emulators/<game>/<emulator>/` | Server emulators for someone else's online game | emulator home |
 | `apps/web/`, `apps/desktop/`, `apps/bots/` (`apps/mobile/` when first needed) | Full applications | repo |
@@ -23,7 +23,7 @@ and `_meta/docs/adr/` holds the decisions behind them.
 | `archive/<original sub-path>/` | Finished or abandoned work | as it was |
 | `_meta/` | Templates, scripts, docs and ADRs. Never projects | — |
 | `_toolchains/` | Shared engines and SDKs (`godot/<version>/`), `bin/` shims | — |
-| `_cache/` | Shared caches (`pnpm-store/`). Safe to empty any time to free space | — |
+| `_cache/` | Shared caches (`pnpm-store/`). Safe to empty any time to free space (`_cache/README.md`) | — |
 | `projects.json` | The registry: every project with its path, owner, status, description and tags (`.claude/rules/registry.md`) | — |
 
 ## Where things go

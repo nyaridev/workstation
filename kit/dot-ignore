@@ -1,0 +1,10 @@
+# Search tools (ripgrep, Claude Code's Grep, VS Code search) skip these everywhere in the workstation.
+# Git doesn't read this file; each repo keeps its own .gitignore.
+node_modules/
+.venv/
+venv/
+__pycache__/
+.godot/
+target/
+.pnpm-store/
+_cache/
