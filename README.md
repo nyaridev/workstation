@@ -45,3 +45,7 @@ pnpm check
 `start-dev.bat` runs the app with hot reload, `pnpm dev` the UI alone in a browser with fake data, and `build.bat`
 builds `release\Workstation.exe`. `pnpm check` runs types, lint and every test; [docs/manual-check.md](docs/manual-check.md)
 covers what it can't.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
