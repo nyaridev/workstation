@@ -1,5 +1,5 @@
 // useUpdate: looks for a newer release on start, every 6 hours, and when the window comes back into focus (at most
-// every 10 minutes); installs it when asked.
+// every 10 minutes); installs it when asked, and keeps the error when that fails.
 
 import { useEffect, useState } from "react";
 import { checkUpdate, installUpdate, openReleasePage } from "../lib/backend";
@@ -8,10 +8,11 @@ import type { Release } from "../lib/types";
 const EVERY = 6 * 60 * 60 * 1000;
 const FOCUS_GAP = 10 * 60 * 1000;
 
-/** The newest release when it's newer than the app, and a function that installs it after asking. */
+/** The newest release when it's newer than the app, installing it, and what went wrong if it didn't install. */
 export function useUpdate() {
   const [latest, setLatest] = useState<Release | null>(null);
   const [installing, setInstalling] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
 
   useEffect(() => {
     let last = 0;
@@ -35,17 +36,21 @@ export function useUpdate() {
     };
   }, []);
 
+  /** Installs and restarts; on failure, `failed` holds the error. */
   const install = async () => {
-    if (!latest || !window.confirm(`Install Workstation ${latest.version}? The app restarts into it.`)) return;
+    if (!latest) return;
     setInstalling(true);
     try {
       await installUpdate(latest.version);
     } catch (error) {
       setInstalling(false);
-      if (window.confirm(`${error}\n\nOpen the release page to download it yourself?`))
-        await openReleasePage(latest.page);
+      setFailed(String(error));
     }
   };
 
-  return { latest, installing, install };
+  const openPage = async () => {
+    if (latest) await openReleasePage(latest.page);
+  };
+
+  return { latest, installing, failed, install, openPage, dismissFailure: () => setFailed(null) };
 }

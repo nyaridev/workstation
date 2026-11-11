@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { STATUSES, startingStatus, statusStyle, toTag } from "./fields";
+import { STATUSES, startingStatus, statusColor, toTag } from "./fields";
 
 describe("statuses", () => {
-  it("gives each status its own pill and a grey one to the unknown", () => {
-    const styles = STATUSES.map(statusStyle);
-    expect(new Set(styles).size).toBe(STATUSES.length);
-    expect(statusStyle("shipped")).toContain("zinc");
+  it("gives each status but on-hold its own color, and none to on-hold or the unknown", () => {
+    const colors = STATUSES.filter((s) => s !== "on-hold").map(statusColor);
+    expect(colors).not.toContain(null);
+    expect(new Set(colors).size).toBe(colors.length);
+    expect(statusColor("on-hold")).toBeNull();
+    expect(statusColor("shipped")).toBeNull();
   });
 
   it("starts ideas as concepts and research as researching", () => {

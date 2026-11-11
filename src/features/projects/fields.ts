@@ -29,22 +29,21 @@ export const STATUSES = [
   "on-hold",
 ] as const;
 
-/** Each status's pill colors; none of them is amber, sky or violet, which the git badges use. */
-const STATUS_STYLES: Record<string, string> = {
-  concept: "bg-fuchsia-500/15 text-fuchsia-300",
-  planning: "bg-purple-500/15 text-purple-300",
-  researching: "bg-cyan-500/15 text-cyan-300",
-  prototyping: "bg-orange-500/15 text-orange-300",
-  "in-development": "bg-indigo-500/20 text-indigo-300",
-  released: "bg-emerald-500/15 text-emerald-300",
-  maintained: "bg-teal-500/15 text-teal-300",
-  complete: "bg-lime-500/15 text-lime-300",
-  "on-hold": "bg-zinc-700/60 text-zinc-300",
+/** Each status's color: an iro-ui token pair, `--iro-<color>` and `--iro-<color>-ink`. On-hold has none. */
+const STATUS_COLORS: Record<string, string> = {
+  concept: "pink",
+  planning: "purple",
+  researching: "cyan",
+  prototyping: "orange",
+  "in-development": "blue",
+  released: "green",
+  maintained: "yellow",
+  complete: "accent",
 };
 
-/** The pill classes for a status; an unknown one (a hand-edited projects.json) gets a plain grey pill. */
-export function statusStyle(status: string): string {
-  return STATUS_STYLES[status] ?? "bg-zinc-800 text-zinc-400";
+/** A status's color, or null for on-hold and unknown ones (a hand-edited projects.json): a neutral badge. */
+export function statusColor(status: string): string | null {
+  return STATUS_COLORS[status] ?? null;
 }
 
 /** The status a newly registered project starts with: ideas are concepts, research is researching. */

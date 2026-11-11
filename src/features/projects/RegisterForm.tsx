@@ -1,5 +1,6 @@
 // RegisterForm: adds a projects.json entry for a project folder that has none, prefilled from what's on disk.
 
+import { Button, Field, Notice, Panel, Select, TextField } from "iro-ui";
 import { type FormEvent, useEffect, useState } from "react";
 import { guessStack, registerProject } from "../../lib/backend";
 import type { GitStatus, NewEntry, Project } from "../../lib/types";
@@ -15,8 +16,7 @@ interface Props {
   onDone: (saved: boolean) => void;
 }
 
-const input = "w-full rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm";
-const label = "mb-1 block text-xs text-zinc-400";
+const options = (values: readonly string[]) => values.map((value) => ({ value, label: value }));
 
 /** The entry fields; Rust checks them again before writing. */
 export function RegisterForm({ root, project, git, suggestions, onDone }: Props) {
@@ -59,100 +59,50 @@ export function RegisterForm({ root, project, git, suggestions, onDone }: Props)
     }
   };
 
-  const id = (field: string) => `register-${project.path}-${field}`;
   return (
-    <form
-      onSubmit={submit}
-      className="mt-3 grid grid-cols-2 gap-3 rounded-md border border-zinc-800 bg-zinc-900/60 p-3"
-    >
-      <div>
-        <label htmlFor={id("name")} className={label}>
-          Name
-        </label>
-        <input
-          id={id("name")}
-          required
-          value={entry.name}
-          onChange={(e) => set({ name: e.target.value })}
-          className={input}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor={id("kind")} className={label}>
-            Kind
-          </label>
-          <select id={id("kind")} value={entry.kind} onChange={(e) => set({ kind: e.target.value })} className={input}>
-            {KINDS.map((kind) => (
-              <option key={kind}>{kind}</option>
-            ))}
-          </select>
+    <Panel className="editor">
+      <form onSubmit={submit} className="register">
+        <Field label="Name">
+          <TextField required value={entry.name} onChange={(e) => set({ name: e.target.value })} />
+        </Field>
+        <div className="pair">
+          <Field label="Kind">
+            <Select options={options(KINDS)} value={entry.kind} onValueChange={(kind) => kind && set({ kind })} />
+          </Field>
+          <Field label="Status">
+            <Select
+              options={options(STATUSES)}
+              value={entry.status}
+              onValueChange={(status) => status && set({ status })}
+            />
+          </Field>
         </div>
-        <div>
-          <label htmlFor={id("status")} className={label}>
-            Status
-          </label>
-          <select
-            id={id("status")}
-            value={entry.status}
-            onChange={(e) => set({ status: e.target.value })}
-            className={input}
-          >
-            {STATUSES.map((status) => (
-              <option key={status}>{status}</option>
-            ))}
-          </select>
+        <Field className="wide" label="Description" hint="One sentence: what it is.">
+          <TextField required value={entry.description} onChange={(e) => set({ description: e.target.value })} />
+        </Field>
+        <Field label="Stack" hint="Comma-separated, guessed from its files.">
+          <TextField value={stackText} onChange={(e) => setStackText(e.target.value)} />
+        </Field>
+        <Field label="Owner" hint='GitHub owner, "local", or empty for plain folders.'>
+          <TextField value={entry.owner ?? ""} onChange={(e) => set({ owner: e.target.value })} />
+        </Field>
+        <div className="wide">
+          <TagInput label="Tags" tags={entry.tags} suggestions={suggestions} onChange={(tags) => set({ tags })} />
         </div>
-      </div>
-      <div className="col-span-2">
-        <label htmlFor={id("description")} className={label}>
-          Description: one sentence, what it is
-        </label>
-        <input
-          id={id("description")}
-          required
-          value={entry.description}
-          onChange={(e) => set({ description: e.target.value })}
-          className={input}
-        />
-      </div>
-      <div>
-        <label htmlFor={id("stack")} className={label}>
-          Stack, comma-separated (guessed from its files)
-        </label>
-        <input id={id("stack")} value={stackText} onChange={(e) => setStackText(e.target.value)} className={input} />
-      </div>
-      <div>
-        <label htmlFor={id("owner")} className={label}>
-          Owner: GitHub owner, "local", or empty for plain folders
-        </label>
-        <input
-          id={id("owner")}
-          value={entry.owner ?? ""}
-          onChange={(e) => set({ owner: e.target.value })}
-          className={input}
-        />
-      </div>
-      <div className="col-span-2">
-        <TagInput label="Tags" tags={entry.tags} suggestions={suggestions} onChange={(tags) => set({ tags })} />
-      </div>
-      {error && (
-        <p role="alert" className="col-span-2 text-red-300 text-sm">
-          {error}
-        </p>
-      )}
-      <div className="col-span-2 flex gap-2">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-md bg-zinc-200 px-3 py-1 font-medium text-sm text-zinc-900 hover:bg-white disabled:opacity-50"
-        >
-          Add to projects.json
-        </button>
-        <button type="button" onClick={() => onDone(false)} className="rounded-md px-3 py-1 text-sm hover:bg-zinc-800">
-          Cancel
-        </button>
-      </div>
-    </form>
+        {error && (
+          <Notice tone="danger" role="alert" className="wide">
+            {error}
+          </Notice>
+        )}
+        <div className="wide buttons">
+          <Button type="submit" variant="primary" loading={saving}>
+            Add to projects.json
+          </Button>
+          <Button variant="ghost" onClick={() => onDone(false)}>
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Panel>
   );
 }

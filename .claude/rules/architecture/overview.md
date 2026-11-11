@@ -25,7 +25,9 @@ folder the app remembers; `projects.json` in it is the only project registry (`d
 | Anything that touches the disk or runs a program | a Rust logic module, exposed by a command (`backend.md`)   |
 | A kind of project or a place rule                | a row in `src-tauri/src/scan/layout.rs` (`backend.md`)     |
 | A screen or panel                                | `src/features/<feature>/`, one component per file          |
-| Shared UI pieces (buttons, badges)               | `src/components/` once two features need them              |
+| A control (button, badge, field, dialog, icon)   | an iro-ui component and `iro-ui/icons` (ADR-0008)          |
+| Shared UI pieces built from iro-ui               | `src/components/` once two features need them              |
+| Layout and app-only looks                        | `src/styles.css`, with `--iro-*` tokens only               |
 | Types shared with Rust                           | `src/lib/types.ts`, matching the Rust struct's serde names |
 | A file every new workstation gets                | `kit/`, under its stored name (below)                      |
 
@@ -46,4 +48,7 @@ folder the app remembers; `projects.json` in it is the only project registry (`d
   No HTTP client in the app, no telemetry.
 - No paths to anyone's PC in code, config, tests or docs. Tests build fake workstations in a temp folder.
 - UI components call `src/lib/backend.ts`, never `invoke` or `listen` directly.
+- The UI is iro-ui in the sumi style (ADR-0008): no hand-built controls, no inline `<svg>` icons (the app's mark
+  aside), no raw colors or sizes in CSS, no `window.confirm` (use `AlertDialog`). iro-ui comes from a release tag
+  (`github:nyaridev/iro-ui#vX.Y.Z`), never a path or a branch.
 - Architecture changes need a new ADR in `docs/adr/`, plus an update to `docs/adr/README.md` and these rules.

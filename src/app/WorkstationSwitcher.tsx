@@ -1,5 +1,6 @@
 // WorkstationSwitcher: picks the open workstation, adds or sets up one, or removes the open one from the list.
 
+import { AlertDialog, Button, Select } from "iro-ui";
 import type { Listing, Workstation } from "../lib/types";
 
 interface Props {
@@ -11,41 +12,40 @@ interface Props {
   onRemove: (root: string) => void;
 }
 
-const action = "h-7 rounded-md px-2.5 text-xs hover:bg-zinc-800";
-
 /** The title bar's controls for switching workstations. */
 export function WorkstationSwitcher({ listing, current, onOpen, onAdd, onSetup, onRemove }: Props) {
-  const confirmRemove = () => {
-    const question = `Remove "${current.name}" from the list?\nIts folder and files stay as they are.`;
-    if (window.confirm(question)) onRemove(current.root);
-  };
+  const options = listing.workstations.map((w) => ({
+    value: w.root,
+    label: w.available ? w.name : `${w.name} (not found)`,
+  }));
 
   return (
-    <div className="flex shrink-0 items-center gap-1">
-      <label htmlFor="workstation" className="sr-only">
-        Workstation
-      </label>
-      <select
-        id="workstation"
+    <div className="switcher">
+      <Select
+        aria-label="Workstation"
+        size="sm"
+        className="switcher-select"
+        options={options}
         value={current.root}
-        onChange={(e) => onOpen(e.target.value)}
-        className="mr-1 h-7 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-sm"
-      >
-        {listing.workstations.map((w) => (
-          <option key={w.root} value={w.root}>
-            {w.available ? w.name : `${w.name} (not found)`}
-          </option>
-        ))}
-      </select>
-      <button type="button" onClick={onAdd} className={`${action} text-zinc-300`}>
+        onValueChange={(root) => root && onOpen(root)}
+      />
+      <Button size="sm" variant="ghost" onClick={onAdd}>
         Add…
-      </button>
-      <button type="button" onClick={onSetup} className={`${action} text-zinc-300`}>
+      </Button>
+      <Button size="sm" variant="ghost" onClick={onSetup}>
         Set up new…
-      </button>
-      <button type="button" onClick={confirmRemove} className={`${action} text-zinc-500 hover:text-zinc-200`}>
-        Remove from list
-      </button>
+      </Button>
+      <AlertDialog
+        trigger={
+          <Button size="sm" variant="ghost">
+            Remove from list
+          </Button>
+        }
+        title={`Remove "${current.name}" from the list?`}
+        description="Its folder and files stay as they are."
+        confirmLabel="Remove"
+        onConfirm={() => onRemove(current.root)}
+      />
     </div>
   );
 }

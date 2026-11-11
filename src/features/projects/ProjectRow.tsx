@@ -2,10 +2,12 @@
 // register it in projects.json, or edit its tags). A suite or home opens to show the projects and important folders
 // inside it.
 
-import { useState } from "react";
+import { Badge, Button, Chip, Icon } from "iro-ui";
+import { ChevronRightIcon } from "iro-ui/icons";
+import { type CSSProperties, useState } from "react";
 import type { GitStatuses, Project } from "../../lib/types";
 import { FolderRow } from "./FolderRow";
-import { statusStyle } from "./fields";
+import { statusColor } from "./fields";
 import { gitOf, registryFlag } from "./filter";
 import { GitBadges } from "./GitBadges";
 import { RegisterForm } from "./RegisterForm";
@@ -30,10 +32,20 @@ interface Props {
   onSaved: () => void;
 }
 
-const action =
-  "rounded-md bg-zinc-800 px-3 py-1 text-sm hover:bg-zinc-700 disabled:opacity-40 disabled:hover:bg-zinc-800";
-
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+// A status badge tinted with its palette color; on-hold and unknown statuses stay neutral.
+function StatusBadge({ status }: { status: string }) {
+  const color = statusColor(status);
+  const style = color
+    ? ({ "--status": `var(--iro-${color})`, "--status-ink": `var(--iro-${color}-ink)` } as CSSProperties)
+    : undefined;
+  return (
+    <Badge className={color ? "status status-colored" : "status"} style={style}>
+      {status}
+    </Badge>
+  );
+}
 
 /** A project line; its tags toggle the tag filter. */
 export function ProjectRow(props: Props) {
@@ -66,13 +78,10 @@ export function ProjectRow(props: Props) {
   const openable = summary.length > 0;
   // A repo of its own (not a home that holds one) opens its git overview instead.
   const hasHistory = !openable && p.repo && git[p.path] !== undefined;
-  const rowButton = "absolute inset-0 rounded-md focus-visible:outline-2 focus-visible:outline-sky-500";
 
   return (
-    <li className="px-2 py-1">
-      <div
-        className={`relative flex items-start gap-4 rounded-md px-2 py-2 ${openable || hasHistory ? "hover:bg-zinc-900" : ""}`}
-      >
+    <li className="project">
+      <div className="row" data-clickable={openable || hasHistory || undefined}>
         {/* The whole row is clickable: this button lies under the row's content, which lets clicks through except on
             its own buttons. */}
         {openable && (
@@ -81,7 +90,7 @@ export function ProjectRow(props: Props) {
             aria-expanded={expanded}
             aria-label={`${expanded ? "Hide" : "Show"} what's inside ${p.name}`}
             onClick={() => setExpanded(!expanded)}
-            className={rowButton}
+            className="row-hit"
           />
         )}
         {hasHistory && (
@@ -89,71 +98,51 @@ export function ProjectRow(props: Props) {
             type="button"
             aria-label={`Show the git history of ${p.name}`}
             onClick={() => onHistory(p.path, p.name)}
-            className={rowButton}
+            className="row-hit"
           />
         )}
-        <div className="pointer-events-none relative min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <div className="row-body">
+          <div className="row-head">
             {openable && (
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 10 10"
-                fill="none"
-                stroke="currentColor"
-                aria-hidden="true"
-                className={`self-center text-zinc-500 ${expanded ? "rotate-90" : ""}`}
-              >
-                <path d="M3.5 2 6.5 5 3.5 8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <Icon icon={ChevronRightIcon} size={14} className="chevron" data-open={expanded || undefined} />
             )}
-            <span className="font-medium text-zinc-100">{p.name}</span>
-            {p.status && (
-              <span className={`self-center rounded-full px-2 py-px font-medium text-xs ${statusStyle(p.status)}`}>
-                {p.status}
-              </span>
-            )}
+            <span className="row-name">{p.name}</span>
+            {p.status && <StatusBadge status={p.status} />}
             <GitBadges git={gitOf(p, git, inside)} />
-            {flag && (
-              <span
-                className={`rounded px-1.5 text-xs ${p.onDisk ? "bg-amber-900/50 text-amber-300" : "bg-red-900/50 text-red-300"}`}
-              >
-                {flag}
-              </span>
-            )}
-            {openable && <span className="text-xs text-zinc-500">{summary.join(" · ")}</span>}
+            {flag && <Badge tone={p.onDisk ? "warning" : "danger"}>{flag}</Badge>}
+            {openable && <span className="muted small">{summary.join(" · ")}</span>}
           </div>
-          {p.description && <p className="mt-0.5 text-sm text-zinc-400">{p.description}</p>}
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
+          {p.description && <p className="row-desc">{p.description}</p>}
+          <div className="row-meta">
             <code>{p.path}</code>
             {p.stack.length > 0 && <span>{p.stack.join(" · ")}</span>}
             {p.tags.map((tag) => (
-              <button
+              <Chip
                 key={tag}
-                type="button"
-                aria-pressed={selectedTags.includes(tag)}
+                size="sm"
+                className="hit"
+                selected={selectedTags.includes(tag)}
                 onClick={() => onTag(tag)}
-                className="pointer-events-auto text-sky-400/80 hover:text-sky-300"
               >
                 #{tag}
-              </button>
+              </Chip>
             ))}
           </div>
         </div>
-        <div className="relative flex shrink-0 gap-2">
+        <div className="row-actions">
           {canWrite && !p.registered && !p.archived && (
-            <button type="button" onClick={() => setEditing("register")} disabled={editing !== null} className={action}>
+            <Button size="sm" onClick={() => setEditing("register")} disabled={editing !== null}>
               Register…
-            </button>
+            </Button>
           )}
           {canWrite && p.registered && (
-            <button type="button" onClick={() => setEditing("tags")} disabled={editing !== null} className={action}>
+            <Button size="sm" onClick={() => setEditing("tags")} disabled={editing !== null}>
               Edit tags
-            </button>
+            </Button>
           )}
-          <button type="button" disabled={!p.onDisk} onClick={() => onOpen(p.path)} className={action}>
+          <Button size="sm" disabled={!p.onDisk} onClick={() => onOpen(p.path)}>
             Open folder
-          </button>
+          </Button>
         </div>
       </div>
       {editing === "register" && (
@@ -161,7 +150,7 @@ export function ProjectRow(props: Props) {
       )}
       {editing === "tags" && <TagEditor root={root} project={p} suggestions={suggestions} onDone={done} />}
       {expanded && (
-        <ul className="mt-1 mb-1 ml-3 divide-y divide-zinc-900 border-zinc-800 border-l">
+        <ul className="rows nested">
           {inner.map((child) => (
             <ProjectRow key={child.path} {...props} project={child} />
           ))}

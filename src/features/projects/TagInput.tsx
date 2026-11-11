@@ -1,70 +1,47 @@
-// TagInput: edits a list of tags as chips; Enter or a comma adds the typed tag, suggestions come from tags in use.
+// TagInput: edits a list of tags with iro-ui's tag field (Enter or a comma adds one), turns each into a proper tag,
+// and offers the most used tags not yet picked as chips to add with a click.
 
-import { useId, useState } from "react";
+import { Chip, Field, Icon, TagInput as TagField } from "iro-ui";
+import { PlusIcon } from "iro-ui/icons";
 import { toTag } from "./fields";
 
 interface Props {
   label: string;
   tags: string[];
+  /** Tags in use, most used first. */
   suggestions: string[];
   onChange: (tags: string[]) => void;
 }
 
-/** A chip list plus a text box with suggestions. */
-export function TagInput({ label, tags, suggestions, onChange }: Props) {
-  const id = useId();
-  const [text, setText] = useState("");
+/** How many suggested tags to show. */
+const SUGGESTED = 12;
 
-  const add = (raw: string) => {
-    const tag = toTag(raw);
-    if (tag && !tags.includes(tag)) onChange([...tags, tag]);
-    setText("");
-  };
+/** The tag field, then a row of suggested tags. */
+export function TagInput({ label, tags, suggestions, onChange }: Props) {
+  const change = (next: string[]) => onChange([...new Set(next.map(toTag).filter(Boolean))]);
+  const unused = suggestions.filter((tag) => !tags.includes(tag)).slice(0, SUGGESTED);
 
   return (
-    <div>
-      <label htmlFor={id} className="mb-1 block text-xs text-zinc-400">
-        {label}
-      </label>
-      <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1.5">
-        {tags.map((tag) => (
-          <span key={tag} className="flex items-center gap-1 rounded-full bg-zinc-700 py-0.5 pr-1 pl-2.5 text-xs">
-            {tag}
-            <button
-              type="button"
-              aria-label={`Remove ${tag}`}
-              onClick={() => onChange(tags.filter((t) => t !== tag))}
-              className="rounded-full px-1 text-zinc-400 hover:text-zinc-100"
+    <div className="tag-input">
+      <Field label={label}>
+        <TagField value={tags} onValueChange={change} placeholder="Type a tag, then Enter" />
+      </Field>
+      {unused.length > 0 && (
+        <fieldset className="chips suggested">
+          <legend className="sr-only">Tags in use</legend>
+          {unused.map((tag) => (
+            <Chip
+              key={tag}
+              size="sm"
+              icon={<Icon icon={PlusIcon} size={12} />}
+              aria-label={`Add ${tag}`}
+              onClick={() => change([...tags, tag])}
             >
-              ×
-            </button>
-          </span>
-        ))}
-        <input
-          id={id}
-          list={`${id}-suggestions`}
-          value={text}
-          placeholder={tags.length === 0 ? "Type a tag, then Enter" : ""}
-          onChange={(e) => (e.target.value.endsWith(",") ? add(e.target.value) : setText(e.target.value))}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              add(text);
-            } else if (e.key === "Backspace" && text === "" && tags.length > 0) {
-              onChange(tags.slice(0, -1));
-            }
-          }}
-          onBlur={() => text && add(text)}
-          className="min-w-32 flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-500"
-        />
-        <datalist id={`${id}-suggestions`}>
-          {suggestions
-            .filter((tag) => !tags.includes(tag))
-            .map((tag) => (
-              <option key={tag} value={tag} />
-            ))}
-        </datalist>
-      </div>
+              {tag}
+            </Chip>
+          ))}
+        </fieldset>
+      )}
     </div>
   );
 }

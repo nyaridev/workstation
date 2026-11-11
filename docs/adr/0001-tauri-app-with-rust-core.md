@@ -1,6 +1,6 @@
 # ADR-0001: Tauri app with the logic in Rust
 
-**Status:** Accepted
+**Status:** Accepted (UI styling replaced by 0008)
 **Date:** 2026-11-08
 
 ## Context

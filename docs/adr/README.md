@@ -24,8 +24,9 @@ src/
 ├─ features/projects/  project list: filter.ts (filters, nesting, grouping), fields.ts (kinds, statuses, tags), the
 │                      list, row (opens to inner projects and FolderRows), filters and TagPicker, Register form,
 │                      tag editor and tag input, useProjects
-├─ features/history/   a repo's git overview panel (commits, unpushed, uncommitted files), format.ts
-└─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
+├─ features/history/   a repo's git overview sheet (commits, unpushed, uncommitted files), format.ts
+├─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
+└─ styles.css          layout only, with iro-ui's tokens (every control is an iro-ui component, ADR-0008)
 kit/                   the starter workstation (stored as dot-* and *.kit.md), embedded at build time
 scripts/               check-size.mjs
 assets/brand/          the README's banners, dark and light
@@ -49,13 +50,14 @@ assets/brand/          the README's banners, dark and light
 
 | ADR | Title | Status |
 | --- | --- | --- |
-| [0001](0001-tauri-app-with-rust-core.md) | Tauri app with the logic in Rust | Accepted |
+| [0001](0001-tauri-app-with-rust-core.md) | Tauri app with the logic in Rust | Accepted (UI styling replaced by 0008) |
 | [0002](0002-projects-from-disk-and-registry.md) | Projects come from the disk, PROJECTS.md stays the registry | Superseded by 0004 |
 | [0003](0003-workstations-and-starter-kit.md) | Several workstations per user, and a starter kit in the exe | Accepted (partly replaced by 0004, 0005) |
 | [0004](0004-projects-json-registry.md) | projects.json is the registry | Accepted (marker replaced by 0005, archiving by 0006) |
 | [0005](0005-workstations-added-by-hand.md) | Workstations are added by hand and recognized by projects.json | Accepted |
 | [0006](0006-archived-projects-leave-the-registry.md) | Archived projects leave projects.json | Accepted |
 | [0007](0007-self-update-from-github-releases.md) | Self-update from GitHub releases | Accepted |
+| [0008](0008-ui-from-iro-ui.md) | The UI is built from iro-ui | Accepted |
 
 ## Milestones
 

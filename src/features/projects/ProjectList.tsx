@@ -1,5 +1,6 @@
 // ProjectList: the projects of the open workstation, grouped by kind, with search, tag and status filters.
 
+import { Banner, Button, EmptyState, Notice, SectionTitle, Spinner } from "iro-ui";
 import { useCallback, useMemo, useState } from "react";
 import { openFolder } from "../../lib/backend";
 import { HistoryPanel } from "../history/HistoryPanel";
@@ -67,29 +68,41 @@ export function ProjectList({ root }: Props) {
       (e) => setOpenError(String(e)),
     );
 
-  if (error) return <Message tone="error">{error}</Message>;
-  if (!scan) return <Message>Scanning…</Message>;
+  if (error)
+    return (
+      <div className="center">
+        <Notice tone="danger" role="alert">
+          {error}
+        </Notice>
+      </div>
+    );
+  if (!scan)
+    return (
+      <div className="center">
+        <Spinner label="Scanning" />
+      </div>
+    );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="projects">
       {[scan.registryError, openError].filter(Boolean).map((message) => (
-        <p key={message} role="alert" className="border-red-900 border-b bg-red-950/40 px-4 py-2 text-red-300 text-sm">
+        <Banner key={message} tone="danger" role="alert">
           {message}
-        </p>
+        </Banner>
       ))}
       {flagged > 0 && (
-        <p className="flex items-center gap-3 border-amber-900/60 border-b bg-amber-950/30 px-4 py-2 text-amber-200 text-sm">
+        <Banner
+          tone="warning"
+          actions={
+            !filters.flagged && (
+              <Button size="sm" onClick={() => setFilters({ ...filters, flagged: true })}>
+                Show them
+              </Button>
+            )
+          }
+        >
           {flagged} project{flagged === 1 ? " doesn't" : "s don't"} match projects.json.
-          {!filters.flagged && (
-            <button
-              type="button"
-              onClick={() => setFilters({ ...filters, flagged: true })}
-              className="rounded px-2 py-0.5 font-medium hover:bg-amber-900/40"
-            >
-              Show them
-            </button>
-          )}
-        </p>
+        </Banner>
       )}
       <ProjectFilters
         filters={filters}
@@ -102,18 +115,14 @@ export function ProjectList({ root }: Props) {
         total={top.length}
         onChange={setFilters}
       />
-      <div className="flex-1 overflow-y-auto">
-        {groups.length === 0 && <Message>No project matches these filters.</Message>}
+      <div className="project-scroll">
+        {groups.length === 0 && <EmptyState title="No project matches these filters." />}
         {groups.map((group) => (
           <section key={group.label} aria-labelledby={`group-${group.label}`}>
-            <h2
-              id={`group-${group.label}`}
-              // z-10: rows hold positioned layers (their click areas) that would otherwise paint over the heading.
-              className="sticky top-0 z-10 border-zinc-900 border-b bg-zinc-950 px-4 pt-4 pb-1 font-semibold text-xs text-zinc-500 uppercase tracking-wide"
-            >
-              {group.label} <span className="font-normal">({group.projects.length})</span>
-            </h2>
-            <ul className="divide-y divide-zinc-900">
+            <SectionTitle level={2} id={`group-${group.label}`} className="group-title">
+              {group.label} <span className="count">({group.projects.length})</span>
+            </SectionTitle>
+            <ul className="rows">
               {group.projects.map((project) => (
                 <ProjectRow
                   key={project.path}
@@ -136,16 +145,5 @@ export function ProjectList({ root }: Props) {
       </div>
       {history && <HistoryPanel root={root} path={history.path} name={history.name} onClose={closeHistory} />}
     </div>
-  );
-}
-
-function Message({ children, tone }: { children: React.ReactNode; tone?: "error" }) {
-  return (
-    <p
-      role={tone === "error" ? "alert" : undefined}
-      className={`p-6 text-center text-sm ${tone ? "text-red-300" : "text-zinc-400"}`}
-    >
-      {children}
-    </p>
   );
 }

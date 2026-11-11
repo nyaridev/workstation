@@ -1,5 +1,6 @@
 // TagEditor: changes a registered project's tags and saves them to projects.json.
 
+import { Button, Notice, Panel } from "iro-ui";
 import { useState } from "react";
 import { setTags } from "../../lib/backend";
 import type { Project } from "../../lib/types";
@@ -30,26 +31,21 @@ export function TagEditor({ root, project, suggestions, onDone }: Props) {
   };
 
   return (
-    <div className="mt-3 space-y-2 rounded-md border border-zinc-800 bg-zinc-900/60 p-3">
+    <Panel className="editor">
       <TagInput label={`Tags of ${project.name}`} tags={tags} suggestions={suggestions} onChange={setDraft} />
       {error && (
-        <p role="alert" className="text-red-300 text-sm">
+        <Notice tone="danger" role="alert">
           {error}
-        </p>
+        </Notice>
       )}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          disabled={saving}
-          onClick={save}
-          className="rounded-md bg-zinc-200 px-3 py-1 font-medium text-sm text-zinc-900 hover:bg-white disabled:opacity-50"
-        >
+      <div className="buttons">
+        <Button variant="primary" loading={saving} onClick={save}>
           Save tags
-        </button>
-        <button type="button" onClick={() => onDone(false)} className="rounded-md px-3 py-1 text-sm hover:bg-zinc-800">
+        </Button>
+        <Button variant="ghost" onClick={() => onDone(false)}>
           Cancel
-        </button>
+        </Button>
       </div>
-    </div>
+    </Panel>
   );
 }

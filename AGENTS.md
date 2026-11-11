@@ -5,7 +5,7 @@ rules load from the `CLAUDE.md` files above this folder; this file covers only w
 
 ## What this is
 
-A desktop app (Tauri 2 + Rust + React) that oversees one or more WORKSTATION folders: it lists every project in them,
+A desktop app (Tauri 2 + Rust + React, with iro-ui) that oversees one or more WORKSTATION folders: it lists every project in them,
 compares them with each workstation's `projects.json` (format and entry template: `docs/projects-json.md`), sorts
 them by tags, and watches for projects being added, moved or removed. The built app also carries a starter kit that
 sets up a new WORKSTATION. Public: github.com/nyaridev/workstation.
