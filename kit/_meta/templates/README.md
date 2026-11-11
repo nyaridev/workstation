@@ -14,8 +14,10 @@ order (a later template overwrites an earlier one) and fills placeholders in fil
 
 | Template | For | Used with |
 |---|---|---|
+| `engine/` | An engine folder's `CLAUDE.md` (`games/<engine>/`), with prompts to fill in for that engine | alone, with an engine's first game |
+| `engine-roblox/`, `engine-godot/` | The same, already filled in for Roblox (Rojo) and Godot | instead of `engine/` |
 | `game-home/` | Any game home: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`, `docs/`, `assets/` (`_inbox/`, `_reference/`, `_templates/`) | first, for every game |
-| `game-roblox/` | Roblox overlay: Roblox map in `AGENTS.md`, `CLAUDE.md` listing the `-game` and `-gui` rules, `saves/` | after `game-home` |
+| `game-roblox/` | Roblox overlay: Roblox map in `AGENTS.md`, `CLAUDE.md` pointing at the rules in `game/`, `saves/` | after `game-home` |
 | `game-godot/` | Godot overlay: Godot map and commands in `AGENTS.md`, `.claude/settings.json` with the Godot commands, `builds/CHANGELOG.md` | after `game-home` |
 | `godot-project/` | The Godot project in `game/`, with its own `.claude/settings.json` (new games only, not clones) | after `game-godot` |
 | `repo-base/` | Any repo: `README.md`, `AGENTS.md`, `CLAUDE.md`, `.gitignore`, `.gitattributes` | first, for repos |

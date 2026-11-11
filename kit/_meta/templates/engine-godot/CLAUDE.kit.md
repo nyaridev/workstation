@@ -1,6 +1,7 @@
 # games/godot/
 
-Godot games, one game home each (`games/CLAUDE.md`).
+Godot games, one game home each (`games/CLAUDE.md`). This file came from the `engine-godot` template with the first
+Godot game; it's yours to change.
 
 ## Engine
 

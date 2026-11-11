@@ -3,6 +3,8 @@
 - **Game home:** `games/roblox/<name>/`.
 - **Repo:** `game/`, a Rojo project. Needs `rojo` (install it with rokit: `rokit add rojo-rbx/rojo`).
 
+0. **The engine folder,** if this is the first Roblox game (`games/roblox/` doesn't exist yet):
+   `new-from-template.ps1 -Template engine-roblox -Destination games/roblox -Name roblox -Engine Roblox`.
 1. **Game home files.** From the workstation root:
    `new-from-template.ps1 -Template game-home,game-roblox -Destination games/roblox/<name> -Name <name> -Title "<Title>" -Owner <owner> -Engine Roblox`
    This writes `AGENTS.md`, `CLAUDE.md`, `docs/`, `assets/` (`_inbox/`, `_reference/`, `_templates/`) and `saves/`.

@@ -4,6 +4,8 @@
 - **Repo and Godot project:** `game/`.
 - **Engine:** `_toolchains/bin/godot.cmd`, which runs Godot 4.7.
 
+0. **The engine folder,** if this is the first Godot game (`games/godot/` doesn't exist yet):
+   `new-from-template.ps1 -Template engine-godot -Destination games/godot -Name godot -Engine "Godot 4.7"`.
 1. **Scaffold.** From the workstation root:
    `new-from-template.ps1 -Template game-home,game-godot,godot-project -Destination games/godot/<name> -Name <name> -Title "<Title>" -Owner <owner> -Engine "Godot 4.7"`
    - This writes the game home: `AGENTS.md` with the commands, `CLAUDE.md`, `docs/`, `assets/`, `builds/CHANGELOG.md`.

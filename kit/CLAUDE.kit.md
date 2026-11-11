@@ -3,7 +3,7 @@
 ## Claude Code notes
 
 - Every `CLAUDE.md` from the session folder up to here loads at start: this file, then the category's
-  (`games/roblox/CLAUDE.md`…), then the project's. Put each rule at the level it belongs to and never repeat a parent's.
+  (`games/<engine>/CLAUDE.md`…), then the project's. Put each rule at the level it belongs to and never repeat a parent's.
   Rules in folders *below* the session folder don't load by themselves: `.claude/rules/instructions.md` says what to
   read before working there.
 - Skills and `.claude/settings.json` load only in sessions started at the workstation root. Elsewhere, read

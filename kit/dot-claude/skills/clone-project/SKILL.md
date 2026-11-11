@@ -23,7 +23,9 @@ argument-hint: "<url or owner/repo>"
    | `pyproject.toml` or `requirements.txt` with a CLI | tool |
 3. **Route it** with `_meta/docs/where-things-go.md`:
    - **the user's repo or a partner/client org's** (`AGENTS.md` → Names and owners): route by what it is.
-     - **A game** goes into a game home. Create the home first with
+     - **A game** goes into a game home. If `games/<engine>/` doesn't exist yet, create it first as
+       `/new-project` → the engine's recipe says (step 0 for Roblox and Godot, step 1 of `types/game-other.md`
+       otherwise). Then create the home with
        `new-from-template.ps1 -Template game-home,game-<engine> -Destination games/<engine>/<name> -Name <name> -Owner <owner> -Engine "<engine>"`
        (`game-roblox` or `game-godot`; never `godot-project`, because the repo brings its own project).
        Then clone into `game/`.

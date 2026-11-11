@@ -20,7 +20,9 @@ starting point, not a standard to keep:
 - **Folders:** keep the categories you use, delete the ones you don't, and add your own. A new category gets a
   `CLAUDE.md` with its rules and a row in the `AGENTS.md` map.
 - **Stacks and engines are defaults:** the app stack in `apps/CLAUDE.md`, the Python shape in `tools/CLAUDE.md`, and
-  the Roblox and Godot setups in `games/`. Swap in the tools you actually use.
+  the Roblox and Godot recipes in `/new-project`. Swap in the tools you actually use.
+- **Engines are made as you go:** `games/` starts empty. Your first game in an engine creates `games/<engine>/` with
+  its own rules, so you only ever have the engines you use.
 - **The rules follow you:** when you tell Claude you work differently, it updates the rule in the same task, so the
   rules keep matching how you work instead of pulling you back to the kit's defaults.
 
@@ -28,7 +30,7 @@ starting point, not a standard to keep:
 
 1. Fill in the GitHub owners table in `AGENTS.md` (Names and owners) with your own account and orgs, and delete
    the rows you don't need. `gh api user --jq .login` shows your GitHub username.
-2. Go through "Make it yours" above: delete the categories and engines you won't use, and set your own stacks.
+2. Go through "Make it yours" above: delete the categories you won't use, and set your own stacks.
 3. Put `_toolchains/bin/` on your PATH if you'll use the shims there (`_toolchains/README.md`).
 4. Tell Claude Code about this folder everywhere, not only in sessions opened here:
    - Copy `_meta/templates/user-claude/WORKSTATION.md` to `~/.claude/WORKSTATION.md` and replace every
@@ -42,7 +44,7 @@ starting point, not a standard to keep:
 
 | Folder | What goes there |
 |---|---|
-| `games/` | Your games, by engine: `roblox/`, `godot/`, … Each game is a **game home** (below) |
+| `games/` | Your games, by engine: `games/<engine>/`, made with your first game in it. Each game is a **game home** (below) |
 | `mods/` | Mods for other people's games, one folder per game |
 | `emulators/` | Server emulators for other people's online games, one folder per game |
 | `apps/` | Full applications: `web/`, `desktop/` (and `bots/`, `mobile/` later) |

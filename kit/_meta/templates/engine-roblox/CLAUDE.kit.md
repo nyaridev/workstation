@@ -13,7 +13,8 @@ build Roblox games another way, change this file and `/new-project` → `types/r
 
 ## New game
 
-Follow `/new-project` → `types/roblox.md`: the game home from the templates, then `rojo init` in `game/`.
+Follow `/new-project` → `types/roblox.md`: the game home from the templates, then `rojo init` in `game/`. This file
+came from the `engine-roblox` template with the first Roblox game; it's yours to change.
 
 ## Working on a game
 
