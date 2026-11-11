@@ -27,6 +27,7 @@ order (a later template overwrites an earlier one) and fills placeholders in fil
 | `asset-set/` | A library set's card, plus `source/` and `export/` | alone |
 | `research/` | `report.md`, `sources.md`, `data/` | alone |
 | `idea/` | An idea's `README.md`: pitch, audience, open questions | alone |
+| `user-claude/` | Your `~/.claude/WORKSTATION.md`: where projects live, and the stay-inside rule | by hand, once per PC (`README.md`) |
 
 Roblox repos come from `rojo init`. Web and desktop apps come from their
 official generators, with `repo-base` added on top using `-Merge`.
