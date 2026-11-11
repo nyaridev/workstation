@@ -1,6 +1,7 @@
 # games/roblox/
 
-Roblox games, one game home each (`games/CLAUDE.md`), built with Rojo.
+Roblox games, one game home each (`games/CLAUDE.md`), built with Rojo. That's the kit's default toolchain: if you
+build Roblox games another way, change this file and `/new-project` → `types/roblox.md`.
 
 ## A Roblox game home
 

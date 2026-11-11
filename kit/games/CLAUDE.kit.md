@@ -1,8 +1,8 @@
 # games/
 
 Every game is a **game home** at `games/<engine>/<game>/`: a plain folder that is never a git repo. The kit starts
-with `roblox/` and `godot/`. Another engine (`rust/`, `unity/`, `love2d/`, `web/`…) gets its folder, and a `CLAUDE.md` like the
-others, when its first game arrives.
+with `roblox/` and `godot/` as examples: delete the ones you don't use. Another engine (`rust/`, `unity/`, `love2d/`,
+`web/`…) gets its folder, and a `CLAUDE.md` like the others, when its first game arrives.
 
 ## A game home
 

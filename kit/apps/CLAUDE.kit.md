@@ -11,9 +11,10 @@ Full applications. Each app folder is its own repo.
 
 A tool that does one job belongs in `tools/`, and a companion for one game belongs inside that game home.
 
-## House stack
+## Default stack
 
-New apps use this stack unless the user picks something else:
+The kit's starting choice, not a requirement: replace it with your own stack, and the recipes in
+`.claude/skills/new-project/types/app.md` with it. New apps use this stack unless the user picks something else:
 
 - Node 22.18+, TypeScript (strict), React 19 + Vite, Tailwind 4, Biome (format + lint), Vitest.
 - Desktop shell: Tauri 2. Local server: Hono.

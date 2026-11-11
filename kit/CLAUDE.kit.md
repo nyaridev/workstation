@@ -18,5 +18,5 @@
   for code with git features: `game/`, or `game/<folder>/` when that folder has its own `.claude/` (Roblox). The
   game's `CLAUDE.md` loads either way.
 - Files that MCP servers and generators make go to the nearest `_inbox/`.
-- Windows 11, with both PowerShell and Git Bash. Use forward slashes in paths inside files. Run workspace scripts with
-  `pwsh -NoProfile -File _meta/scripts/<script>.ps1`.
+- The kit's scripts are for Windows: PowerShell 7 (`pwsh`) and `.bat` launchers. Use forward slashes in paths inside
+  files. Run workspace scripts with `pwsh -NoProfile -File _meta/scripts/<script>.ps1`.

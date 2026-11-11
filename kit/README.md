@@ -12,17 +12,30 @@ Your home for every project. Open Claude Code in this folder and say what you wa
 | "I'm done with farm-game" | `/archive-project` |
 | "What's in here?" | `/projects` |
 
+## Make it yours
+
+This workstation started from a starter kit, and it's meant to become your own. The layout, rules and recipes are a
+starting point, not a standard to keep:
+
+- **Folders:** keep the categories you use, delete the ones you don't, and add your own. A new category gets a
+  `CLAUDE.md` with its rules and a row in the `AGENTS.md` map.
+- **Stacks and engines are defaults:** the app stack in `apps/CLAUDE.md`, the Python shape in `tools/CLAUDE.md`, and
+  the Roblox and Godot setups in `games/`. Swap in the tools you actually use.
+- **The rules follow you:** when you tell Claude you work differently, it updates the rule in the same task, so the
+  rules keep matching how you work instead of pulling you back to the kit's defaults.
+
 ## First steps
 
 1. Fill in the GitHub owners table in `AGENTS.md` (Names and owners) with your own account and orgs.
-2. Put `_toolchains/bin/` on your PATH if you'll use the shims there (`_toolchains/README.md`).
-3. Tell Claude Code about this folder everywhere, not only in sessions opened here:
+2. Go through "Make it yours" above: delete the categories and engines you won't use, and set your own stacks.
+3. Put `_toolchains/bin/` on your PATH if you'll use the shims there (`_toolchains/README.md`).
+4. Tell Claude Code about this folder everywhere, not only in sessions opened here:
    - Copy `_meta/templates/user-claude/WORKSTATION.md` to `~/.claude/WORKSTATION.md` and replace every
      `<workstation>` in it with this folder's path. It says where projects live, keeps sessions inside their own
      folder, and lets any session update `projects.json`.
    - Add the line `@WORKSTATION.md` to `~/.claude/CLAUDE.md` (create the file if it doesn't exist).
 
-4. Open the Workstation app and add this folder, or keep using it with Claude Code alone.
+5. Open the Workstation app and add this folder, or keep using it with Claude Code alone.
 
 ## Folders
 

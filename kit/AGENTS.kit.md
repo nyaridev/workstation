@@ -122,3 +122,7 @@ the workstation root. In any other session, read the `SKILL.md` and follow it.
 This file, `_meta/docs/where-things-go.md`, the category `CLAUDE.md` files, `.claude/` and `_meta/templates/` evolve with the workspace. Update them in
 the same task when a folder, convention, owner or procedure changes, or when the user corrects where something should
 go. Big changes get an ADR in `_meta/docs/adr/`. Say which instruction files you changed.
+
+This workstation started from a generic starter kit, so its categories, stacks, engines and recipes are defaults meant
+to change. When the user works differently from a rule, follow the user and update the rule (and `where-things-go.md`,
+the skills and templates it touches) in the same task, instead of steering them back to the default.

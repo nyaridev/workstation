@@ -8,7 +8,9 @@ Each tool folder is its own repo.
 - **Plugins** (Roblox Studio, VS Code, Blender add-ons) live here unless they belong to a framework suite. A suite's
   plugins stay in the suite's folder.
 
-## Python tools (the usual shape)
+## Python tools (the default shape)
+
+The kit's starting choice: change it, or add a section like it for the language your tools use.
 
 ```
 <tool>/

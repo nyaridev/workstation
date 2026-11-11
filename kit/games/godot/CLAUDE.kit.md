@@ -4,7 +4,8 @@ Godot games, one game home each (`games/CLAUDE.md`).
 
 ## Engine
 
-Godot binaries live in `_toolchains/godot/<version>/`. The recipes and template assume **4.7-stable**: install it there, or change them to your version.
+Godot binaries live in `_toolchains/godot/<version>/`. The kit's default is **4.7-stable**: install it there, or change this file, `/new-project` →
+`types/godot.md` and the `godot-project` template to your version.
 
 | Use | Path |
 |---|---|
