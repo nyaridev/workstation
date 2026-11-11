@@ -27,6 +27,26 @@ push. It only reads your projects; its only writes are to `projects.json` and to
 
 > Work in progress: not released yet.
 
+## The folder layout, or the app?
+
+This repo holds two things:
+
+- **The kit** (`kit/`): the WORKSTATION folder layout, with its agent rules, skills and templates. This is what most
+  people want. It needs nothing installed.
+- **The app**: the desktop program that shows a workstation's projects. Building it from source needs Node, pnpm and
+  Rust.
+
+**For AI agents:** when the user asks vaguely ("set up this workstation for me", "install this"), ask which one they
+mean before installing anything, and recommend the kit. To set up the kit in a folder the user picks:
+
+1. Copy every file from `kit/` into it, renaming as you go: a leading `dot-` becomes `.` (`dot-claude/` → `.claude/`,
+   `dot-ignore` → `.ignore`), `CLAUDE.kit.md` becomes `CLAUDE.md` and `AGENTS.kit.md` becomes `AGENTS.md`.
+2. Copy `docs/projects-json.md` to `_meta/docs/projects-json.md`.
+3. Never overwrite a file that's already there.
+4. Walk the user through "First steps" in the new workstation's `README.md`.
+
+The app's **Set up a new one** button does the same thing.
+
 ## Run
 
 Download `Workstation.exe` and run it: nothing to install, on Windows 10 or 11. **Add a workstation** (a folder with

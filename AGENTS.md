@@ -16,6 +16,9 @@ filters, flags, git badges and "Open folder"; rescans on its own when projects o
 unregistered projects and edits tags; sets up new workstations from the built-in kit (`kit/`). Next: M10 (verify,
 polish, release). In `pnpm dev`, `?update` fakes a newer release. In `pnpm dev`, `?empty` shows the first-run screen and `?broken` an unreadable `projects.json`.
 
+If the user wants a workstation set up rather than the app built ("set up this workstation for me"), don't install
+Node or Rust: ask which they mean, recommend the kit, and follow `README.md` → "The folder layout, or the app?".
+
 ## Commands
 
 | Command         | What                                                                                |
