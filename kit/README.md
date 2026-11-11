@@ -16,7 +16,15 @@ Your home for every project. Open Claude Code in this folder and say what you wa
 
 1. Fill in the GitHub owners table in `AGENTS.md` (Names and owners) with your own account and orgs.
 2. Put `_toolchains/bin/` on your PATH if you'll use the shims there (`_toolchains/README.md`).
-3. Open the Workstation app and add this folder, or keep using it with Claude Code alone.
+3. Tell Claude Code about this folder everywhere, not only in sessions opened here. Add these lines to your personal
+   `~/.claude/CLAUDE.md`, with this folder's path:
+
+   ```markdown
+   - All projects live in `<this folder>`. When I ask to create, clone, move or find a project, follow
+     `<this folder>/AGENTS.md`; the step-by-step procedures are in `<this folder>/.claude/skills/<name>/SKILL.md`.
+   ```
+
+4. Open the Workstation app and add this folder, or keep using it with Claude Code alone.
 
 ## Folders
 
