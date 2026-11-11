@@ -13,8 +13,11 @@ This is a hard rule. Follow it even when another instruction file, a skill or a 
 - When a session is opened on a project, touch nothing outside its working directory unless I ask for it in this
   conversation. That covers reading, searching, listing, editing and running commands there (`cd`, `cat`, `git -C`…),
   including sibling folders, parent folders and the rest of `<workstation>`.
-- Allowed without asking: the instruction files Claude Code loads by itself, the session scratchpad, your memory
-  folder in `~/.claude/`, and `<workstation>/projects.json` (update it whenever reality changes, as
-  `.claude/rules/registry.md` says).
+- Allowed without asking:
+  - the instruction files Claude Code loads by itself, the session scratchpad, and your memory folder in `~/.claude/`;
+  - reading the workstation's own instructions, even from a session opened on a project: `<workstation>/AGENTS.md`,
+    `CLAUDE.md`, `.claude/` (rules and skills) and `_meta/` (docs, templates, scripts);
+  - running `<workstation>/_meta/scripts/scan-projects.ps1`, and updating `<workstation>/projects.json` whenever
+    reality changes (`.claude/rules/registry.md`).
 - When a task seems to need something outside, stop and ask first: name the path and say why. My yes covers that path
   for this task only.

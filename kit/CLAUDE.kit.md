@@ -20,4 +20,3 @@
 - Files that MCP servers and generators make go to the nearest `_inbox/`.
 - Windows 11, with both PowerShell and Git Bash. Use forward slashes in paths inside files. Run workspace scripts with
   `pwsh -NoProfile -File _meta/scripts/<script>.ps1`.
-- Temporary files go in the scratchpad, not in the workspace.

@@ -27,7 +27,8 @@ argument-hint: "<source path or project name> [target path]"
    - file counts match, apart from the skipped folders.
 6. **Fix hard-coded paths.** Search the copy for its old location (both slash styles) in
    `AGENTS.md`, `CLAUDE.md`, `.claude/`, configs and scripts.
-   - Replace them with the new paths. Godot paths become `_toolchains/godot/<version>/…`.
+   - Replace them with the new paths. Inside a repo, follow `AGENTS.md` → Paths: paths become relative, and tool
+     paths (a Godot exe…) become the tool's command name (`godot`), served by the `_toolchains/bin/` shims.
    - Show the changes, and commit them inside a repo only if the user agrees.
    - In a game home, mod home, emulator home or suite, list every folder below it with its own `CLAUDE.md`, `.claude/rules/` or
      `.claude/skills/` in the home's `CLAUDE.md` (`.claude/rules/instructions.md`). `scan-projects.ps1` must print no

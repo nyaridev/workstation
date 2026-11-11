@@ -14,14 +14,11 @@ argument-hint: "[category or filter]"
    - repos with uncommitted changes or unpushed commits;
    - sandbox folders untouched for 60+ days;
    - **not listed** folders: rules below a home or suite that its `CLAUDE.md` doesn't point to.
-3. **Offer fixes:**
-   - rows to add, with Kind, Stack and Owner filled in from the folder;
-   - for each `not listed` folder, a row in that home's `CLAUDE.md` "Rules below this folder" table
-     (`.claude/rules/instructions.md`);
-   - rows to update or mark missing (ask before removing any row);
-   - `/archive-project` for stale work.
-   
-   Write to `projects.json` only after the user agrees.
+3. **Fix the registry** without asking (`.claude/rules/registry.md`): add unregistered projects, with Kind, Stack and
+   Owner read from the folder, and correct entries that disagree with the disk or GitHub. Say what changed.
+   - Ask before removing an entry whose folder is missing.
+   - Offer the rest: for each `not listed` folder, a row in that home's `CLAUDE.md` "Rules below this folder" table
+     (`.claude/rules/instructions.md`), and `/archive-project` for stale work.
 4. **Filters:** with a filter in `$ARGUMENTS` ("roblox", "partner", "in-development"), answer from `projects.json` (tags, kind, status, owner)
    directly.
 5. **Other folders:** to see what's in a folder outside the workstation, run `scan-projects.ps1 -Root <folder>`.
