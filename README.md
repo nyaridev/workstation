@@ -43,7 +43,9 @@ mean before installing anything, and recommend the kit. To set up the kit in a f
    `dot-ignore` → `.ignore`), `CLAUDE.kit.md` becomes `CLAUDE.md` and `AGENTS.kit.md` becomes `AGENTS.md`.
 2. Copy `docs/projects-json.md` to `_meta/docs/projects-json.md`.
 3. Never overwrite a file that's already there.
-4. Walk the user through "First steps" in the new workstation's `README.md`.
+4. Walk the user through "First steps" in the new workstation's `README.md`. For the GitHub owners table, ask the user
+   for their own account and orgs (or read `gh api user --jq .login` and confirm it). Never use `nyaridev`, this
+   repo's owner: that's the kit's author, not the user.
 
 The app's **Set up a new one** button does the same thing.
 

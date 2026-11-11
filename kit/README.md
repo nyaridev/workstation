@@ -26,7 +26,8 @@ starting point, not a standard to keep:
 
 ## First steps
 
-1. Fill in the GitHub owners table in `AGENTS.md` (Names and owners) with your own account and orgs.
+1. Fill in the GitHub owners table in `AGENTS.md` (Names and owners) with your own account and orgs, and delete
+   the rows you don't need. `gh api user --jq .login` shows your GitHub username.
 2. Go through "Make it yours" above: delete the categories and engines you won't use, and set your own stacks.
 3. Put `_toolchains/bin/` on your PATH if you'll use the shims there (`_toolchains/README.md`).
 4. Tell Claude Code about this folder everywhere, not only in sessions opened here:

@@ -39,6 +39,9 @@ homes and suites are plain folders, never repos; their own `AGENTS.md` maps them
 - `_`-prefixed folders are support folders (`_meta/`, `_toolchains/`, `_cache/`, `_inbox/`, `_game/`), never projects.
 - GitHub owners. Fill this table in once with your own accounts and orgs; while it still shows `<placeholders>`,
   agents ask which owner to use.
+  - **Agents:** fill it only from the user. Run `gh api user --jq .login` when `gh` is logged in and confirm the name
+    with the user, or ask. Never take an owner from the repo this kit came from, its license or any other project
+    nearby: that's the kit's author, not the user. Rows the user has no org for are deleted, not guessed.
 
 | Owner | For |
 |---|---|

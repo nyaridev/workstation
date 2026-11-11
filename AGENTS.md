@@ -18,6 +18,7 @@ polish, release). In `pnpm dev`, `?update` fakes a newer release. In `pnpm dev`,
 
 If the user wants a workstation set up rather than the app built ("set up this workstation for me"), don't install
 Node or Rust: ask which they mean, recommend the kit, and follow `README.md` → "The folder layout, or the app?".
+The new workstation's GitHub owners are the user's own, never this repo's `nyaridev`.
 
 ## Commands
 
