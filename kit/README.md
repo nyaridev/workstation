@@ -22,7 +22,12 @@ Your home for every project. Open Claude Code in this folder and say what you wa
    ```markdown
    - All projects live in `<this folder>`. When I ask to create, clone, move or find a project, follow
      `<this folder>/AGENTS.md`; the step-by-step procedures are in `<this folder>/.claude/skills/<name>/SKILL.md`.
+   - From any session, even one opened on a single project, update `<this folder>/projects.json` without asking
+     whenever reality changes, as `<this folder>/.claude/rules/registry.md` says.
    ```
+
+   If you also tell Claude to stay inside a session's folder, keep `projects.json` as an exception, or it will ask you
+   before every registry update.
 
 4. Open the Workstation app and add this folder, or keep using it with Claude Code alone.
 

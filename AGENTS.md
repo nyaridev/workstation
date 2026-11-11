@@ -8,7 +8,7 @@ rules load from the `CLAUDE.md` files above this folder; this file covers only w
 A desktop app (Tauri 2 + Rust + React) that oversees one or more WORKSTATION folders: it lists every project in them,
 compares them with each workstation's `projects.json` (format and entry template: `docs/projects-json.md`), sorts
 them by tags, and watches for projects being added, moved or removed. The built app also carries a starter kit that
-sets up a new WORKSTATION. Public later: github.com/nyaridev/workstation.
+sets up a new WORKSTATION. Public: github.com/nyaridev/workstation.
 
 Stage: M9 done, not released. The window draws its own title bar (no Windows frame) and the app updates itself from
 GitHub releases. The app lists a workstation's projects with search, tag, status and "has changes"
