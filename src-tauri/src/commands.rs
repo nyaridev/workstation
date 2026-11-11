@@ -17,6 +17,8 @@ use tauri_plugin_opener::OpenerExt;
 // ── Constants ─────────────────────────────
 /// The running app's version (kept equal in Cargo.toml, tauri.conf.json and package.json by the `release` skill).
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+/// How many commits the git overview shows.
+const HISTORY_LIMIT: usize = 200;
 
 // ── Types ─────────────────────────────────
 /// The running version, and the newest release when it's newer.
@@ -101,6 +103,19 @@ pub async fn git_status(root: String, paths: Vec<String>) -> Result<HashMap<Stri
     let root = PathBuf::from(root);
     let folders = paths.into_iter().filter_map(|path| Some((path.clone(), scan::folder(&root, &path).ok()?))).collect();
     tauri::async_runtime::spawn_blocking(move || git::statuses(folders)).await.map_err(|e| e.to_string())
+}
+
+/// The git overview of the repo at `path` (a project, or a repo folder inside one): branch, upstream, uncommitted
+/// files and the latest commits. Reads only; runs off the main thread.
+#[tauri::command]
+pub async fn git_history(root: String, path: String) -> Result<git::History, String> {
+    let folder = scan::folder(Path::new(&root), &path)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let repo = git::repo_dir(&folder).ok_or("This folder isn't a git repo.")?;
+        git::history(&repo, HISTORY_LIMIT).ok_or_else(|| "git couldn't read this repo. Is git installed?".to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 /// A guess at a project's stack from its files, for the Register form.

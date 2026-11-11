@@ -1,7 +1,9 @@
 // ProjectList: the projects of the open workstation, grouped by kind, with search, tag and status filters.
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { openFolder } from "../../lib/backend";
+import { HistoryPanel } from "../history/HistoryPanel";
+import { STATUSES } from "./fields";
 import {
   ANY,
   type Filters,
@@ -22,12 +24,22 @@ interface Props {
   root: string;
 }
 
+// The status picker lists statuses from first idea to done; unknown ones go last.
+const statusOrder = (status: string) => {
+  const at = (STATUSES as readonly string[]).indexOf(status);
+  return at < 0 ? STATUSES.length : at;
+};
+
 /** Scans `root` and lists its projects. */
 export function ProjectList({ root }: Props) {
   const { scan, error, reload } = useProjects(root);
   const git = useGitStatus(root, scan?.projects);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [openError, setOpenError] = useState<string | null>(null);
+  // The repo whose git overview is open.
+  const [history, setHistory] = useState<{ path: string; name: string } | null>(null);
+  const showHistory = useCallback((path: string, name: string) => setHistory({ path, name }), []);
+  const closeHistory = useCallback(() => setHistory(null), []);
 
   const projects = useMemo(() => scan?.projects ?? [], [scan]);
   // A suite's repos are listed inside the suite's row, not on their own.
@@ -83,7 +95,7 @@ export function ProjectList({ root }: Props) {
         filters={filters}
         groups={kinds}
         tags={counts}
-        statuses={valuesInUse(projects, (p) => [p.status])}
+        statuses={valuesInUse(projects, (p) => [p.status]).sort((a, b) => statusOrder(a) - statusOrder(b))}
         owners={valuesInUse(projects, (p) => [p.owner])}
         stacks={valuesInUse(projects, (p) => p.stack)}
         shown={shown.length}
@@ -96,7 +108,8 @@ export function ProjectList({ root }: Props) {
           <section key={group.label} aria-labelledby={`group-${group.label}`}>
             <h2
               id={`group-${group.label}`}
-              className="sticky top-0 bg-zinc-950/95 px-4 pt-4 pb-1 font-semibold text-xs text-zinc-500 uppercase tracking-wide"
+              // z-10: rows hold positioned layers (their click areas) that would otherwise paint over the heading.
+              className="sticky top-0 z-10 border-zinc-900 border-b bg-zinc-950 px-4 pt-4 pb-1 font-semibold text-xs text-zinc-500 uppercase tracking-wide"
             >
               {group.label} <span className="font-normal">({group.projects.length})</span>
             </h2>
@@ -113,6 +126,7 @@ export function ProjectList({ root }: Props) {
                   canWrite={scan.registryError === null}
                   onTag={toggleTag}
                   onOpen={open}
+                  onHistory={showHistory}
                   onSaved={reload}
                 />
               ))}
@@ -120,6 +134,7 @@ export function ProjectList({ root }: Props) {
           </section>
         ))}
       </div>
+      {history && <HistoryPanel root={root} path={history.path} name={history.name} onClose={closeHistory} />}
     </div>
   );
 }

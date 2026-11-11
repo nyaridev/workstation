@@ -1,13 +1,21 @@
 @import "tailwindcss";
 
-/* A desktop app: the arrow over text, as in native windows; only fields you type in show the text cursor. */
 @layer base {
+  /* The app is dark: native parts (dropdown lists, scrollbars, checkboxes, date pickers) follow it. */
   html {
+    color-scheme: dark;
+    /* A desktop app: the arrow over text, as in native windows; only fields you type in show the text cursor. */
     cursor: default;
   }
 
   input:not([type="checkbox"], [type="radio"]),
   textarea {
     cursor: text;
+  }
+
+  /* A dropdown's list takes its colors from the select; a highlighted select must not tint the whole list. */
+  option {
+    background-color: var(--color-zinc-900);
+    color: var(--color-zinc-200);
   }
 }

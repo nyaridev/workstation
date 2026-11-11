@@ -6,4 +6,4 @@ Path: `ideas/<name>/`. First check that the idea doesn't already exist, in `idea
 `README.md`: the pitch, who it's for, why now, open questions. For a game idea, offer to add a `docs/` folder for
 vision, gameplay and systems as the design grows.
 
-Register the idea with kind `idea`, status `planning` and owner `null`.
+Register the idea with kind `idea`, status `concept` and owner `null`.

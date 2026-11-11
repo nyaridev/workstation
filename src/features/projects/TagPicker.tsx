@@ -41,7 +41,7 @@ export function TagPicker({ tags, selected, onToggle }: Props) {
         aria-expanded={open}
         aria-controls={panel}
         onClick={() => setOpen(!open)}
-        className={`flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-sm ${selected.length > 0 ? "border-sky-700 bg-sky-950/40 text-sky-200" : "border-zinc-700 bg-zinc-900 text-zinc-300"} hover:border-zinc-500`}
+        className={`flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-sm ${selected.length > 0 ? "border-sky-700 bg-sky-950 text-sky-200" : "border-zinc-700 bg-zinc-900 text-zinc-300"} hover:border-zinc-500`}
       >
         Tags{selected.length > 0 && ` · ${selected.length}`}
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" aria-hidden="true">

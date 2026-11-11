@@ -18,7 +18,7 @@ interface Props {
 }
 
 const picker = (on: boolean) =>
-  `h-8 rounded-md border px-2 text-sm ${on ? "border-sky-700 bg-sky-950/40 text-sky-200" : "border-zinc-700 bg-zinc-900 text-zinc-300"}`;
+  `h-8 rounded-md border px-2 text-sm ${on ? "border-sky-700 bg-sky-950 text-sky-200" : "border-zinc-700 bg-zinc-900 text-zinc-300"}`;
 
 /** Every filter control; a project must pass all of them. */
 export function ProjectFilters(props: Props) {

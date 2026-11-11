@@ -7,7 +7,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-dialog";
 import { fakeProjects } from "./fakeProjects";
-import type { GitStatuses, Listing, NewEntry, Scan, SetupResult, UpdateCheck } from "./types";
+import type { GitHistory, GitStatuses, Listing, NewEntry, Scan, SetupResult, UpdateCheck } from "./types";
 
 // ── Fake backend ──────────────────────────
 const inTauri = "__TAURI_INTERNALS__" in window;
@@ -94,8 +94,40 @@ export async function gitStatus(root: string, paths: string[]): Promise<GitStatu
     "tools/rename/": { branch: "feature/batch", uncommitted: 1, unpushed: null, owner: "nyaridev" },
     "frameworks/kit/kit-core/": { branch: "main", uncommitted: 0, unpushed: 0, owner: "nyaridev" },
     "frameworks/kit/kit-ui/": { branch: "main", uncommitted: 3, unpushed: 1, owner: "nyaridev" },
+    // A game home reads as its game/ repo, as the real backend reports it.
+    "games/godot/swamp/": { branch: "main", uncommitted: 0, unpushed: 2, owner: "local" },
     "games/godot/swamp/game/": { branch: "main", uncommitted: 0, unpushed: 2, owner: "local" },
-    "games/godot/swamp/wiki/": { branch: "main", uncommitted: 0, unpushed: 0, owner: "local" },
+    "games/godot/swamp/wiki/": { branch: "main", uncommitted: 5, unpushed: 0, owner: "local" },
+  };
+}
+
+/** The git overview of the repo at `path`: branch, upstream, uncommitted files and the latest commits. */
+export async function gitHistory(root: string, path: string): Promise<GitHistory> {
+  if (inTauri) return invoke("git_history", { root, path });
+  const day = 24 * 60 * 60 * 1000;
+  const commit = (n: number, subject: string, unpushed: boolean) => ({
+    hash: `${n}`.padStart(40, "a"),
+    short: `${n}`.padStart(7, "a"),
+    subject,
+    author: "Nari",
+    date: new Date(Date.now() - n * day).toISOString(),
+    unpushed,
+  });
+  return {
+    branch: "main",
+    upstream: "origin/main",
+    behind: 1,
+    changes: [
+      { code: " M", path: "src/app/App.tsx" },
+      { code: "??", path: "docs/notes.md" },
+    ],
+    commits: [
+      commit(0, "Open a git overview from a repo's row", true),
+      commit(1, "Totals for homes and suites", true),
+      commit(2, "Suites open to their repos", false),
+      commit(5, "More filters", false),
+      commit(9, "Initial scaffold", false),
+    ],
   };
 }
 

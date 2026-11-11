@@ -34,10 +34,24 @@ to these entries by `path`.
 | `kind` | yes | `game` · `mod` · `emulator` · `app` · `tool` · `framework` · `suite` · `asset-pack` · `research` · `idea` · `external` |
 | `stack` | yes | Short list of what it's built with: `["Tauri", "React"]`, `["Godot 4.7", "GDScript"]`. `[]` when there's nothing to name |
 | `owner` | yes | GitHub owner of the main repo, `"local"` if it has no remote, `null` for plain folders |
-| `status` | yes | `planning` · `prototyping` · `in-development` · `released` · `on-hold` |
+| `status` | yes | Where it stands (below) |
 | `description` | yes | One sentence: what it is. No history, no setup details |
 | `tags` | yes | What to sort and filter by (below). `[]` is fine |
 | `notes` | no | One line: partner or client, why it was cloned, setup history, gotchas |
+
+## Statuses
+
+| Status | For |
+| --- | --- |
+| `concept` | An idea, nothing planned yet (new ideas start here) |
+| `planning` | Designing what to build |
+| `researching` | A study in progress (new research starts here) |
+| `prototyping` | Building a first version (new projects start here) |
+| `in-development` | Being built for real |
+| `released` | Shipped: people use it |
+| `maintained` | Shipped and still looked after, nothing big planned |
+| `complete` | Finished work that doesn't ship: a study, a document, an asset set |
+| `on-hold` | Paused |
 
 ## Tags
 

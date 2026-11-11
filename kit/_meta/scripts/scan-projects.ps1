@@ -163,7 +163,7 @@ else {
 
 # projects.json: format in _meta/docs/projects-json.md
 $kinds = @("game", "mod", "emulator", "app", "tool", "framework", "suite", "asset-pack", "research", "idea", "external")
-$statuses = @("planning", "prototyping", "in-development", "released", "on-hold")
+$statuses = @("concept", "planning", "researching", "prototyping", "in-development", "released", "maintained", "complete", "on-hold")
 $required = @("name", "path", "kind", "stack", "owner", "status", "description", "tags")
 
 $registry = @()

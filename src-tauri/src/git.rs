@@ -3,7 +3,7 @@
 
 // ── Imports ───────────────────────────────
 use serde::Serialize;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::thread;
@@ -29,9 +29,46 @@ pub struct Status {
     pub owner: Option<String>,
 }
 
+/// One commit in a repo's history.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Commit {
+    pub hash: String,
+    pub short: String,
+    pub subject: String,
+    pub author: String,
+    /// ISO 8601, with the author's offset.
+    pub date: String,
+    /// Not on the upstream branch (or, without one, on no remote at all).
+    pub unpushed: bool,
+}
+
+/// One uncommitted file, as `git status --porcelain` shows it.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Change {
+    /// The two status letters: ` M` changed, `A ` added, `??` untracked…
+    pub code: String,
+    pub path: String,
+}
+
+/// A repo's overview: where it stands against its upstream, what isn't committed, and its latest commits.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct History {
+    pub branch: String,
+    /// `origin/main`; None when the branch tracks nothing.
+    pub upstream: Option<String>,
+    /// Commits behind the upstream as of the last fetch (the app never fetches); None without an upstream.
+    pub behind: Option<usize>,
+    pub changes: Vec<Change>,
+    /// Newest first, at most the limit asked for.
+    pub commits: Vec<Commit>,
+}
+
 // ── Private helpers ───────────────────────
-// Runs git in `dir` and returns its trimmed output, or None when git is missing or the command fails.
-fn git(dir: &Path, args: &[&str]) -> Option<String> {
+// Runs git in `dir` and returns its output as it is, or None when git is missing or the command fails.
+fn git_raw(dir: &Path, args: &[&str]) -> Option<String> {
     let mut command = Command::new("git");
     command.args(args).current_dir(dir);
     #[cfg(windows)]
@@ -40,7 +77,12 @@ fn git(dir: &Path, args: &[&str]) -> Option<String> {
         command.creation_flags(CREATE_NO_WINDOW);
     }
     let output = command.output().ok()?;
-    output.status.success().then(|| String::from_utf8_lossy(&output.stdout).trim().to_string())
+    output.status.success().then(|| String::from_utf8_lossy(&output.stdout).into_owned())
+}
+
+// The same, trimmed.
+fn git(dir: &Path, args: &[&str]) -> Option<String> {
+    git_raw(dir, args).map(|out| out.trim().to_string())
 }
 
 // ── Public API ────────────────────────────
@@ -69,6 +111,43 @@ pub fn status(repo: &Path) -> Option<Status> {
     let unpushed = git(repo, &["rev-list", "--count", "@{u}..HEAD"]).and_then(|n| n.parse().ok());
     let owner = git(repo, &["remote", "get-url", "origin"]).and_then(|url| owner_of(&url));
     Some(Status { branch, uncommitted, unpushed, owner })
+}
+
+/// The overview of one repo with its latest `limit` commits, or None when git can't read it. Reads only: no fetch.
+pub fn history(repo: &Path, limit: usize) -> Option<History> {
+    let branch = git(repo, &["symbolic-ref", "--short", "HEAD"]).or_else(|| git(repo, &["rev-parse", "--short", "HEAD"]))?;
+    let upstream = git(repo, &["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"]);
+    let unpushed_args: &[&str] =
+        if upstream.is_some() { &["rev-list", "@{u}..HEAD"] } else { &["rev-list", "HEAD", "--not", "--remotes"] };
+    let unpushed: HashSet<String> = git(repo, unpushed_args).unwrap_or_default().lines().map(str::to_string).collect();
+    let behind = upstream.as_ref().and_then(|_| git(repo, &["rev-list", "--count", "HEAD..@{u}"])?.parse().ok());
+
+    let status = git_raw(repo, &["status", "--porcelain"]).unwrap_or_default();
+    let changes = status
+        .lines()
+        .filter(|line| line.len() > 3)
+        .map(|line| Change { code: line[..2].to_string(), path: line[3..].trim_matches('"').to_string() })
+        .collect();
+
+    // One commit per line, fields split by the unit separator (subjects can't hold it).
+    let log = git(repo, &["log", &format!("-n{limit}"), "--format=%H%x1f%h%x1f%an%x1f%aI%x1f%s"]).unwrap_or_default();
+    let commits = log
+        .lines()
+        .filter_map(|line| {
+            let [hash, short, author, date, subject] = line.splitn(5, '\u{1f}').collect::<Vec<_>>()[..] else {
+                return None;
+            };
+            Some(Commit {
+                unpushed: unpushed.contains(hash),
+                hash: hash.to_string(),
+                short: short.to_string(),
+                subject: subject.to_string(),
+                author: author.to_string(),
+                date: date.to_string(),
+            })
+        })
+        .collect();
+    Some(History { branch, upstream, behind, changes, commits })
 }
 
 /// The status of every repo among `projects` (project path → folder), read a few at a time. Plain folders are left out.
@@ -127,5 +206,39 @@ mod tests {
         let expected = Status { branch: "main".into(), uncommitted: 1, unpushed: None, owner: Some("acme".into()) };
         assert_eq!(found.get("tool/"), Some(&expected));
         assert_eq!(found.len(), 1, "plain folders have no status");
+    }
+
+    #[test]
+    fn reads_history_and_marks_unpushed_commits() {
+        let temp = Temp::new();
+        if git(&temp.0, &["--version"]).is_none() {
+            return; // git isn't installed here
+        }
+        let remote = temp.dir("remote.git");
+        git(&remote, &["init", "-q", "--bare", "-b", "main"]).unwrap();
+        let repo = temp.dir("tool");
+        git(&repo, &["init", "-q", "-b", "main"]).unwrap();
+        let commit = |file: &str, message: &str| {
+            temp.file(&format!("tool/{file}"), message);
+            git(&repo, &["add", file]).unwrap();
+            git(&repo, &["-c", "user.name=Tester", "-c", "user.email=t@example.com", "commit", "-qm", message]).unwrap();
+        };
+
+        commit("a.txt", "First");
+        assert!(history(&repo, 50).unwrap().commits[0].unpushed, "no remote: nothing is pushed");
+
+        git(&repo, &["remote", "add", "origin", &remote.to_string_lossy()]).unwrap();
+        git(&repo, &["push", "-q", "-u", "origin", "main"]).unwrap();
+        commit("b.txt", "Second | with a pipe");
+        temp.file("tool/new.txt", "x");
+
+        let history = history(&repo, 50).unwrap();
+        assert_eq!(history.branch, "main");
+        assert_eq!(history.upstream.as_deref(), Some("origin/main"));
+        assert_eq!(history.behind, Some(0));
+        assert_eq!(history.changes, [Change { code: "??".into(), path: "new.txt".into() }]);
+        let commits: Vec<(&str, &str, bool)> =
+            history.commits.iter().map(|c| (c.subject.as_str(), c.author.as_str(), c.unpushed)).collect();
+        assert_eq!(commits, [("Second | with a pipe", "Tester", true), ("First", "Tester", false)]);
     }
 }

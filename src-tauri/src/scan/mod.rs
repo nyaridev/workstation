@@ -47,6 +47,8 @@ pub struct Project {
     pub on_disk: bool,
     /// False when the folder exists but `projects.json` has no entry for it.
     pub registered: bool,
+    /// True when the project's folder is a git repo itself; a game home isn't (its repo is `game/`), nor is a suite.
+    pub repo: bool,
     /// Important folders inside a project that isn't a repo itself (a game home's `game/` and `docs/`); folders that
     /// are projects of their own (a suite's repos) aren't repeated here.
     pub folders: Vec<Folder>,
@@ -75,6 +77,7 @@ fn from_entry(entry: &Entry, on_disk: bool) -> Project {
         notes: entry.notes.clone(),
         on_disk,
         registered: true,
+        repo: false,
         folders: Vec::new(),
     }
 }
@@ -94,6 +97,7 @@ fn unregistered(found: &layout::Found) -> Project {
         notes: None,
         on_disk: true,
         registered: false,
+        repo: false,
         folders: Vec::new(),
     }
 }
@@ -144,6 +148,7 @@ pub fn scan(root: &Path) -> Scan {
     projects.sort_by(|a, b| a.path.cmp(&b.path));
     let paths: Vec<String> = projects.iter().map(|p| p.path.clone()).collect();
     for project in projects.iter_mut().filter(|p| p.on_disk) {
+        project.repo = root.join(&project.path).join(".git").exists();
         project.folders = folders(root, &project.path, &paths);
     }
     Scan { projects, registry_error }
@@ -229,6 +234,9 @@ mod tests {
         );
         assert_eq!(folders("frameworks/kit/"), [("frameworks/kit/notes/".to_string(), false)], "repos are projects");
         assert!(folders("tools/rename/").is_empty(), "a repo's own folders aren't listed");
+        let repo = |path: &str| scan.projects.iter().find(|p| p.path == path).unwrap().repo;
+        assert!(repo("tools/rename/"));
+        assert!(!repo("games/godot/swamp/"), "a game home's repo is game/, not the home");
     }
 
     #[test]

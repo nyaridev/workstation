@@ -2,7 +2,7 @@
 
 import type { Project } from "./types";
 
-const base = { archived: false, owner: "local", notes: null, onDisk: true, registered: true, folders: [] };
+const base = { archived: false, owner: "local", notes: null, onDisk: true, registered: true, repo: true, folders: [] };
 const folder = (path: string, repo = false) => ({ path, name: path.split("/").at(-2) ?? path, repo });
 
 /** A small made-up workstation. */
@@ -52,6 +52,7 @@ export const fakeProjects: Project[] = [
     status: "in-development",
     description: "A family of repos released together.",
     tags: ["kit"],
+    repo: false,
     folders: [folder("frameworks/kit/notes/")],
   },
   {
@@ -84,6 +85,7 @@ export const fakeProjects: Project[] = [
     description: "Co-op swamp survival for up to 4 players.",
     tags: ["godot", "co-op", "survival"],
     notes: "Steam via Spacewar until its own AppID.",
+    repo: false,
     folders: [
       folder("games/godot/swamp/assets/"),
       folder("games/godot/swamp/docs/"),
@@ -109,7 +111,7 @@ export const fakeProjects: Project[] = [
     kind: "research",
     stack: ["Markdown"],
     owner: null,
-    status: "released",
+    status: "complete",
     description: "Core loops of top Roblox games.",
     tags: ["roblox", "game-design"],
   },

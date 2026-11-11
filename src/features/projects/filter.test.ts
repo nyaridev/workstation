@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { fakeProjects } from "../../lib/fakeProjects";
 import {
   filterProjects,
+  gitOf,
   groupProjects,
   NO_FILTERS,
   nestProjects,
@@ -44,7 +45,7 @@ describe("filterProjects", () => {
   it("keeps only repos with changes when asked", () => {
     const git = {
       "games/roblox/fish-dive/": { branch: "main", uncommitted: 0, unpushed: 0, owner: null },
-      "games/godot/swamp/": { branch: "main", uncommitted: 0, unpushed: 3, owner: null },
+      "games/godot/swamp/game/": { branch: "main", uncommitted: 0, unpushed: 3, owner: null },
       "tools/rename/": { branch: "main", uncommitted: 2, unpushed: null, owner: null },
     };
     expect(names(filterProjects(fakeProjects, { ...all, changed: true }, git))).toEqual(["Swamp", "rename"]);
@@ -85,6 +86,20 @@ describe("nestProjects", () => {
     expect(names(inside.get("frameworks/kit/") ?? [])).toEqual(["kit-core", "kit-ui"]);
     expect(names(filterProjects(top, { ...all, stack: "TypeScript" }, {}, inside))).toEqual(["Kit"]);
     expect(names(filterProjects(top, { ...all, stack: "TypeScript" }))).toEqual([]);
+  });
+});
+
+describe("gitOf", () => {
+  it("sums the repos inside a project that isn't a repo, and ignores its own entry", () => {
+    const swamp = fakeProjects.find((p) => p.name === "Swamp");
+    const git = {
+      "games/godot/swamp/": { branch: "main", uncommitted: 9, unpushed: 9, owner: null },
+      "games/godot/swamp/game/": { branch: "main", uncommitted: 1, unpushed: 2, owner: null },
+      "games/godot/swamp/wiki/": { branch: "main", uncommitted: 3, unpushed: null, owner: null },
+    };
+    expect(swamp && gitOf(swamp, git, new Map())).toEqual({ branch: "", uncommitted: 4, unpushed: 2, owner: null });
+    const repo = fakeProjects.find((p) => p.repo);
+    expect(repo && gitOf(repo, {}, new Map())).toBeUndefined();
   });
 });
 

@@ -14,7 +14,8 @@ src-tauri/src/
 ├─ scan/               layout.rs (place rules, change filter), registry.rs (read/write projects.json),
 │                      stack.rs (stack guess), mod.rs (merge)
 ├─ watch.rs            debounced watcher → `projects-changed`
-├─ git.rs              branch, uncommitted, unpushed, remote owner (the `git` command, 8 repos at a time)
+├─ git.rs              branch, uncommitted, unpushed, remote owner (the `git` command, 8 repos at a time); one
+│                      repo's history (commits, unpushed, uncommitted files). Reads only, never fetches
 ├─ kit.rs              the embedded starter kit and "set up here" (never overwrites)
 ├─ update.rs           the app's own updates: check, download, SHA-256, swap the exe (gh or curl.exe)
 └─ test_support.rs     temp folders for tests (test builds only)
@@ -23,6 +24,7 @@ src/
 ├─ features/projects/  project list: filter.ts (filters, nesting, grouping), fields.ts (kinds, statuses, tags), the
 │                      list, row (opens to inner projects and FolderRows), filters and TagPicker, Register form,
 │                      tag editor and tag input, useProjects
+├─ features/history/   a repo's git overview panel (commits, unpushed, uncommitted files), format.ts
 └─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
 kit/                   the starter workstation (stored as dot-* and *.kit.md), embedded at build time
 scripts/               check-size.mjs

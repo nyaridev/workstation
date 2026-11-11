@@ -78,7 +78,7 @@ Run `git init` in the repo folder (`game/` for a game home). Commit everything a
 
 ## 6. Register
 
-Add the `projects.json` entry (`.claude/rules/registry.md`), with a one-sentence description and tags. Status is `planning` for ideas and `prototyping` for
+Add the `projects.json` entry (`.claude/rules/registry.md`), with a one-sentence description and tags. Status is `concept` for ideas, `researching` for research and `prototyping` for
 everything else.
 
 ## 7. Offer the next steps

@@ -41,6 +41,8 @@ export interface Project {
   onDisk: boolean;
   /** False when the folder exists but `projects.json` has no entry for it. */
   registered: boolean;
+  /** True when the folder is a git repo itself; a game home isn't (its repo is `game/`), nor is a suite. */
+  repo: boolean;
   /** Important folders inside a project that isn't a repo itself; projects of their own aren't repeated here. */
   folders: Folder[];
 }
@@ -96,4 +98,29 @@ export interface Release {
 export interface UpdateCheck {
   current: string;
   latest: Release | null;
+}
+
+/** One commit (`git::Commit`). */
+export interface Commit {
+  hash: string;
+  short: string;
+  subject: string;
+  author: string;
+  /** ISO 8601. */
+  date: string;
+  /** Not on the upstream branch (or, without one, on no remote). */
+  unpushed: boolean;
+}
+
+/** A repo's overview (`git::History`): where it stands, what isn't committed, and its latest commits. */
+export interface GitHistory {
+  branch: string;
+  /** `origin/main`; null when the branch tracks nothing. */
+  upstream: string | null;
+  /** Commits behind the upstream as of the last fetch; null without an upstream. */
+  behind: number | null;
+  /** Uncommitted files: `code` is git's two status letters (` M`, `??`…). */
+  changes: { code: string; path: string }[];
+  /** Newest first. */
+  commits: Commit[];
 }

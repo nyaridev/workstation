@@ -37,9 +37,10 @@ delete that file to see the first run again.
 - [ ] Groups appear in order (Games, Apps, Tools, Frameworks, Research, Ideas, Archive…) with counts.
 - [ ] Every project in `projects.json` is there, with its description, path, stack and tags.
 - [ ] Search finds by name, description, path, stack and notes; several words must all match.
-- [ ] A suite (ume) is one row: "9 projects" opens its repos, each with its own row, badges and Edit tags. A game
-      home's "N folders" opens `game/`, `wiki/`, `docs/`, `assets/`, `saves/` (repos with git badges), not `.claude/`
-      or `builds/`. "changes in N" counts the inner repos with uncommitted or unpushed work.
+- [ ] A suite (ume) is one row; clicking anywhere on it (not its buttons or tags) opens its repos, each with its own
+      row, badges and Edit tags. A game home opens to `game/`, `wiki/`, `docs/`, `assets/`, `saves/` (repos with git
+      badges), not `.claude/` or `builds/`.
+- [ ] A suite or game home shows no branch: its uncommitted and unpushed badges add up the repos inside it.
 - [ ] The kind tabs (All, Games, Apps…) show one kind at a time; their counts follow the other filters.
 - [ ] **Tags** opens a list with a search box and counts; checking two tags shows only projects with both. Picked tags
       show as chips (× removes one); a `#tag` on a row also toggles it. Escape or a click outside closes the list.
@@ -52,6 +53,10 @@ delete that file to see the first run again.
 - [ ] Repos show their branch; ones with changes show "N uncommitted" and "N unpushed" (compare with `git status`).
 - [ ] Plain folders (ideas, research, suites) show no badges.
 - [ ] "Has changes" keeps only repos with uncommitted or unpushed work.
+- [ ] Clicking a repo's row (an app, a suite's repo, a game home's `game/` or `wiki/`) opens its git overview: the
+      branch and what it tracks, unpushed and behind counts, uncommitted files, and the latest commits with the
+      unpushed ones marked. Compare with `git log --oneline` and `git status`. Refresh, Escape and a click beside the
+      panel work; nothing is fetched or changed.
 - [ ] Commit something in a terminal, switch back to the app: the badge updates.
 
 ## 5. Live updates (test workstation)

@@ -3,7 +3,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { guessStack, registerProject } from "../../lib/backend";
 import type { GitStatus, NewEntry, Project } from "../../lib/types";
-import { KINDS, STATUSES } from "./fields";
+import { KINDS, STATUSES, startingStatus } from "./fields";
 import { TagInput } from "./TagInput";
 
 interface Props {
@@ -27,7 +27,7 @@ export function RegisterForm({ root, project, git, suggestions, onDone }: Props)
     stack: [],
     // As projects-json.md says: the remote's owner, "local" for a repo without one, empty for a plain folder.
     owner: git ? (git.owner ?? "local") : "",
-    status: "prototyping",
+    status: startingStatus(project.kind),
     description: "",
     tags: [],
   });

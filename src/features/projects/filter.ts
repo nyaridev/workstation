@@ -68,6 +68,17 @@ export function hasChanges(git: GitStatus | undefined): boolean {
   return !!git && (git.uncommitted > 0 || (git.unpushed ?? 0) > 0);
 }
 
+/** A project's git status; for one that isn't a repo itself (a suite, a game home), the sums over the repos inside it,
+ * with no branch. Undefined when there's nothing to show. */
+export function gitOf(p: Project, git: GitStatuses, inside: Map<string, Project[]>): GitStatus | undefined {
+  if (p.repo) return git[p.path];
+  const paths = [...(inside.get(p.path) ?? []).map((c) => c.path), ...p.folders.map((f) => f.path)];
+  const repos = paths.map((path) => git[path]).filter((s): s is GitStatus => !!s);
+  if (repos.length === 0) return undefined;
+  const sum = (count: (s: GitStatus) => number) => repos.reduce((total, s) => total + count(s), 0);
+  return { branch: "", uncommitted: sum((s) => s.uncommitted), unpushed: sum((s) => s.unpushed ?? 0), owner: null };
+}
+
 /** Why a project doesn't match projects.json, or null when it does. Archived folders must have no entry. */
 export function registryFlag(p: Project): string | null {
   if (p.archived) return p.registered ? "archived: remove from projects.json" : null;
@@ -105,7 +116,7 @@ export function filterProjects(
     if (filters.status !== ANY && p.status !== filters.status) return false;
     if (filters.owner !== ANY && p.owner !== filters.owner) return false;
     if (filters.stack !== ANY && !p.stack.includes(filters.stack)) return false;
-    if (filters.changed && !hasChanges(git[p.path])) return false;
+    if (filters.changed && !hasChanges(gitOf(p, git, inside))) return false;
     if (filters.flagged && registryFlag(p) === null) return false;
     if (!filters.tags.every((tag) => p.tags.includes(tag))) return false;
     const text = [p.name, p.path, p.description, p.notes ?? "", ...p.tags, ...p.stack].join(" ").toLowerCase();

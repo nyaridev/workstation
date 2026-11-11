@@ -15,7 +15,17 @@ pub const FILE_NAME: &str = "projects.json";
 const KINDS: [&str; 11] =
     ["game", "mod", "emulator", "app", "tool", "framework", "suite", "asset-pack", "research", "idea", "external"];
 /// The allowed `status` values. Archived projects have no entry, so no `archived` status.
-const STATUSES: [&str; 5] = ["planning", "prototyping", "in-development", "released", "on-hold"];
+const STATUSES: [&str; 9] = [
+    "concept",
+    "planning",
+    "researching",
+    "prototyping",
+    "in-development",
+    "released",
+    "maintained",
+    "complete",
+    "on-hold",
+];
 
 // ── Types ─────────────────────────────────
 /// One `projects.json` entry, in the documented key order. Keys the app doesn't know are kept in `extra`.

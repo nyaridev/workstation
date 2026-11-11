@@ -32,6 +32,7 @@ pub fn run() {
             commands::scan_workstation,
             commands::open_folder,
             commands::git_status,
+            commands::git_history,
             commands::guess_stack,
             commands::register_project,
             commands::set_tags,
