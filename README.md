@@ -37,17 +37,19 @@ This repo holds two things:
   Rust.
 
 **For AI agents:** when the user asks vaguely ("set up this workstation for me", "install this"), ask which one they
-mean before installing anything, and recommend the kit. To set up the kit in a folder the user picks:
+mean before installing anything, and recommend the kit.
 
-1. Copy every file from `kit/` into it, renaming as you go: a leading `dot-` becomes `.` (`dot-claude/` → `.claude/`,
-   `dot-ignore` → `.ignore`), `CLAUDE.kit.md` becomes `CLAUDE.md` and `AGENTS.kit.md` becomes `AGENTS.md`.
-2. Copy `docs/projects-json.md` to `_meta/docs/projects-json.md`.
-3. Never overwrite a file that's already there.
-4. Walk the user through "First steps" in the new workstation's `README.md`. For the GitHub owners table, ask the user
-   for their own account and orgs (or read `gh api user --jq .login` and confirm it). Never use `nyaridev`, this
-   repo's owner: that's the kit's author, not the user.
+**Setting up the kit** in a folder the user picks needs only PowerShell, from a clone or download of this repo:
 
-The app's **Set up a new one** button does the same thing.
+```powershell
+pwsh -NoProfile -File setup-kit.ps1 -Destination "D:/WORKSTATION"
+```
+
+It copies the kit under its real file names (the kit stores `.claude/` as `dot-claude/` and `CLAUDE.md` as
+`CLAUDE.kit.md`, so don't copy `kit/` by hand) and never overwrites a file that's already there. The app's **Set up a
+new one** button does the same thing. Then walk the user through "First steps" in the new workstation's `README.md`.
+For the GitHub owners table, ask the user for their own account and orgs (or read `gh api user --jq .login` and confirm
+it). Never use `nyaridev`, this repo's owner: that's the kit's author, not the user.
 
 ## Run
 
