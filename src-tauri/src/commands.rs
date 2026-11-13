@@ -184,6 +184,15 @@ pub fn open_folder(app: AppHandle, root: String, path: String) -> Result<(), Str
     app.opener().open_path(folder.to_string_lossy(), None::<&str>).map_err(|e| e.to_string())
 }
 
+/// Opens the web page of the repo at `path` (its `origin`, on GitHub or another host) in the browser.
+#[tauri::command]
+pub fn open_repo_page(app: AppHandle, root: String, path: String) -> Result<(), String> {
+    let folder = scan::folder(Path::new(&root), &path)?;
+    let repo = git::repo_dir(&folder).ok_or("This folder isn't a git repo.")?;
+    let page = git::web_url(&repo).ok_or("This repo has no remote with a web page.")?;
+    app.opener().open_url(page, None::<&str>).map_err(|e| e.to_string())
+}
+
 // ── Updates ───────────────────────────────
 /// What the updater knows now (ADR-0014).
 #[tauri::command]

@@ -29,6 +29,8 @@ interface Props {
   onOpen: (path: string) => void;
   /** Pulls the repo at a path by fast-forward (ADR-0018); the row shows it working until it settles. */
   onPull: (path: string, name: string) => Promise<void>;
+  /** Opens a repo's remote page in the browser. */
+  onOpenPage: (path: string) => void;
   /** Opens the git overview of a repo (by path), with the name to show. */
   onHistory: (path: string, name: string) => void;
   onSaved: () => void;
@@ -51,7 +53,19 @@ function StatusBadge({ status }: { status: string }) {
 
 /** A project line; its tags toggle the tag filter. */
 export function ProjectRow(props: Props) {
-  const { root, project: p, inside, git, suggestions, canWrite, onOpen, onPull, onHistory, onSaved } = props;
+  const {
+    root,
+    project: p,
+    inside,
+    git,
+    suggestions,
+    canWrite,
+    onOpen,
+    onPull,
+    onOpenPage,
+    onHistory,
+    onSaved,
+  } = props;
   const [editing, setEditing] = useState<"register" | null>(null);
   // The tag dialog is open.
   const [tagsOpen, setTagsOpen] = useState(false);
@@ -88,6 +102,7 @@ export function ProjectRow(props: Props) {
     ...(hasHistory ? [{ label: "Git overview", onSelect: history }] : []),
     ...(canPull ? [{ label: "Pull from the remote", onSelect: () => void pull(), disabled: pulling }] : []),
     { label: "Open folder", onSelect: () => onOpen(p.path), disabled: !p.onDisk },
+    ...(own?.owner ? [{ label: "Open in browser", onSelect: () => onOpenPage(p.path) }] : []),
     ...(canWrite && !p.registered && !p.archived
       ? [{ label: "Register…", onSelect: () => setEditing("register") }]
       : []),
@@ -190,6 +205,7 @@ export function ProjectRow(props: Props) {
               git={git[folder.path]}
               onOpen={onOpen}
               onPull={() => onPull(folder.path, `${p.name} / ${folder.name}`)}
+              onOpenPage={() => onOpenPage(folder.path)}
               onHistory={() => onHistory(folder.path, `${p.name} / ${folder.name}`)}
             />
           ))}

@@ -73,6 +73,8 @@ delete that file to see the first run again.
       unpushed ones marked. Compare with `git log --oneline` and `git status`. Refresh, Escape and a click beside the
       panel work; nothing is fetched or changed.
 - [ ] Commit something in a terminal, switch back to the app: the badge updates.
+- [ ] Right-click a repo with a remote (or a repo folder inside a home): **Open in browser** opens its page (GitHub or
+      another host, from `origin`, ssh or https). Repos without a remote don't offer it.
 - [ ] Pull (the down-arrow icon, ADR-0018) shows only on repos that track an upstream, and on repo folders inside a
       home. Push a commit from another clone, then Pull: "Pulled 1 commit into …", and the files are there. Pull
       again: "… is up to date". With a local commit the remote doesn't have and a new remote commit, Pull refuses with

@@ -176,6 +176,12 @@ export async function gitStatus(root: string, paths: string[]): Promise<GitStatu
   };
 }
 
+/** Opens the web page of the repo at `path` (its remote) in the browser. */
+export async function openRepoPage(root: string, path: string): Promise<void> {
+  if (inTauri) return invoke("open_repo_page", { root, path });
+  window.open(`https://github.com/example/${path.split("/").filter(Boolean).pop()}`, "_blank", "noopener");
+}
+
 /** Pulls the repo at `path` by fast-forward only (ADR-0018); answers how many commits came in. */
 export async function gitPull(root: string, path: string): Promise<number> {
   if (inTauri) return invoke("git_pull", { root, path });

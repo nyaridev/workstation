@@ -15,11 +15,13 @@ interface Props {
   onOpen: (path: string) => void;
   /** Pulls this repo; settles when it's done. */
   onPull: () => Promise<void>;
+  /** Opens this repo's remote page in the browser. */
+  onOpenPage: () => void;
   onHistory: () => void;
 }
 
 /** One line per folder, lighter than a project row. */
-export function FolderRow({ folder, git, onOpen, onPull, onHistory }: Props) {
+export function FolderRow({ folder, git, onOpen, onPull, onOpenPage, onHistory }: Props) {
   const [pulling, setPulling] = useState(false);
   const hasHistory = folder.repo && git !== undefined;
   const canPull = git !== undefined && git.unpushed !== null;
@@ -32,6 +34,7 @@ export function FolderRow({ folder, git, onOpen, onPull, onHistory }: Props) {
     ...(hasHistory ? [{ label: "Git overview", onSelect: onHistory }] : []),
     ...(canPull ? [{ label: "Pull from the remote", onSelect: () => void pull(), disabled: pulling }] : []),
     { label: "Open folder", onSelect: () => onOpen(folder.path) },
+    ...(git?.owner ? [{ label: "Open in browser", onSelect: onOpenPage }] : []),
   ];
 
   return (

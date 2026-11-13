@@ -118,6 +118,39 @@ pub fn remote_of(url: &str) -> Option<(String, Option<String>)> {
     (!owner.is_empty() && path.contains('/')).then(|| (owner.to_string(), name.map(str::to_string)))
 }
 
+/// The web page of a remote URL: git@github.com:owner/repo.git and ssh://git@host/owner/repo become
+/// https://host/owner/repo; an http(s) URL keeps its scheme and port. None for local paths and other schemes.
+pub fn web_url_of(url: &str) -> Option<String> {
+    let url = url.trim().trim_end_matches('/').trim_end_matches(".git");
+    let (scheme, host, path) = match url.split_once("://") {
+        Some((scheme @ ("http" | "https"), rest)) => {
+            let (host, path) = rest.split_once('/')?;
+            (scheme, host.rsplit('@').next()?, path)
+        }
+        // An ssh port isn't the web server's.
+        Some(("ssh" | "git", rest)) => {
+            let (host, path) = rest.split_once('/')?;
+            ("https", host.rsplit('@').next()?.split(':').next()?, path)
+        }
+        Some(_) => return None,
+        // scp-like `git@host:owner/repo`; a one-letter "host" is a Windows drive.
+        None => {
+            let (host, path) = url.split_once(':')?;
+            if host.contains(['/', '\\']) || host.rsplit('@').next()?.len() < 2 {
+                return None;
+            }
+            ("https", host.rsplit('@').next()?, path)
+        }
+    };
+    let path = path.trim_start_matches('/');
+    (!host.is_empty() && path.contains('/')).then(|| format!("{scheme}://{host}/{path}"))
+}
+
+/// The web page of the repo's `origin`, or None without one.
+pub fn web_url(repo: &Path) -> Option<String> {
+    git(repo, &["remote", "get-url", "origin"]).and_then(|url| web_url_of(&url))
+}
+
 /// Fast-forwards the repo to its upstream branch with `git pull --ff-only` and returns how many commits came in. Never
 /// merges: git refuses when local changes would be overwritten or the branches have split, and its reason comes back.
 pub fn pull(repo: &Path) -> Result<usize, String> {
@@ -211,6 +244,18 @@ mod tests {
         assert_eq!(remote_of("https://github.com/acme/"), Some(("acme".to_string(), None)));
         assert_eq!(remote_of("https://github.com/"), None);
         assert_eq!(remote_of("not a url"), None);
+    }
+
+    #[test]
+    fn turns_any_remote_into_its_web_page() {
+        let page = |url: &str| web_url_of(url);
+        assert_eq!(page("https://github.com/nyaridev/prepkit.git").as_deref(), Some("https://github.com/nyaridev/prepkit"));
+        assert_eq!(page("git@github.com:nari-games/fish-dive.git").as_deref(), Some("https://github.com/nari-games/fish-dive"));
+        assert_eq!(page("ssh://git@github.com:22/ume-roblox/ume").as_deref(), Some("https://github.com/ume-roblox/ume"));
+        assert_eq!(page("https://user@git.example.com:8443/team/repo/").as_deref(), Some("https://git.example.com:8443/team/repo"));
+        assert_eq!(page("C:/repos/tool"), None, "a local path");
+        assert_eq!(page("../tool.git"), None);
+        assert_eq!(page("file:///srv/tool.git"), None);
     }
 
     #[test]

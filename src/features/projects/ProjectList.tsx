@@ -3,7 +3,7 @@
 import { Button, EmptyState, Icon, Notice, Panel, SectionTitle, Spinner, toast } from "iro-ui";
 import { useCallback, useMemo, useState } from "react";
 import { NoticeBanner } from "../../app/NoticeBanner";
-import { gitPull, openFolder } from "../../lib/backend";
+import { gitPull, openFolder, openRepoPage } from "../../lib/backend";
 import { HistoryPanel } from "../history/HistoryPanel";
 import { STATUSES } from "./fields";
 import {
@@ -78,6 +78,11 @@ export function ProjectList({ root }: Props) {
       },
     );
 
+  const openPage = (path: string) =>
+    void openRepoPage(root, path).catch((error) =>
+      toast({ tone: "error", title: "Couldn't open the repo's page", description: String(error) }),
+    );
+
   const open = (path: string) =>
     openFolder(root, path).then(
       () => setOpenError(null),
@@ -143,6 +148,7 @@ export function ProjectList({ root }: Props) {
                   canWrite={scan.registryError === null}
                   onOpen={open}
                   onPull={pull}
+                  onOpenPage={openPage}
                   onHistory={showHistory}
                   onSaved={reload}
                 />

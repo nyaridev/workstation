@@ -57,6 +57,7 @@ pub fn run() {
             commands::open_workstation,
             commands::scan_workstation,
             commands::open_folder,
+            commands::open_repo_page,
             commands::git_status,
             commands::git_history,
             commands::git_pull,
