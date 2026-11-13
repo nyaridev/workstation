@@ -603,11 +603,8 @@ code {
   color: var(--iro-danger);
 }
 
-/* A diff as an editor shows it (ChangeDiff): old and new line numbers, then the sign, on tinted rows. */
-.diff .iro-code-block-line {
-  padding-left: 0;
-}
-
+/* A diff as an editor shows it (ChangeDiff): old and new line numbers, then the sign, on tinted rows. The rows keep
+   CodeBlock's own padding, so the text sits as far from the left edge as from the top. */
 .diff .iro-code-block-line:has(> .diff-add) {
   background: var(--iro-success-soft);
 }
@@ -622,7 +619,6 @@ code {
 
 .diff-hunk,
 .diff-note {
-  padding-left: var(--iro-space-3);
   color: var(--iro-fg-3);
 }
 
@@ -633,6 +629,10 @@ code {
   padding: 0 var(--iro-space-2);
   color: var(--iro-fg-4);
   text-align: end;
+}
+
+.diff-num:first-child {
+  padding-left: 0;
 }
 
 .diff-num::before {
