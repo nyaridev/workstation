@@ -131,13 +131,13 @@
     {
       "track": "Registry",
       "name": "K2 Format and agent rules",
-      "done": false,
-      "description": "projects-json.md and the rules for keeping milestones current."
+      "done": true,
+      "description": "The format doc and the rules for keeping milestones current."
     },
     {
       "track": "Registry",
       "name": "K3 Kit and scan check",
-      "done": false,
+      "done": true,
       "description": "The kit ships it; scan-projects.ps1 checks it."
     }
   ]

@@ -47,6 +47,7 @@ folders, dependency and build folders, or git repos (a repo's file is at its roo
 | `description` | yes | One sentence: what it is. No history, no setup details |
 | `tags` | yes | What to sort and filter by (below). `[]` is fine |
 | `notes` | no | One line: partner or client, why it was cloned, setup history, gotchas. No paths to this PC: the file is committed |
+| `milestones` | no | The plan in steps, in order, in one or more tracks (below) |
 
 ## Statuses
 
@@ -75,6 +76,35 @@ one; the app lists every tag in use. Starter list:
 | Who | `partner`, `client`, `public` |
 | Topic | `ai`, `agents`, `wiki`, `asset-pipeline`, `game-design`, `monetization`, `editor`, `mcp` |
 | Family | one tag per framework or suite you build on, `workstation` |
+
+## Milestones
+
+A project with planned work in steps keeps its plan in `milestones`: a list in order, where the first one not done
+is the one being worked on. The app shows it under the project's row, as a bar per plan, and in a side panel.
+
+```json
+"milestones": [
+  { "name": "M1 Login server", "done": true, "track": "Server", "description": "Accounts, sessions and the handshake." },
+  { "name": "M2 World server", "done": false, "track": "Server", "description": "Maps, movement and NPCs." },
+  { "name": "R1 Asset loader", "done": false, "track": "Rewrite", "description": "Reads the original game's archives." }
+]
+```
+
+| Key | Required | What |
+| --- | --- | --- |
+| `name` | yes | Short, with its number first: `M3 Batch rename`. Unique within its track |
+| `done` | no | `true` once it's finished; missing means `false` |
+| `track` | no | Which plan it belongs to, when a project has several (below). Leave it out when there's one plan |
+| `description` | no | One short line on what it covers, shown in the side panel |
+
+- **Order is the plan.** The first milestone not done is the current one; when every milestone is done, the app hides
+  the project's milestone line.
+- **Several plans side by side** are tracks: give every milestone a `track`, one name per plan (`"Server"` and
+  `"Rewrite"` for a server emulator and a rewrite of the same game; `"App"` and `"Registry"`). Each track has its own
+  order and its own current milestone, its own bar under the row and its own tab in the side panel. Milestones of
+  one track can be interleaved with another's; only their order within the track counts. Give each track its own
+  number prefix (`M1`, `R1`) so names stay clear.
+- Most projects have no milestones; leave the key out rather than writing `[]`.
 
 ## Rules
 

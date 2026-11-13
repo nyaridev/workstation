@@ -24,6 +24,18 @@ the same task as the change.
   - **Someone else's repo** (`external/`), or a **template repo** other repos are made from (a framework's
     `new-project`): at its root, and add `.workstation` to the repo's `.git/info/exclude` so it's never committed.
 - **It's committed, so it may be public:** `notes` never name paths on this PC (`AGENTS.md` → Paths).
+- **Milestones** (format: `_meta/docs/workstation-file.md` → Milestones) are the project's plan, kept by agents; the user reads them in
+  the Workstation app.
+  - **Add them** only from a plan the user agreed to: their own list, or steps you proposed and they accepted. Never
+    invent a plan. Most projects have none.
+  - **Several plans at once** (a server and a rewrite, an app and its tooling) are separate tracks: every milestone
+    gets a `track` naming its plan, and each track has its own number prefix (`M1`, `R1`). One plan needs no `track`.
+  - **Mark one done** in the same task that finishes it, and never earlier: `done: true` means it's finished and
+    checked, not started. Then the next one not done is current.
+  - **Change the plan** (add, drop, reorder or rename milestones) only when the user agrees. Keep each `description`
+    to one short line on what it covers.
+  - A project whose plan also lives in a milestone table in its `docs/adr/README.md` (the `architect` and
+    `reverse-engineer` skills) keeps both in step: the same names, in the same order, done at the same time.
 - **Tags:** lowercase kebab-case. Reuse tags already in use before inventing new ones. Give partner games `partner` and
   client work `client`.
 - **Sandbox** folders, library asset sets and one-file scripts get none.

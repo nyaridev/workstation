@@ -196,6 +196,14 @@ if (-not $inventory) {
 		if ($entry.kind -and $kinds -notcontains $entry.kind) { $invalid += "${label}: unknown kind '$($entry.kind)'" }
 		if ($entry.status -and $statuses -notcontains $entry.status) { $invalid += "${label}: unknown status '$($entry.status)'" }
 		foreach ($tag in @($entry.tags) | Where-Object { $_ -cnotmatch '^[a-z0-9]+(-[a-z0-9]+)*$' }) { $invalid += "${label}: tag '$tag' isn't kebab-case" }
+		if ($names -contains "milestones") {
+			$i = 0
+			foreach ($milestone in @($entry.milestones)) {
+				$i++
+				if (-not ($milestone -is [pscustomobject]) -or -not "$($milestone.name)".Trim()) { $invalid += "${label}: milestone $i has no name"; continue }
+				if ($null -ne $milestone.done -and $milestone.done -isnot [bool]) { $invalid += "${label}: milestone '$($milestone.name)': 'done' must be true or false" }
+			}
+		}
 		$project.Name = "$($entry.name)"
 		$project.Status = "$($entry.status)"
 		$project.Description = "$($entry.description)"
