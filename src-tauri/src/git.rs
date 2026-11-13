@@ -8,6 +8,7 @@ use std::collections::{HashMap, HashSet};
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -92,11 +93,27 @@ pub struct Overview {
     pub commits: usize,
 }
 
+// What `git status --porcelain=v2 --branch` says in one run: the branch, its upstream and how far apart they are, and
+// the uncommitted files. One git run instead of five is what keeps the list's badges quick on Windows.
+#[derive(Debug, Default, PartialEq)]
+struct Porcelain {
+    /// The branch, or the short commit of a detached HEAD.
+    branch: String,
+    /// None without an upstream, or when it's gone from the remote.
+    upstream: Option<String>,
+    /// Commits here and not on the upstream, and the other way round; None without one.
+    ahead: Option<usize>,
+    behind: Option<usize>,
+    changes: Vec<Change>,
+}
+
 // ── Private helpers ───────────────────────
 // git in `dir`, ready to run. It never prompts: there's no console to answer in.
 fn command(dir: &Path, args: &[&str]) -> Command {
     let mut command = Command::new("git");
-    command.args(args).current_dir(dir).env("GIT_TERMINAL_PROMPT", "0");
+    // No prompts (there's no console to answer in), and no optional locks, so a status read never holds the index
+    // while the user's own tools work in the repo.
+    command.args(args).current_dir(dir).env("GIT_TERMINAL_PROMPT", "0").env("GIT_OPTIONAL_LOCKS", "0");
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -181,6 +198,64 @@ fn run_within(dir: &Path, args: &[&str], limit: Duration) -> Result<(), Option<S
         }
         thread::sleep(Duration::from_millis(50));
     }
+}
+
+// `git status --porcelain=v2 --branch` read: headers start with "# ", then one line per file. The path is the last
+// field: after 8 others for a changed file, 9 for a renamed one (then a tab and the old path), 10 for a conflict.
+fn parse_porcelain(text: &str) -> Porcelain {
+    let mut out = Porcelain::default();
+    let mut commit = String::new();
+    for line in text.lines() {
+        if let Some(header) = line.strip_prefix("# ") {
+            let (key, value) = header.split_once(' ').unwrap_or((header, ""));
+            match key {
+                "branch.oid" => commit = value.to_string(),
+                "branch.head" => out.branch = value.to_string(),
+                "branch.upstream" => out.upstream = Some(value.to_string()),
+                "branch.ab" => {
+                    let mut counts = value.split(' ').map(|n| n.trim_start_matches(['+', '-']).parse().ok());
+                    out.ahead = counts.next().flatten();
+                    out.behind = counts.next().flatten();
+                }
+                _ => {}
+            }
+            continue;
+        }
+        let (code, path) = match line.split_once(' ') {
+            Some(("1", rest)) => (rest.get(..2), rest.splitn(8, ' ').nth(7)),
+            Some(("2", rest)) => (rest.get(..2), rest.splitn(9, ' ').nth(8).and_then(|p| p.split('\t').next())),
+            Some(("u", rest)) => (rest.get(..2), rest.splitn(10, ' ').nth(9)),
+            Some(("?", rest)) => (Some("??"), Some(rest)),
+            _ => continue,
+        };
+        if let (Some(code), Some(path)) = (code, path) {
+            // v2 marks an unchanged side with "."; the window reads v1's space.
+            out.changes.push(Change { code: code.replace('.', " "), path: path.trim_matches('"').to_string() });
+        }
+    }
+    // An upstream that's gone from the remote has no counts: treat it as none, as `@{u}` does.
+    if out.ahead.is_none() {
+        out.upstream = None;
+    }
+    if out.branch == "(detached)" {
+        out.branch = commit.chars().take(7).collect();
+    }
+    out
+}
+
+// The repo's branch, upstream and uncommitted files in one git run, paths unquoted so they match what `diffs` names.
+fn porcelain(repo: &Path) -> Option<Porcelain> {
+    git_raw(repo, &["-c", "core.quotepath=false", "status", "--porcelain=v2", "--branch"]).map(|text| parse_porcelain(&text))
+}
+
+// The commits not pushed: those not on the upstream, or without one, on no remote at all.
+fn unpushed_commits(repo: &Path) -> HashSet<String> {
+    git(repo, &["rev-list", "@{u}..HEAD"])
+        .or_else(|| git(repo, &["rev-list", "HEAD", "--not", "--remotes"]))
+        .unwrap_or_default()
+        .lines()
+        .map(str::to_string)
+        .collect()
 }
 
 // git's reason, one line, without its "fatal: " prefixes.
@@ -310,35 +385,34 @@ fn pull_within(repo: &Path, limit: Duration) -> Result<usize, String> {
 
 /// The status of one repo, or None when git can't read it.
 pub fn status(repo: &Path) -> Option<Status> {
-    // `symbolic-ref` works before the first commit; a detached HEAD falls back to its short hash.
-    let branch = git(repo, &["symbolic-ref", "--short", "HEAD"]).or_else(|| git(repo, &["rev-parse", "--short", "HEAD"]))?;
-    let uncommitted = git(repo, &["status", "--porcelain"])?.lines().count();
-    let unpushed = git(repo, &["rev-list", "--count", "@{u}..HEAD"]).and_then(|n| n.parse().ok());
-    let behind = git(repo, &["rev-list", "--count", "HEAD..@{u}"]).and_then(|n| n.parse().ok());
+    let state = porcelain(repo)?;
     let (owner, name) = git(repo, &["remote", "get-url", "origin"]).and_then(|url| remote_of(&url)).unzip();
-    Some(Status { branch, uncommitted, unpushed, behind, owner, repo: name.flatten() })
+    Some(Status {
+        branch: state.branch,
+        uncommitted: state.changes.len(),
+        unpushed: state.ahead,
+        behind: state.behind,
+        owner,
+        repo: name.flatten(),
+    })
 }
 
 /// A repo's overview, without diffs or commits, or None when git can't read it. Reads only: no fetch.
 pub fn overview(repo: &Path) -> Option<Overview> {
-    let branch = git(repo, &["symbolic-ref", "--short", "HEAD"]).or_else(|| git(repo, &["rev-parse", "--short", "HEAD"]))?;
-    let upstream = git(repo, &["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"]);
-    let behind = upstream.as_ref().and_then(|_| git(repo, &["rev-list", "--count", "HEAD..@{u}"])?.parse().ok());
-    let unpushed_args: &[&str] = if upstream.is_some() {
-        &["rev-list", "--count", "@{u}..HEAD"]
-    } else {
-        &["rev-list", "--count", "HEAD", "--not", "--remotes"]
+    let state = porcelain(repo)?;
+    let unpushed = match state.ahead {
+        Some(ahead) => ahead,
+        None => git(repo, &["rev-list", "--count", "HEAD", "--not", "--remotes"]).and_then(|n| n.parse().ok()).unwrap_or(0),
     };
-    let unpushed = git(repo, unpushed_args).and_then(|n| n.parse().ok()).unwrap_or(0);
-    // Paths unquoted, so they match what `diffs` names.
-    let status = git_raw(repo, &["-c", "core.quotepath=false", "status", "--porcelain"]).unwrap_or_default();
-    let changes = status
-        .lines()
-        .filter(|line| line.len() > 3)
-        .map(|line| Change { code: line[..2].to_string(), path: line[3..].trim_matches('"').to_string() })
-        .collect();
     let commits = git(repo, &["rev-list", "--count", "HEAD"]).and_then(|n| n.parse().ok()).unwrap_or(0);
-    Some(Overview { branch, upstream, behind, unpushed, changes, commits })
+    Some(Overview {
+        branch: state.branch,
+        upstream: state.upstream,
+        behind: state.behind,
+        unpushed,
+        changes: state.changes,
+        commits,
+    })
 }
 
 /// The diffs of these uncommitted files (paths as `overview` gives them), one per path, in the same order.
@@ -372,10 +446,7 @@ pub fn diffs(repo: &Path, paths: &[String]) -> Vec<FileDiff> {
 
 /// Up to `limit` commits of the branch, newest first, after skipping the newest `skip`.
 pub fn commits(repo: &Path, skip: usize, limit: usize) -> Vec<Commit> {
-    let upstream = git(repo, &["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"]);
-    let unpushed_args: &[&str] =
-        if upstream.is_some() { &["rev-list", "@{u}..HEAD"] } else { &["rev-list", "HEAD", "--not", "--remotes"] };
-    let unpushed: HashSet<String> = git(repo, unpushed_args).unwrap_or_default().lines().map(str::to_string).collect();
+    let unpushed = unpushed_commits(repo);
     // One commit per line, fields split by the unit separator (subjects can't hold it).
     let format = "--format=%H%x1f%h%x1f%an%x1f%aI%x1f%s";
     let log = git(repo, &["log", &format!("--skip={skip}"), &format!("-n{limit}"), format]).unwrap_or_default();
@@ -401,11 +472,19 @@ pub fn commits(repo: &Path, skip: usize, limit: usize) -> Vec<Commit> {
 pub fn statuses(projects: Vec<(String, PathBuf)>) -> HashMap<String, Status> {
     let repos: Vec<(String, PathBuf)> =
         projects.into_iter().filter_map(|(path, dir)| repo_dir(&dir).map(|repo| (path, repo))).collect();
-    let chunk = repos.len().div_ceil(PARALLEL).max(1);
+    // Each worker takes the next repo when it's free, so one slow repo doesn't hold up a fixed share of the rest.
+    let next = AtomicUsize::new(0);
     thread::scope(|scope| {
-        let workers: Vec<_> = repos
-            .chunks(chunk)
-            .map(|part| scope.spawn(move || part.iter().filter_map(|(path, repo)| Some((path.clone(), status(repo)?))).collect::<Vec<_>>()))
+        let workers: Vec<_> = (0..PARALLEL.min(repos.len()))
+            .map(|_| {
+                scope.spawn(|| {
+                    let mut found = Vec::new();
+                    while let Some((path, repo)) = repos.get(next.fetch_add(1, Ordering::Relaxed)) {
+                        found.extend(status(repo).map(|status| (path.clone(), status)));
+                    }
+                    found
+                })
+            })
             .collect();
         workers.into_iter().flat_map(|worker| worker.join().unwrap_or_default()).collect()
     })
@@ -474,6 +553,35 @@ mod tests {
         };
         assert_eq!(found.get("tool/"), Some(&expected));
         assert_eq!(found.len(), 1, "plain folders have no status");
+    }
+
+    #[test]
+    fn reads_porcelain_v2_in_one_go() {
+        let change = |code: &str, path: &str| Change { code: code.into(), path: path.into() };
+        let text = "# branch.oid 0123456789abcdef\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +2 -3\n\
+                    1 .M N... 100644 100644 100644 aaa bbb src/a file.rs\n\
+                    2 R. N... 100644 100644 100644 aaa bbb R100 new name.rs\told name.rs\n\
+                    u UU N... 100644 100644 100644 100644 aaa bbb ccc both.rs\n\
+                    ? notes/\n";
+        assert_eq!(
+            parse_porcelain(text),
+            Porcelain {
+                branch: "main".into(),
+                upstream: Some("origin/main".into()),
+                ahead: Some(2),
+                behind: Some(3),
+                changes: vec![
+                    change(" M", "src/a file.rs"),
+                    change("R ", "new name.rs"),
+                    change("UU", "both.rs"),
+                    change("??", "notes/"),
+                ],
+            }
+        );
+        let detached = parse_porcelain("# branch.oid 0123456789abcdef\n# branch.head (detached)\n");
+        assert_eq!((detached.branch.as_str(), detached.upstream), ("0123456", None));
+        let gone = parse_porcelain("# branch.oid 01234567\n# branch.head main\n# branch.upstream origin/old\n");
+        assert_eq!((gone.upstream, gone.ahead), (None, None), "an upstream gone from the remote counts as none");
     }
 
     #[test]

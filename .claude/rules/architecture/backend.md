@@ -21,7 +21,9 @@ paths:
 - Every struct the UI sees derives `serde::Serialize` with `#[serde(rename_all = "camelCase")]` and has a matching
   type in `src/lib/types.ts`.
 - Run `git` through `std::process::Command` with `CREATE_NO_WINDOW` on Windows, so no console flashes, and
-  `GIT_TERMINAL_PROMPT=0`, so git never waits for a password in a console nobody sees. `git.rs` only reads, except
+  `GIT_TERMINAL_PROMPT=0`, so git never waits for a password in a console nobody sees, and `GIT_OPTIONAL_LOCKS=0`, so
+  reads never lock the index. Each git run costs ~30 ms on Windows: a repo's status is one
+  `git status --porcelain=v2 --branch` plus its remote, never a run per number. `git.rs` only reads, except
   `pull`: `git pull --ff-only`, run only from the Pull button, after a `git ls-remote` that must answer within 8 s
   (ADR-0018). Never merge, rebase, reset or check out. The git overview reads in pages (`overview`, then `diffs` and
   `commits` for what's shown), so it never waits on every diff and commit.
