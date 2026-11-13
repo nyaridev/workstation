@@ -1,6 +1,20 @@
 // ProjectList: the projects of the open workstation, grouped by kind, with search, tag and status filters.
 
-import { Button, EmptyState, Notice, SectionTitle, Spinner } from "iro-ui";
+import { Button, CountBubble, EmptyState, Icon, Notice, SectionTitle, Spinner } from "iro-ui";
+import {
+  AppWindowIcon,
+  ArchiveIcon,
+  FlaskIcon,
+  FolderIcon,
+  GamepadIcon,
+  GlobeIcon,
+  ImagesIcon,
+  LayersIcon,
+  LightbulbIcon,
+  PuzzleIcon,
+  ServerIcon,
+  WrenchIcon,
+} from "iro-ui/icons";
 import { useCallback, useMemo, useState } from "react";
 import { NoticeBanner } from "../../app/NoticeBanner";
 import { openFolder } from "../../lib/backend";
@@ -25,6 +39,21 @@ import { useProjects } from "./useProjects";
 interface Props {
   root: string;
 }
+
+/** Each group's icon in its heading; a group not listed gets a folder. */
+const GROUP_ICONS: Record<string, typeof FolderIcon> = {
+  Games: GamepadIcon,
+  Mods: PuzzleIcon,
+  Emulators: ServerIcon,
+  Apps: AppWindowIcon,
+  Tools: WrenchIcon,
+  Frameworks: LayersIcon,
+  "Asset packs": ImagesIcon,
+  Research: FlaskIcon,
+  Ideas: LightbulbIcon,
+  External: GlobeIcon,
+  Archive: ArchiveIcon,
+};
 
 // The status picker lists statuses from first idea to done; unknown ones go last.
 const statusOrder = (status: string) => {
@@ -120,8 +149,20 @@ export function ProjectList({ root }: Props) {
         {groups.length === 0 && <EmptyState title="No project matches these filters." />}
         {groups.map((group) => (
           <section key={group.label} aria-labelledby={`group-${group.label}`}>
-            <SectionTitle level={2} id={`group-${group.label}`} className="group-title">
-              {group.label} <span className="count">({group.projects.length})</span>
+            <SectionTitle
+              level={2}
+              id={`group-${group.label}`}
+              className="group-title"
+              icon={<Icon icon={GROUP_ICONS[group.label] ?? FolderIcon} />}
+            >
+              <span className="group-name">
+                {group.label}
+                <CountBubble
+                  count={group.projects.length}
+                  tone="accent"
+                  aria-label={`${group.projects.length} projects`}
+                />
+              </span>
             </SectionTitle>
             <ul className="rows">
               {group.projects.map((project) => (

@@ -319,22 +319,27 @@ code {
 }
 
 /* Stretched rows are positioned (their click areas under the content) and would otherwise paint over the heading. */
+/* Headings and rows keep the header's and filters' inset on both sides; the scrollbar sits in the right one. */
 .group-title {
   position: sticky;
   top: 0;
   z-index: 1;
-  padding: var(--iro-space-4) var(--iro-space-4) var(--iro-space-1);
-  background: var(--iro-bg);
+  padding: var(--iro-space-5) calc(var(--iro-space-4) - var(--iro-scrollbar-size)) var(--iro-space-2) var(--iro-space-4);
+  /* See-through over the backdrop, but rows scrolling under it blur away. */
+  background: color-mix(in oklab, var(--iro-bg) 60%, transparent);
+  border-bottom: 1px solid var(--iro-line);
+  backdrop-filter: blur(var(--iro-space-3));
 }
 
-.group-title .count {
-  color: var(--iro-fg-4);
-  font-weight: 400;
+.group-name {
+  display: inline-flex;
+  gap: var(--iro-space-2);
+  align-items: center;
 }
 
 .rows {
   margin: 0;
-  padding: 0 0 0 var(--iro-space-2);
+  padding: 0 calc(var(--iro-space-4) - var(--iro-scrollbar-size)) 0 var(--iro-space-4);
   list-style: none;
 }
 
