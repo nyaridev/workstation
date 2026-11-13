@@ -28,6 +28,7 @@ export function ChangeDiff({ change }: Props) {
       className="diff"
       style={{ "--diff-digits": digits } as CSSProperties}
       code={change.diff}
+      language="diff"
       maxHeight={360}
       copyLabel="Copy the diff"
       lines={rows.map((row, i) =>

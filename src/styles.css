@@ -603,8 +603,12 @@ code {
   color: var(--iro-danger);
 }
 
-/* A diff as an editor shows it (ChangeDiff): old and new line numbers, then the sign, on tinted rows. The rows keep
-   CodeBlock's own padding, so the text sits as far from the left edge as from the top. */
+/* A diff as an editor shows it (ChangeDiff): old and new line numbers, then the sign, on tinted rows that run from
+   edge to edge, top and bottom too (the copy button sits in the title bar above). */
+.diff .iro-code-block-pre {
+  padding: 0;
+}
+
 .diff .iro-code-block-line:has(> .diff-add) {
   background: var(--iro-success-soft);
 }
