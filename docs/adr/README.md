@@ -25,7 +25,7 @@ src-tauri/src/
 └─ test_support.rs     temp folders for tests (test builds only)
 src/
 ├─ app/                the window: header (the title bar), views.ts, window controls, backdrop, settings context,
-│                      workstation state and context, first-run screen, workstation switcher, update chip,
+│                      workstation state and context, first-run screen, update chip,
 │                      NoticeBanner and the status banner
 ├─ features/projects/  ProjectsView and the project list: filter.ts (filters, nesting, grouping), fields.ts (kinds,
 │                      statuses, tags), the list, row (opens to inner projects and FolderRows), filters and
@@ -74,11 +74,12 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | [0009](0009-window-built-in-rust-with-a-frame-setting.md) | Rust builds the window, and a setting picks its frame | Accepted |
 | [0010](0010-scrappy-window-shell.md) | The window's shell works like Scrappy's | Accepted (rows: 0011) |
 | [0011](0011-project-rows-from-iro-ui-list-item.md) | Project rows are iro-ui's ListItem, stretched; the Tags filter stays | Accepted |
-| [0012](0012-header-and-banners-like-scrappy.md) | The header and its banners look like Scrappy's | Accepted |
+| [0012](0012-header-and-banners-like-scrappy.md) | The header and its banners look like Scrappy's | Accepted (switcher: 0017) |
 | [0013](0013-settings-in-tabs.md) | Settings in tabs, each section a card | Accepted |
 | [0014](0014-updates-through-tauri-updater.md) | Updates through Tauri's signed updater | Accepted |
 | [0015](0015-start-with-system-and-tray.md) | Start with the system, close to the tray, one copy at a time | Accepted |
 | [0016](0016-installers-for-three-systems.md) | Installers for Windows, macOS and Linux, built by GitHub Actions | Accepted |
+| [0017](0017-workstations-switched-in-settings.md) | Workstations are switched in Settings only | Accepted |
 
 ## Milestones
 

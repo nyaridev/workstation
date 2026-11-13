@@ -39,19 +39,21 @@ The window shows what Rust sends and passes clicks on. It doesn't read files, de
   on gets an iro-ui `ContextMenu` with the same actions as its buttons.
 - Accessibility: every control has a label, the keyboard works, and color is never the only signal.
 
+- A view or screen that scrolls keeps its scrollbar in its right padding: `scrollbar-gutter: stable` and a right
+  padding less `--iro-scrollbar-size`, so content keeps its width when the scrollbar shows (`styles.css`).
 ## Layout
 
 - `src/main.tsx`: the iro-ui style import, `IroRoot`, `Toaster`. Nothing else.
 - `src/app/`: `App.tsx` (the header and the views; the first-run screen until there's a workstation),
   `views.ts` (`MAIN_VIEWS` for the tabs, `HEADER_VIEWS` for the header's icon buttons), `WindowControls.tsx`,
   `AppBackdrop.tsx` (iro-ui's `Backdrop`, liquid unless Settings turns it off), `SettingsProvider.tsx`
-  (`useSettings`), the workstation switcher, update chip, status banner and shared hooks.
+  (`useSettings`), the update chip, `NoticeBanner`, the status banner and shared hooks.
 - The header is the title bar (ADR-0009, ADR-0010) and follows `AppInfo.frame`: `custom` adds `WindowControls` and
   makes the header the drag area (`data-tauri-drag-region` on the header and its empty parts, never on controls);
   `native` is a plain header.
 - The tabs show only when `MAIN_VIEWS` has two or more views. The mark and name are a plain button with a "Home"
   tooltip that opens the first main view, so they're not part of the drag area; under 960 px the name hides (still
-  read out). Only the workstation switcher sits beside them; managing workstations is in Settings (ADR-0012).
+  read out). Nothing else sits beside them: workstations are opened, added and removed in Settings (ADR-0017).
 - Notices under the header are `NoticeBanner`s (`src/app/NoticeBanner.tsx`): `accent` for updates, `warning` for
   projects that don't match, `danger` for errors (their text `selectable`), `success` for done. Never a bare iro-ui
   `Banner`.

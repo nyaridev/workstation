@@ -17,20 +17,20 @@ delete that file to see the first run again.
       category folders.
 - [ ] Set up the same folder again: it writes nothing ("… already there and kept").
 - [ ] Settings → Workstations → **Add…** your real workstation: it opens and lists your projects.
-- [ ] Switch between the two with the header's dropdown, or Open in Settings; the list follows.
+- [ ] Switch between the two with Open in Settings → Workstations; the list follows.
 - [ ] Rename the test folder in Explorer: it shows "(not found)" and the "wasn't found" message. Rename it back.
 - [ ] Settings → **Remove from list** asks first, removes it from the dropdown, and leaves the folder untouched.
 - [ ] Close and reopen the app: the list and the open workstation are remembered.
 
 ## 2. The header and Settings
 
-- [ ] No Windows frame: the header is the title bar, with the mark, the name and the switcher at the left, and the
+- [ ] No Windows frame: the header is the title bar, with the mark and the name at the left, and the
       Settings button and window buttons at the right. On Windows 11 the corners are round and the window has its
       shadow.
 - [ ] Dragging the empty part of the header moves the window; dragging to the top edge
       maximizes, to a side snaps it. Double-clicking the empty part maximizes and restores.
 - [ ] Minimize, Maximize (its icon turns into Restore) and Close work; Close quits the app.
-- [ ] The switcher's dropdown, the name (Home) and the Settings button work inside the header, and clicking them doesn't
+- [ ] The name (Home) and the Settings button work inside the header, and clicking them doesn't
       drag.
 - [ ] The first-run screen has the header too.
 - [ ] The liquid background flows behind the window. Settings → "Liquid background" off stops it at once; on brings

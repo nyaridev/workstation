@@ -1,5 +1,4 @@
-// App: Scrappy's header (ADR-0012): the mark and name (Home) and the workstation switcher; the view tabs in the middle
-// once there are two; the update chip, the Settings button and the window buttons. Under it the notices, then the
+// App: Scrappy's header (ADR-0012, ADR-0017): the mark and name (Home); the view tabs in the middle once there are two; the update chip, the Settings button and the window buttons. Under it the notices, then the
 // selected view, on the backdrop. Until a workstation is listed, the first-run screen takes the views' place. The
 // header is also the title bar, following the frame Rust gave the window (ADR-0009). The browser's own right-click menu
 // is off, except in text fields and selectable text. A view stays mounted once opened, hidden while another shows.
@@ -18,7 +17,6 @@ import { UpdateChip } from "./UpdateChip";
 import { useWorkstationState, WorkstationsContext } from "./useWorkstations";
 import { HEADER_VIEWS, MAIN_VIEWS } from "./views";
 import { WindowControls } from "./WindowControls";
-import { WorkstationSwitcher } from "./WorkstationSwitcher";
 
 // ── Constants ─────────────────────────────
 const ALL_VIEWS = [...MAIN_VIEWS, ...HEADER_VIEWS];
@@ -35,8 +33,7 @@ function blockBrowserMenu(event: MouseEvent) {
 /** The whole window. */
 export function App() {
   const workstations = useWorkstationState();
-  const { listing, error, notice, offerSetup, pendingSetup, add, setup, confirmSetup, cancelSetup, open } =
-    workstations;
+  const { listing, error, notice, offerSetup, pendingSetup, add, setup, confirmSetup, cancelSetup } = workstations;
   const [info, setInfo] = useState<AppInfo | null>(null);
   const [view, setView] = useState(MAIN_VIEWS[0].id);
   const [opened, setOpened] = useState<string[]>([]);
@@ -69,7 +66,6 @@ export function App() {
                   <span className="brand-name">Workstation</span>
                 </button>
               </Tooltip>
-              {listing && current && <WorkstationSwitcher listing={listing} current={current} onOpen={open} />}
             </div>
             {current && TABS.length > 1 && (
               <Tabs variant="nav" aria-label="Views" tabs={TABS} value={view} onValueChange={setView} />

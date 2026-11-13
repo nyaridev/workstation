@@ -1,15 +1,20 @@
-/* The Settings view: one column of sections in the middle of the window. */
+/* The Settings view: one column of sections in the middle of the window. The whole view scrolls, its scrollbar in the
+   right padding (a stable gutter), so the column keeps its width when it shows. */
+
+.settings-page {
+  flex: 1;
+  min-height: 0;
+  padding: var(--iro-space-6) calc(var(--iro-space-6) - var(--iro-scrollbar-size)) var(--iro-space-6) var(--iro-space-6);
+  scrollbar-gutter: stable;
+  overflow-y: auto;
+}
 
 .settings {
   display: grid;
-  flex: 1;
   gap: var(--iro-space-6);
   align-content: start;
-  align-self: center;
   width: min(100%, calc(var(--iro-space-6) * 18));
-  min-height: 0;
-  padding: var(--iro-space-6);
-  overflow-y: auto;
+  margin-inline: auto;
 }
 
 .settings-section,

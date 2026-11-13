@@ -1,6 +1,6 @@
 # ADR-0012: The header and its banners look like Scrappy's
 
-**Status:** Accepted
+**Status:** Accepted (the switcher: superseded by 0017)
 **Date:** 2026-11-13
 
 ## Context

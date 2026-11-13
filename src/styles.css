@@ -62,11 +62,13 @@ code {
   font-size: var(--iro-text-xs);
 }
 
+/* The scrollbar sits in the right padding (a stable gutter), so the content keeps its width when it shows. */
 .center {
   display: grid;
   flex: 1;
   place-items: center;
-  padding: var(--iro-space-6);
+  padding: var(--iro-space-6) calc(var(--iro-space-6) - var(--iro-scrollbar-size)) var(--iro-space-6) var(--iro-space-6);
+  scrollbar-gutter: stable;
   overflow-y: auto;
   text-align: center;
 }
@@ -87,7 +89,7 @@ code {
 }
 
 /* ── Header (ADR-0012) ─────────────────── */
-/* Scrappy's: three columns (the name and switcher, the tabs centered in the window, the buttons). No fill or line: the
+/* Scrappy's: three columns (the name, the tabs centered in the window, the buttons). No fill or line: the
    backdrop runs under it, so it reads as part of the window. */
 .header {
   display: grid;
@@ -98,7 +100,7 @@ code {
   padding: var(--iro-space-2) var(--iro-space-4);
 }
 
-/* Fills the room up to the tabs, which drags the window; the name and switcher inside stay clickable. */
+/* Fills the room up to the tabs, which drags the window; the name inside stays clickable. */
 .header-start {
   display: flex;
   align-self: stretch;
@@ -135,10 +137,6 @@ code {
 .brand-icon {
   inline-size: var(--iro-space-5);
   block-size: var(--iro-space-5);
-}
-
-.switcher-select {
-  width: 12rem;
 }
 
 .header-end {
@@ -183,7 +181,7 @@ code {
 .notice-banner {
   min-height: 0;
   margin: 0 var(--iro-space-4) var(--iro-space-2);
-  padding: var(--iro-space-2) var(--iro-space-4);
+  padding: var(--iro-space-1) var(--iro-space-4);
   border: 1px solid color-mix(in oklab, var(--notice) 35%, var(--iro-line));
   border-radius: var(--iro-radius-lg);
 }
@@ -202,6 +200,11 @@ code {
 
 .notice-banner[data-notice="danger"] {
   --notice: var(--iro-danger);
+}
+
+/* shortcut: reaches into iro-ui's Banner for its inner padding; an iro-ui `size="sm"` Banner would replace it. */
+.notice-banner .iro-banner-content {
+  padding-block: 0;
 }
 
 /* ── Settings lists ─────────────────────── */
@@ -289,8 +292,10 @@ code {
   margin-left: auto;
 }
 
+/* The gutter takes the rows' right padding, so the rows keep their width when the scrollbar shows. */
 .project-scroll {
   flex: 1;
+  scrollbar-gutter: stable;
   overflow-y: auto;
 }
 
@@ -310,7 +315,7 @@ code {
 
 .rows {
   margin: 0;
-  padding: 0 var(--iro-space-2);
+  padding: 0 0 0 var(--iro-space-2);
   list-style: none;
 }
 

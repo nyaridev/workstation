@@ -18,31 +18,33 @@ export function SettingsView() {
   const look = settings?.look;
 
   return (
-    <div className="settings">
-      <WorkstationSettings />
-      <section className="settings-section">
-        <SectionTitle icon={<Icon icon={PaletteIcon} />}>Look</SectionTitle>
-        <Switch
-          label="Liquid background"
-          checked={look?.liquidBackground ?? false}
-          disabled={!look}
-          onCheckedChange={(on) => look && saveLook({ ...look, liquidBackground: on })}
-        />
-        <div className="settings-row">
+    <div className="settings-page">
+      <div className="settings">
+        <WorkstationSettings />
+        <section className="settings-section">
+          <SectionTitle icon={<Icon icon={PaletteIcon} />}>Look</SectionTitle>
           <Switch
-            label="Use the system title bar"
-            checked={look?.nativeFrame ?? false}
+            label="Liquid background"
+            checked={look?.liquidBackground ?? false}
             disabled={!look}
-            onCheckedChange={(on) => look && saveLook({ ...look, nativeFrame: on })}
+            onCheckedChange={(on) => look && saveLook({ ...look, liquidBackground: on })}
           />
-          <p className="settings-hint">Applies after a restart.</p>
-        </div>
-      </section>
+          <div className="settings-row">
+            <Switch
+              label="Use the system title bar"
+              checked={look?.nativeFrame ?? false}
+              disabled={!look}
+              onCheckedChange={(on) => look && saveLook({ ...look, nativeFrame: on })}
+            />
+            <p className="settings-hint">Applies after a restart.</p>
+          </div>
+        </section>
 
-      <section className="settings-section">
-        <SectionTitle icon={<Icon icon={InfoIcon} />}>About</SectionTitle>
-        <PropertyList properties={[{ label: "Version", value: info?.version, mono: true }]} />
-      </section>
+        <section className="settings-section">
+          <SectionTitle icon={<Icon icon={InfoIcon} />}>About</SectionTitle>
+          <PropertyList properties={[{ label: "Version", value: info?.version, mono: true }]} />
+        </section>
+      </div>
     </div>
   );
 }
