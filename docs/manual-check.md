@@ -37,7 +37,8 @@ delete that file to see the first run again.
       it back. Both are remembered after a restart.
 - [ ] Settings → "Use the system title bar", then restart: the Windows frame is back, the header has no window
       buttons and doesn't drag. Turn it off and restart: the custom header returns.
-- [ ] Settings and back: the project list keeps its filters and scroll. Clicking the mark or the name from Settings
+- [ ] Settings has two tabs, Workstations and App, each section a card. Settings and back: the project list keeps
+      its filters and scroll. Clicking the mark or the name from Settings
       goes back to the projects.
 - [ ] Right-clicking shows no browser menu, except in the search field; text in the list can't be selected.
 

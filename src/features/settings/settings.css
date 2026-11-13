@@ -1,6 +1,8 @@
-/* The Settings view: one column of sections in the middle of the window. The whole view scrolls, its scrollbar in the
-   right padding (a stable gutter), so the column keeps its width when it shows. */
+/* The Settings view: its tabs and their cards (ADR-0013), in one column in the middle of the window. */
 
+/* ── Settings ──────────────────────────── */
+/* The whole view scrolls, its scrollbar in the right padding (a stable gutter), so the column keeps its width when it
+   shows. */
 .settings-page {
   flex: 1;
   min-height: 0;
@@ -13,8 +15,15 @@
   display: grid;
   gap: var(--iro-space-6);
   align-content: start;
-  width: min(100%, calc(var(--iro-space-6) * 18));
+  width: min(100%, calc(var(--iro-space-6) * 26));
   margin-inline: auto;
+}
+
+/* A tab's sections, one under another. */
+.settings .iro-tabs-panel {
+  display: grid;
+  gap: var(--iro-space-6);
+  padding-top: var(--iro-space-5);
 }
 
 .settings-section,
@@ -36,4 +45,11 @@
   margin: 0;
   color: var(--iro-fg-3);
   font-size: var(--iro-text-sm);
+}
+
+/* ── Workstations ──────────────────────── */
+.settings-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }

@@ -64,6 +64,10 @@ The window shows what Rust sends and passes clicks on. It doesn't read files, de
 - `src/features/<view>/`: one folder per view, `<View>View.tsx` plus its own components and `.ts` helpers.
 - `src/components/`: components two or more views use.
 
+- `src/features/settings/`: Settings in tabs (`SettingsView`'s `TABS`, ADR-0013), one component per section, each a
+  card (`<Panel as="section" className="settings-section">` with a `SectionTitle`). A new setting goes in the section
+  it belongs to; a new section in the tab that fits, or a new tab when none does.
+
 ## How to add a view
 
 1. Create `src/features/<view>/<View>View.tsx`.
@@ -75,7 +79,8 @@ The window shows what Rust sends and passes clicks on. It doesn't read files, de
 
 1. Add the field to the struct in `src-tauri/src/settings.rs`, with its default and a test (`backend.md`).
 2. Add it to `Settings` in `src/lib/types.ts` and to the fake settings in `backend.ts`.
-3. Add its row to `src/features/settings/SettingsView.tsx`; read it elsewhere through `useSettings()`.
+3. Add its row to the section it belongs to in `src/features/settings/` (`LookSettings.tsx`…); read it elsewhere
+   through `useSettings()`.
 
 ## Updating iro-ui
 

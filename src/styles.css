@@ -207,13 +207,6 @@ code {
   padding-block: 0;
 }
 
-/* ── Settings lists ─────────────────────── */
-.settings-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 /* ── Views ──────────────────────────────── */
 .views {
   position: relative;

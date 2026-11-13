@@ -1,7 +1,7 @@
 // WorkstationSettings: every saved workstation, the open one marked, with Open and Remove from list; then Add and Set
 // up new (ADR-0012, ADR-0013). Removing only forgets it: the folder stays as it is.
 
-import { AlertDialog, Badge, Button, Icon, ListItem, SectionTitle } from "iro-ui";
+import { AlertDialog, Badge, Button, Icon, ListItem, Panel, SectionTitle } from "iro-ui";
 import { FoldersIcon, PlusIcon } from "iro-ui/icons";
 import { useWorkstations } from "../../app/useWorkstations";
 
@@ -11,7 +11,7 @@ export function WorkstationSettings() {
   if (!listing) return null;
 
   return (
-    <section className="settings-section">
+    <Panel as="section" className="settings-section">
       <SectionTitle
         icon={<Icon icon={FoldersIcon} />}
         actions={
@@ -62,6 +62,6 @@ export function WorkstationSettings() {
           />
         ))}
       </ul>
-    </section>
+    </Panel>
   );
 }

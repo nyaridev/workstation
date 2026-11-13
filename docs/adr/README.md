@@ -31,8 +31,8 @@ src/
 │                      statuses, tags), the list, row (opens to inner projects and FolderRows), filters and
 │                      TagPicker, Register form, tag editor and tag input, useProjects
 ├─ features/history/   a repo's git overview sheet (commits, unpushed, uncommitted files), format.ts
-├─ features/settings/  the Settings view: the workstations, the look switches and the version (tabs and cards from
-│                      M14, ADR-0013)
+├─ features/settings/  Settings in tabs (ADR-0013): Workstations (WorkstationSettings) and App (LookSettings,
+│                      AboutSettings), each section a card
 ├─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
 └─ styles.css          layout only, with iro-ui's tokens (every control is an iro-ui component, ADR-0008, ADR-0010)
 src-tauri/windows/     the installer's hooks (M16)
@@ -99,18 +99,27 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | M11 | Scrappy's header, views and the Settings view (ADR-0010) | done (real window: `docs/manual-check.md` → 2) |
 | M12 | Every control from iro-ui: rows, tooltips, context menus (ADR-0010, ADR-0011; iro-ui v1.3.0) | done |
 | M13 | Header and banners like Scrappy's (ADR-0012) | done |
-| M14 | Settings in tabs: Workstations, App (ADR-0013) | next |
-| M15 | Updates through Tauri's signed updater, the update banner (ADR-0014) | planned |
+| M14 | Settings in tabs: Workstations, App (ADR-0013) | done |
+| M15 | Updates through Tauri's signed updater, the update banner (ADR-0014) | next |
 | M16 | Start with the system, close to the tray, one copy (ADR-0015) | planned |
 | M17 | Windows, macOS and Linux: cross-platform fixes, installers, GitHub Actions (ADR-0016) | planned |
 | M18 | Verify and polish, then release | planned |
 
-### M14: Settings in tabs
+### M15: Updates through Tauri's signed updater
 
-1. `SettingsView` holds iro-ui `Tabs`: Workstations and App. Each section a card (`Panel as="section"` with a
-   `SectionTitle`), one component per section: `WorkstationSettings`, `LookSettings`, `AboutSettings`.
-2. Scrappy's settings CSS: the tab bar, cards, the hint line, the switch labels.
-3. Check: `pnpm check`, then `pnpm dev` in the browser pane: both tabs, narrow and wide.
+1. The signing key, with the owner's yes: `pnpm tauri signer generate` without a password, the private key saved
+   where the owner says (outside the repo) and set as the `TAURI_SIGNING_PRIVATE_KEY` secret; the public key, the
+   endpoint, `requireSignedVersion` and passive Windows installs in `tauri.conf.json`.
+2. Rust: `tauri-plugin-updater`; `update.rs` rewritten around it (the gh/curl download and exe swap go): an
+   `UpdateStatus` (current, latest, can update, step, progress, error), checks at start and every 6 hours while
+   `checkForUpdates` is on (a new `settings.rs` field, on by default), none in debug builds; commands for the status,
+   Check now and install; the `update-changed` event. Tests for what doesn't need the network.
+3. The window: `useUpdate`, `UpdateBanner` (an accent `NoticeBanner` under the header: both versions, progress or
+   error, Update and restart, Later) in place of `UpdateChip`; Settings → App → About gets "Check for updates", the
+   status line, Check now and Update and restart. Fake states in `pnpm dev`: `?update`, `?update=downloading`,
+   `?update=error`.
+4. Check: `pnpm check`, then the fake states in the browser pane. A real update can only be tried after the first
+   release (M18).
 
 ### M18: Verify and polish, then release
 
