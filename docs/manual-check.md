@@ -2,7 +2,7 @@
 
 What `pnpm check` can't cover: the real window, the native folder picker, Explorer, and the app writing real files.
 Run it before a release, and after a change to the part it covers. Use the real app (`start-dev.bat`, or
-`release\Workstation.exe` from `build.bat`), not `pnpm dev`.
+the installer `build.bat` puts in `release\`), not `pnpm dev`.
 
 Use a **throwaway workstation** for everything that writes (an empty folder like `C:/Temp/ws-test`), and your real one
 only for the read-only parts. The app's own list lives in `%APPDATA%\com.nyaridev.workstation\workstations.json`;
@@ -93,12 +93,15 @@ delete that file to see the first run again.
 - [ ] **Edit tags** on a registered project: remove one, add one, save. Only that entry's `tags` changed.
 - [ ] A repo with a GitHub remote prefills Owner with the remote's owner; a repo without one says `local`.
 
-## 7. Release build
+## 7. Installers (ADR-0016)
 
-- [ ] `build.bat` makes `release\Workstation.exe`; it starts with no console window and shows the app icon in the
-      title bar and taskbar.
-- [ ] Copy it somewhere else (Desktop) and run it: it still opens, and "Set up a new one" still works (the kit is
-      inside the exe).
+- [ ] `build.bat` puts `Workstation_<version>_x64-setup.exe` in `release\`. It installs without asking for admin, and
+      Workstation starts with no console window and shows its icon in the title bar, taskbar and Start menu.
+- [ ] "Set up a new one" works in the installed app (the kit is inside it).
+- [ ] Uninstall from Settings → Apps: the app goes; `%APPDATA%\com.nyaridev.workstation` (the workstation list and
+      settings) stays.
+- [ ] macOS (the release's `.dmg`): the window buttons sit over the header's left end, the header drags the window,
+      and the menu-bar icon works. Linux (the `.AppImage`): the header draws its own buttons and the tray icon shows.
 
 ## 8. Updates (ADR-0014)
 

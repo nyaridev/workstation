@@ -53,9 +53,11 @@ it). Never use `nyaridev`, this repo's owner: that's the kit's author, not the u
 
 ## Run
 
-Download `Workstation.exe` and run it: nothing to install, on Windows 10 or 11. **Add a workstation** (a folder with
+Download the installer for your system from the [latest release](https://github.com/nyaridev/workstation/releases/latest):
+`Workstation_<version>_x64-setup.exe` on Windows 10 or 11, the `.dmg` on macOS (the first time, right-click the app
+and choose Open: it isn't signed by Apple), the `.AppImage` or `.deb` on Linux. **Add a workstation** (a folder with
 `projects.json` at its top) or **Set up a new one** in an empty folder, then fill in the GitHub owners table in its
-`AGENTS.md`. When a new version is out, a button in the title bar installs it.
+`AGENTS.md`. When a new version is out, a banner under the header installs it.
 
 ## Develop
 
@@ -66,9 +68,13 @@ pnpm install
 pnpm check
 ```
 
+On Linux, Tauri also needs its system libraries (`libwebkit2gtk-4.1-dev`, `libayatana-appindicator3-dev` and the
+others in `.github/workflows/check.yml`).
+
 `start-dev.bat` runs the app with hot reload, `pnpm dev` the UI alone in a browser with fake data, and `build.bat`
-builds `release\Workstation.exe`. `pnpm check` runs types, lint and every test; [docs/manual-check.md](docs/manual-check.md)
-covers what it can't.
+builds the Windows installer into `release\`. `pnpm check` runs types, lint and every test; GitHub Actions runs it on
+Windows, macOS and Linux, and a `v*` tag builds every system's installers. [docs/manual-check.md](docs/manual-check.md)
+covers what the tests can't.
 
 ## License
 

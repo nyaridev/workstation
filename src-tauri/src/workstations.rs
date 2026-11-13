@@ -52,10 +52,19 @@ fn file(config_dir: &Path) -> PathBuf {
     config_dir.join(FILE_NAME)
 }
 
-// shortcut: compares paths as Windows does (case and slashes ignored); needs real normalizing for other OSes.
+/// A path as `os` compares it: case is ignored on Windows and macOS, `\` and `/` are alike on Windows only, and a
+/// trailing separator never counts.
+fn compare_form(os: &str, path: &str) -> String {
+    match os {
+        "windows" => path.replace('/', "\\").trim_end_matches('\\').to_lowercase(),
+        "macos" => path.trim_end_matches('/').to_lowercase(),
+        _ => path.trim_end_matches('/').to_string(),
+    }
+}
+
 fn same_root(a: &Path, b: &Path) -> bool {
-    let norm = |p: &Path| p.to_string_lossy().replace('/', "\\").trim_end_matches('\\').to_lowercase();
-    norm(a) == norm(b)
+    let form = |p: &Path| compare_form(std::env::consts::OS, &p.to_string_lossy());
+    form(a) == form(b)
 }
 
 fn load(config_dir: &Path) -> Result<Saved, String> {
@@ -176,6 +185,15 @@ mod tests {
     }
 
     #[test]
+    fn roots_compare_by_each_systems_rule() {
+        assert_eq!(compare_form("windows", "C:/Path/To/WS/"), compare_form("windows", "c:\\path\\to\\ws"));
+        assert_eq!(compare_form("macos", "/Users/x/WS/"), compare_form("macos", "/users/x/ws"));
+        assert_ne!(compare_form("macos", "/a\\b"), compare_form("macos", "/a/b"), "\\ is a name character");
+        assert_eq!(compare_form("linux", "/home/x/ws/"), compare_form("linux", "/home/x/ws"));
+        assert_ne!(compare_form("linux", "/home/x/WS"), compare_form("linux", "/home/x/ws"), "Linux keeps case");
+    }
+
+    #[test]
     fn add_opens_and_ignores_the_same_root_spelled_differently() {
         let temp = Temp::new();
         let config = temp.0.join("config");
@@ -183,7 +201,10 @@ mod tests {
         let work = temp.workstation("Work");
         add(&config, &home).unwrap();
         add(&config, &work).unwrap();
-        let again = PathBuf::from(format!("{}\\", home.to_string_lossy().to_uppercase()));
+        let again = match std::env::consts::OS {
+            "windows" => PathBuf::from(format!("{}\\", home.to_string_lossy().to_uppercase())),
+            _ => PathBuf::from(format!("{}/", home.to_string_lossy())),
+        };
         let listing = add(&config, &again).unwrap();
         assert_eq!(roots(&listing), vec![home.clone(), work]);
         assert_eq!(listing.open, Some(home));

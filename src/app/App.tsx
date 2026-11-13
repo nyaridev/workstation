@@ -1,6 +1,7 @@
-// App: Scrappy's header (ADR-0012, ADR-0017): the mark and name (Home); the view tabs in the middle once there are two; the update chip, the Settings button and the window buttons. Under it the notices, then the
-// selected view, on the backdrop. Until a workstation is listed, the first-run screen takes the views' place. The
-// header is also the title bar, following the frame Rust gave the window (ADR-0009). The browser's own right-click menu
+// App: Scrappy's header (ADR-0012, ADR-0017): the mark and name (Home); the view tabs in the middle once there are
+// two; the Settings button and the window buttons. Under it the notices, then the selected view, on the backdrop.
+// Until a workstation is listed, the first-run screen takes the views' place. The header is also the title bar,
+// following the frame Rust gave the window (ADR-0009, ADR-0016: overlay on macOS). The browser's own right-click menu
 // is off, except in text fields and selectable text. A view stays mounted once opened, hidden while another shows.
 // The workstation state lives here and reaches the views through `WorkstationsContext`.
 
@@ -51,7 +52,7 @@ export function App() {
   // Native until Rust answers, so a system-framed window never shows a second set of buttons.
   const frame = info?.frame ?? "native";
   // Only the header's empty parts drag the window; the name and the controls stay clickable.
-  const drag = frame === "custom" || undefined;
+  const drag = frame !== "native" || undefined;
 
   return (
     <SettingsProvider>

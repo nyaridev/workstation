@@ -101,6 +101,11 @@ code {
 }
 
 /* Fills the room up to the tabs, which drags the window; the name inside stays clickable. */
+/* macOS draws its window buttons over the header's left end. */
+.header[data-frame="overlay"] {
+  padding-left: calc(var(--iro-space-6) * 2);
+}
+
 .header-start {
   display: flex;
   align-self: stretch;

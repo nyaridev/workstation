@@ -10,12 +10,13 @@ compares them with each workstation's `projects.json` (format and entry template
 them by tags, and watches for projects being added, moved or removed. The built app also carries a starter kit that
 sets up a new WORKSTATION. Public: github.com/nyaridev/workstation.
 
-Stage: M16 done, not released. The window draws its own title bar and works like Scrappy's, closes to the tray and
-can start with the system. The app lists a workstation's projects with search, tag, status and "has changes" filters,
-flags, git badges and "Open folder"; rescans on its own when projects or `projects.json` change; registers
-unregistered projects and edits tags; sets up new workstations from the built-in kit (`kit/`). Now: M17 brings
-installers for Windows, macOS and Linux (ADR-0016); M18 releases. In `pnpm dev`, `?update` fakes a
-newer release, `?empty` shows the first-run screen and `?broken` an unreadable `projects.json`.
+Stage: M17 done, not released. The window draws its own title bar and works like Scrappy's, closes to the tray and
+can start with the system; installers for Windows, macOS and Linux come from GitHub Actions (ADR-0016). The app lists
+a workstation's projects with search, tag, status and "has changes" filters, flags, git badges and "Open folder";
+rescans on its own when projects or `projects.json` change; registers unregistered projects and edits tags; sets up
+new workstations from the built-in kit (`kit/`). Now: M18 verifies and releases v0.1.0. In `pnpm dev`, `?update`
+fakes a newer release, `?empty` shows the first-run screen, `?broken` an unreadable `projects.json` and `?mac` the
+macOS frame.
 
 If the user wants a workstation set up rather than the app built ("set up this workstation for me"), don't install
 Node or Rust: ask which they mean, recommend the kit, and set it up with `setup-kit.ps1` (`README.md` → "The folder
@@ -29,7 +30,7 @@ The new workstation's GitHub owners are the user's own, never this repo's `nyari
 | `pnpm dev`      | The UI alone in a browser at http://localhost:4420                                  |
 | `start-dev.bat` | The real app with hot reload                                                        |
 | `pnpm check`    | Size and boundary checks + `tsc` + Biome + Vitest + `cargo test`; must pass before a task is done |
-| `build.bat`     | Portable `release\Workstation.exe`                                                  |
+| `build.bat`     | The Windows installer in `release\`; every system's installers come from a `v*` tag |
 
 Before a release, go through `docs/manual-check.md` in the real window: it covers what the tests can't. Releases follow
 `.claude/skills/release/SKILL.md` (`/release <version>`): the app updates itself from them (ADR-0014).

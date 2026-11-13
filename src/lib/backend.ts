@@ -1,7 +1,7 @@
 // Backend: every call to Rust (invoke and listen), with fake data when running in a plain browser.
 // In `pnpm dev`, add `?empty` to the URL to see the first-run screen, `?broken` for an unreadable projects.json,
 // `?update` for a newer release (`?update=downloading` while it downloads, `?update=error` for a failed check),
-// `?native` for the system title bar.
+// `?native` for the system title bar, `?mac` for macOS (its overlay frame and words).
 
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -84,7 +84,13 @@ function fakeRemove(root: string): Listing {
 // ── App and settings ──────────────────────
 /** The running version and the frame the window got at start. */
 export async function appInfo(): Promise<AppInfo> {
-  return inTauri ? invoke("app_info") : { version: "0.1.0", os: "windows", frame: nativeFrame ? "native" : "custom" };
+  if (inTauri) return invoke("app_info");
+  const mac = new URLSearchParams(location.search).has("mac");
+  return {
+    version: "0.1.0",
+    os: mac ? "macos" : "windows",
+    frame: nativeFrame ? "native" : mac ? "overlay" : "custom",
+  };
 }
 
 /** The saved settings. */

@@ -14,8 +14,10 @@ const MAIN: &str = "main";
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Frame {
-    /// No system frame: the header is the title bar and draws its own window buttons.
+    /// No system frame: the header is the title bar and draws its own window buttons (Windows, Linux).
     Custom,
+    /// The system's window buttons over the header's left end; the header is the title bar (macOS).
+    Overlay,
     /// The system's own title bar over a plain header.
     Native,
 }
@@ -28,18 +30,33 @@ pub enum Shown {
     Hidden,
 }
 
+// ── Private helpers ───────────────────────
+/// The frame for `os`: the system's own when the look asks for it, else overlay on macOS and custom elsewhere.
+fn frame_for(os: &str, native_frame: bool) -> Frame {
+    match (native_frame, os) {
+        (true, _) => Frame::Native,
+        (false, "macos") => Frame::Overlay,
+        _ => Frame::Custom,
+    }
+}
+
 // ── Public API ────────────────────────────
 /// Opens the main window with the frame `look` asks for, shown as `shown` says, and returns that frame.
 pub fn open(app: &App, look: &Look, shown: Shown) -> tauri::Result<Frame> {
-    let frame = if look.native_frame { Frame::Native } else { Frame::Custom };
-    let window = WebviewWindowBuilder::new(app, MAIN, WebviewUrl::default())
+    let frame = frame_for(std::env::consts::OS, look.native_frame);
+    let builder = WebviewWindowBuilder::new(app, MAIN, WebviewUrl::default())
         .title("Workstation")
         .inner_size(1100.0, 720.0)
         .min_inner_size(760.0, 520.0)
         .center()
-        .decorations(frame == Frame::Native)
-        .visible(!matches!(shown, Shown::Hidden))
-        .build()?;
+        .decorations(frame != Frame::Custom)
+        .visible(!matches!(shown, Shown::Hidden));
+    #[cfg(target_os = "macos")]
+    let builder = match frame {
+        Frame::Overlay => builder.title_bar_style(tauri::TitleBarStyle::Overlay).hidden_title(true),
+        _ => builder,
+    };
+    let window = builder.build()?;
     if matches!(shown, Shown::Minimized) {
         window.minimize()?;
     }
@@ -53,5 +70,20 @@ pub fn bring_forward(app: &AppHandle) {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn picks_the_frame_per_system() {
+        assert_eq!(frame_for("windows", false), Frame::Custom);
+        assert_eq!(frame_for("linux", false), Frame::Custom);
+        assert_eq!(frame_for("macos", false), Frame::Overlay);
+        for os in ["windows", "linux", "macos"] {
+            assert_eq!(frame_for(os, true), Frame::Native, "the system title bar wins everywhere");
+        }
     }
 }

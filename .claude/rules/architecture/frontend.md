@@ -50,7 +50,8 @@ The window shows what Rust sends and passes clicks on. It doesn't read files, de
   (`useSettings`), the update banner, `NoticeBanner`, the status banner and shared hooks.
 - The header is the title bar (ADR-0009, ADR-0010) and follows `AppInfo.frame`: `custom` adds `WindowControls` and
   makes the header the drag area (`data-tauri-drag-region` on the header and its empty parts, never on controls);
-  `native` is a plain header.
+  `overlay` (macOS, ADR-0016) is the drag area too, with room on the left for the system's buttons and no
+  `WindowControls`; `native` is a plain header. `?mac` previews the overlay in `pnpm dev`.
 - The tabs show only when `MAIN_VIEWS` has two or more views. The mark and name are a plain button with a "Home"
   tooltip that opens the first main view, so they're not part of the drag area; under 960 px the name hides (still
   read out). Nothing else sits beside them: workstations are opened, added and removed in Settings (ADR-0017).

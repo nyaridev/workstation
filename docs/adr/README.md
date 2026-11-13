@@ -101,17 +101,19 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | M14 | Settings in tabs: Workstations, App (ADR-0013) | done |
 | M15 | Updates through Tauri's signed updater, the update banner (ADR-0014) | done (real update: `docs/manual-check.md` → 8, after the first release) |
 | M16 | Start with the system, close to the tray, one copy (ADR-0015) | done (start entry and installer box: `docs/manual-check.md` → 9, after M17) |
-| M17 | Windows, macOS and Linux: cross-platform fixes, installers, GitHub Actions (ADR-0016) | next |
-| M18 | Verify and polish, then release | planned |
+| M17 | Windows, macOS and Linux: cross-platform fixes, installers, GitHub Actions (ADR-0016) | done (macOS and Linux checked by CI once pushed; installers: `docs/manual-check.md` → 7, 9) |
+| M18 | Verify and polish, then release | next |
 
 ### M17: Windows, macOS and Linux
 
 1. `workstations.rs`: `same_root` compares by each system's rule (case ignored on Windows and macOS, not on Linux;
    `\` and `/` alike on Windows only), with tests for each rule.
-2. `git.rs`: `CREATE_NO_WINDOW` only under `cfg(windows)`; check the rest of `src-tauri/src` for Windows-only calls.
+2. `git.rs`: `CREATE_NO_WINDOW` only under `cfg(windows)` (it already was); nothing else in `src-tauri/src` is
+   Windows-only.
 3. macOS: Scrappy's `overlay` frame (`window.rs` `Frame::Overlay`, the header leaves room for the system's buttons at
    its left end and drops `WindowControls`); "Use the system title bar" still wins.
-4. Icons: `pnpm tauri icon assets/brand/icon.svg` fills `src-tauri/icons/` for every system.
+4. Icons: `pnpm tauri icon assets/brand/icon.svg` fills `src-tauri/icons/` for every system (they were already
+   current).
 5. `tauri.release.conf.json`: NSIS per user with `windows/hooks.nsh` (there now), app and dmg, AppImage and deb, the
    category and short description. `tauri.updater.conf.json`: `createUpdaterArtifacts`.
 6. `.github/workflows/check.yml` (`pnpm build` and `pnpm check` on Windows, macOS and Linux, with the Linux libraries

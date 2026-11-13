@@ -130,8 +130,11 @@ export interface GitHistory {
   commits: Commit[];
 }
 
-/** How the window is framed (`window::Frame`): `custom` draws its own title bar, `native` has the system's. */
-export type Frame = "custom" | "native";
+/**
+ * How the window is framed (`window::Frame`): `custom` draws its own title bar, `overlay` has macOS's buttons over the
+ * header, `native` has the system's title bar.
+ */
+export type Frame = "custom" | "overlay" | "native";
 
 /** The running version, the system and the window's frame (`commands::AppInfo`). */
 export interface AppInfo {
