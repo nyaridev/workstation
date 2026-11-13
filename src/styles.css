@@ -435,6 +435,10 @@ code {
    as before and one with a milestone line under it keeps its chevron and buttons beside its first line. */
 .project-scroll {
   --row-line: calc(var(--iro-control-lg) - var(--iro-space-2) * 2);
+  /* shortcut: rem column widths; they don't follow the text size. Measure them if that starts to matter. */
+  --col-name: 12rem;
+  --col-status: 7.5rem;
+  --col-remote: 12rem;
 }
 
 .project-scroll .iro-list-item,
@@ -451,10 +455,9 @@ code {
 }
 
 .row-cells {
-  /* shortcut: rem column widths; they don't follow the text size. Measure them if that starts to matter. */
   display: grid;
   flex: 1;
-  grid-template-columns: 12rem 7.5rem minmax(0, 1fr) 12rem;
+  grid-template-columns: var(--col-name) var(--col-status) minmax(0, 1fr) var(--col-remote);
   gap: var(--iro-space-3);
   align-items: center;
   min-width: 0;
@@ -484,28 +487,45 @@ code {
 
 /* The name's tooltip: the description, then the path. */
 /* The milestone being worked on, as a second line under the row's cells (ProjectRow). */
-/* The milestone line is one ghost button, pulled back by its padding and border so its flag lines up with the name;
-   the row's buttons and chevron stay on the first line (below). */
+/* The milestone line is one ghost button on the row's own columns: the flag and name under the project's name, the
+   bar under the status, the count under the git badges. It's pulled back by its padding and border, so its columns
+   start where the row's do. */
 .row-milestone {
+  display: grid;
+  grid-template-columns: var(--col-name) var(--col-status) auto;
   gap: var(--iro-space-3);
-  justify-content: flex-start;
-  max-width: 100%;
+  justify-content: start;
   margin-inline-start: calc((var(--iro-space-2) + 1px) * -1);
   color: var(--iro-fg-2);
   font-weight: 400;
 }
 
-.row-milestone-name {
-  min-width: 0;
-  max-width: 24rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* Quiet for a line of text: hovering only tints its background, and pressing doesn't shrink it. */
+.row-milestone.iro-button:hover {
+  color: var(--iro-fg-2);
 }
 
-.row-milestone-bar {
-  flex: none;
-  width: calc(var(--iro-space-6) * 4);
+.row-milestone.iro-button:active:not(:disabled) {
+  transform: none;
+}
+
+.row-milestone-name {
+  display: flex;
+  gap: var(--iro-space-2);
+  align-items: center;
+  min-width: 0;
+}
+
+.row-milestone-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The bar's empty part, outlined in a field's edge so it reads against the row. */
+.row-milestone-bar .iro-progress-track,
+.milestones-head .iro-progress-track {
+  background: var(--iro-surface-3);
+  box-shadow: inset 0 0 0 1px var(--iro-edge);
 }
 
 .row-milestone-count {

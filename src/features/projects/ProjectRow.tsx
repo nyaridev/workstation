@@ -165,12 +165,14 @@ export function ProjectRow(props: Props) {
               <Button
                 size="sm"
                 variant="ghost"
-                icon={<Icon icon={FlagIcon} />}
                 className="row-milestone"
                 aria-label={`Milestones: ${progress.current.name}, ${progress.done} of ${progress.total} done`}
                 onClick={() => onMilestones(p)}
               >
-                <span className="row-milestone-name">{progress.current.name}</span>
+                <span className="row-milestone-name">
+                  <Icon icon={FlagIcon} />
+                  <span className="row-milestone-text">{progress.current.name}</span>
+                </span>
                 <ProgressBar size="sm" value={progress.done / progress.total} className="row-milestone-bar" />
                 <span className="row-milestone-count">
                   {progress.done} of {progress.total} done
