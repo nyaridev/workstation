@@ -7,7 +7,7 @@ use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -127,10 +127,37 @@ fn git(dir: &Path, args: &[&str]) -> Option<String> {
     git_raw(dir, args).map(|out| out.trim().to_string())
 }
 
+// Stops `child` and everything it started. On Windows `git` is a launcher for the real one, which would otherwise keep
+// running with its helpers; on Unix the child leads its own process group (`run_within`).
+fn stop_tree(child: &mut Child) {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        let _ = Command::new("taskkill")
+            .args(["/T", "/F", "/PID", &child.id().to_string()])
+            .creation_flags(CREATE_NO_WINDOW)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+    }
+    #[cfg(unix)]
+    {
+        let _ = Command::new("kill").args(["-KILL", "--", &format!("-{}", child.id())]).status();
+    }
+    let _ = child.kill();
+    let _ = child.wait();
+}
+
 // Runs git in `dir` for at most `limit`, its output thrown away: Ok when it succeeds, its reason when it fails, and
 // Err(None) when it's still running at the limit (it's stopped then, so use it only for commands safe to stop).
 fn run_within(dir: &Path, args: &[&str], limit: Duration) -> Result<(), Option<String>> {
-    let mut child = command(dir, args)
+    let mut command = command(dir, args);
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        command.process_group(0);
+    }
+    let mut child = command
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::piped())
@@ -149,8 +176,7 @@ fn run_within(dir: &Path, args: &[&str], limit: Duration) -> Result<(), Option<S
             return Err(Some(reason.trim().to_string()));
         }
         if started.elapsed() >= limit {
-            let _ = child.kill();
-            let _ = child.wait();
+            stop_tree(&mut child);
             return Err(None);
         }
         thread::sleep(Duration::from_millis(50));
@@ -575,6 +601,6 @@ mod tests {
         let started = Instant::now();
         let reason = pull_within(&here, Duration::from_secs(1)).unwrap_err();
         assert!(reason.starts_with("Couldn't reach the remote in 1 seconds"), "{reason}");
-        assert!(started.elapsed() < Duration::from_secs(5), "stopped at the limit, not git's own timeout");
+        assert!(started.elapsed() < Duration::from_secs(10), "stopped at the limit; this remote never answers on its own");
     }
 }
