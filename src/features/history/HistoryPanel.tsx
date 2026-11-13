@@ -92,11 +92,10 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
             {(overview.behind ?? 0) > 0 && <Badge tone="accent">{overview.behind} behind (as of the last fetch)</Badge>}
           </section>
 
-          <section aria-labelledby="history-changes">
-            <SectionTitle id="history-changes">Uncommitted ({overview.changes.length})</SectionTitle>
-            {overview.changes.length === 0 ? (
-              <p className="muted small">Nothing to commit.</p>
-            ) : (
+          {/* Each section shows only when it has something in it. */}
+          {overview.changes.length > 0 && (
+            <section aria-labelledby="history-changes">
+              <SectionTitle id="history-changes">Uncommitted ({overview.changes.length})</SectionTitle>
               <Accordion
                 multiple
                 className="changes"
@@ -122,45 +121,46 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
                   };
                 })}
               />
-            )}
-            {overview.changes.length > shown && (
-              <Button size="sm" variant="ghost" className="load-more" onClick={moreFiles}>
-                {moreLabel(overview.changes.length - shown)}
-              </Button>
-            )}
-          </section>
+              {overview.changes.length > shown && (
+                <Button size="sm" variant="ghost" className="load-more" onClick={moreFiles}>
+                  {moreLabel(overview.changes.length - shown)}
+                </Button>
+              )}
+            </section>
+          )}
 
-          <section aria-labelledby="history-commits">
-            <SectionTitle id="history-commits">Commits ({overview.commits})</SectionTitle>
-            {overview.commits === 0 && <p className="muted small">No commits yet.</p>}
-            {!commits && overview.commits > 0 && <Spinner label="Reading the commits" />}
-            <Timeline
-              items={(commits ?? []).map((commit) => ({
-                id: commit.hash,
-                title: (
-                  <>
-                    {commit.subject} {commit.unpushed && <Badge tone="info">unpushed</Badge>}
-                  </>
-                ),
-                time: (
-                  <Tooltip content={new Date(commit.date).toLocaleString()}>
-                    <time dateTime={commit.date}>{ago(commit.date)}</time>
-                  </Tooltip>
-                ),
-                description: (
-                  <>
-                    <code>{commit.short}</code> · {commit.author}
-                  </>
-                ),
-                tone: commit.unpushed ? "info" : "neutral",
-              }))}
-            />
-            {commits && overview.commits > commits.length && (
-              <Button size="sm" variant="ghost" className="load-more" loading={loadingCommits} onClick={moreCommits}>
-                {moreLabel(overview.commits - commits.length)}
-              </Button>
-            )}
-          </section>
+          {overview.commits > 0 && (
+            <section aria-labelledby="history-commits">
+              <SectionTitle id="history-commits">Commits ({overview.commits})</SectionTitle>
+              {!commits && <Spinner label="Reading the commits" />}
+              <Timeline
+                items={(commits ?? []).map((commit) => ({
+                  id: commit.hash,
+                  title: (
+                    <>
+                      {commit.subject} {commit.unpushed && <Badge tone="info">unpushed</Badge>}
+                    </>
+                  ),
+                  time: (
+                    <Tooltip content={new Date(commit.date).toLocaleString()}>
+                      <time dateTime={commit.date}>{ago(commit.date)}</time>
+                    </Tooltip>
+                  ),
+                  description: (
+                    <>
+                      <code>{commit.short}</code> · {commit.author}
+                    </>
+                  ),
+                  tone: commit.unpushed ? "info" : "neutral",
+                }))}
+              />
+              {commits && overview.commits > commits.length && (
+                <Button size="sm" variant="ghost" className="load-more" loading={loadingCommits} onClick={moreCommits}>
+                  {moreLabel(overview.commits - commits.length)}
+                </Button>
+              )}
+            </section>
+          )}
         </>
       )}
     </Sheet>
