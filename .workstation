@@ -119,7 +119,7 @@
     {
       "track": "App",
       "name": "M18 Verify, polish and release",
-      "done": false,
+      "done": true,
       "description": "Check everything by hand, then release v1.0.0."
     },
     {

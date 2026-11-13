@@ -111,7 +111,7 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | M15 | Updates through Tauri's signed updater, the update banner (ADR-0014) | done (real update: `docs/manual-check.md` → 8, after the first release) |
 | M16 | Start with the system, close to the tray, one copy (ADR-0015) | done (start entry and installer box: `docs/manual-check.md` → 9, after M17) |
 | M17 | Windows, macOS and Linux: cross-platform fixes, installers, GitHub Actions (ADR-0016) | done (macOS and Linux checked by CI once pushed; installers: `docs/manual-check.md` → 7, 9) |
-| M18 | Verify and polish, then release | next |
+| M18 | Verify and polish, then release | done (v1.0.0) |
 
 ### M17: Windows, macOS and Linux
 

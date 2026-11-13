@@ -10,13 +10,13 @@ reads each project's `.workstation` file (format and template: `docs/workstation
 them by tags, and watches for projects being added, moved or removed. The built app also carries a starter kit that
 sets up a new WORKSTATION. Public: github.com/nyaridev/workstation.
 
-Stage: M17 done, not released. The window draws its own title bar and works like Scrappy's, closes to the tray and
+Stage: v1.0.0 released (M18 done). The window draws its own title bar and works like Scrappy's, closes to the tray and
 can start with the system; installers for Windows, macOS and Linux come from GitHub Actions (ADR-0016). The app lists
 a workstation's projects with search, tag, status and "has changes" filters, flags, git badges and "Open folder";
 rescans on its own when projects or their `.workstation` files change; writes a `.workstation` for a project folder
-without one and edits tags; sets up new workstations from the built-in kit (`kit/`). Now: M18 verifies and releases v1.0.0. In `pnpm dev`, `?update`
-fakes a newer release, `?empty` shows the first-run screen, `?broken` an unreadable `.workstation` and `?mac` the
-macOS frame.
+without one and edits tags; shows milestones; sets up new workstations from the built-in kit (`kit/`). In `pnpm dev`,
+`?update` fakes a newer release, `?empty` shows the first-run screen, `?broken` an unreadable `.workstation` and
+`?mac` the macOS frame.
 
 If the user wants a workstation set up rather than the app built ("set up this workstation for me"), don't install
 Node or Rust: ask which they mean, recommend the kit, and set it up with `setup-kit.ps1` (`README.md` → "The folder
