@@ -5,7 +5,7 @@
 // same actions.
 
 import { Badge, ContextMenu, Icon, IconButton, ListItem, type MenuEntry, Tooltip } from "iro-ui";
-import { ArrowDownIcon, FilePlusIcon, FolderOpenIcon, TagIcon, TrophyIcon } from "iro-ui/icons";
+import { ArrowDownIcon, FilePlusIcon, FolderOpenIcon, GemIcon, TagIcon } from "iro-ui/icons";
 import { type CSSProperties, useRef, useState } from "react";
 import type { GitStatuses, Project } from "../../lib/types";
 import { FolderRow } from "./FolderRow";
@@ -96,7 +96,7 @@ export function ProjectRow(props: Props) {
   const openable = summary.length > 0;
   // A repo of its own (not a home that holds one) opens its git overview instead.
   const hasHistory = !openable && p.repo && git[p.path] !== undefined;
-  // Every milestone done: the row's milestone lines hide, so a trophy button opens the finished plan instead.
+  // Every milestone done: the row's milestone lines hide, so a gem button opens the finished plan instead.
   const finished = p.milestones.length > 0 && p.milestones.every((m) => m.done);
 
   const toggle = () => setExpanded(!expanded);
@@ -166,7 +166,7 @@ export function ProjectRow(props: Props) {
               {finished && (
                 <IconButton
                   size="sm"
-                  icon={<Icon icon={TrophyIcon} />}
+                  icon={<Icon icon={GemIcon} />}
                   label="Milestones: all done"
                   onClick={() => onMilestones(p)}
                 />

@@ -18,8 +18,8 @@ importers:
         specifier: ^2
         version: 2.7.2
       iro-ui:
-        specifier: github:nyaridev/iro-ui#v1.6.0
-        version: https://codeload.github.com/nyaridev/iro-ui/tar.gz/d03355aacdfe17c155cdb52dc983f1c138a5b66e(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: github:nyaridev/iro-ui#v1.7.0
+        version: https://codeload.github.com/nyaridev/iro-ui/tar.gz/4e5c253e52064347e44371ac02947edc379633ee(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: ^19.1.0
         version: 19.3.1
@@ -472,9 +472,9 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
-  iro-ui@https://codeload.github.com/nyaridev/iro-ui/tar.gz/d03355aacdfe17c155cdb52dc983f1c138a5b66e:
-    resolution: {gitHosted: true, integrity: sha512-el7q99aqVEdMPRMZ+gWiXIOWaZBz5vjZWzgT8MFMIppLEJDg99NWB6e2/MqddDTnCDhXRgXsXnaR1SpjSFUB4g==, tarball: https://codeload.github.com/nyaridev/iro-ui/tar.gz/d03355aacdfe17c155cdb52dc983f1c138a5b66e}
-    version: 1.6.0
+  iro-ui@https://codeload.github.com/nyaridev/iro-ui/tar.gz/4e5c253e52064347e44371ac02947edc379633ee:
+    resolution: {gitHosted: true, integrity: sha512-H1DRE6K+MrCAY9He1CJFdkHfZI6tubV2y9B5uieedSaoS3npF67+SyunCnP31ay64wJygWDfNakYvu4KB9Ebbg==, tarball: https://codeload.github.com/nyaridev/iro-ui/tar.gz/4e5c253e52064347e44371ac02947edc379633ee}
+    version: 1.7.0
     peerDependencies:
       react: '>=19'
       react-dom: '>=19'
@@ -993,7 +993,7 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
-  iro-ui@https://codeload.github.com/nyaridev/iro-ui/tar.gz/d03355aacdfe17c155cdb52dc983f1c138a5b66e(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  iro-ui@https://codeload.github.com/nyaridev/iro-ui/tar.gz/4e5c253e52064347e44371ac02947edc379633ee(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       '@base-ui/react': 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@fontsource-variable/cinzel': 5.3.0

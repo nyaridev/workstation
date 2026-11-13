@@ -70,7 +70,7 @@ delete that file to see the first run again.
 - [ ] Right-clicking a project or folder row opens a menu with the same actions as its buttons (and Show what's
       inside, Git overview), and each one works.
 - [ ] A project with milestones left shows one line per track under its row (name, bar, "x of y done"); clicking a
-      line opens the Milestones panel on that track. With every milestone done the lines go, and a trophy button
+      line opens the Milestones panel on that track. With every milestone done the lines go, and a gem button
       before the tag button opens the finished plan ("Every milestone is done").
 
 ## 4. Git
