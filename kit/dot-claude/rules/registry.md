@@ -21,8 +21,8 @@ the same task as the change.
   - **A game home, mod home or emulator home,** and a **suite**: in that folder, never in the repo inside (`game/`), so
     a partner's repo never gets one. List a mod home's mods, or an emulator home's emulators, in `notes`.
   - **A plain folder** (research, idea, asset pack): in that folder.
-  - **Someone else's repo** (`external/`): at its root, and add `.workstation` to the repo's `.git/info/exclude` so it's
-    never committed.
+  - **Someone else's repo** (`external/`), or a **template repo** other repos are made from (a framework's
+    `new-project`): at its root, and add `.workstation` to the repo's `.git/info/exclude` so it's never committed.
 - **It's committed, so it may be public:** `notes` never name paths on this PC (`AGENTS.md` → Paths).
 - **Tags:** lowercase kebab-case. Reuse tags already in use before inventing new ones. Give partner games `partner` and
   client work `client`.

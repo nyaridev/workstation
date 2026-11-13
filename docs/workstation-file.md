@@ -11,8 +11,9 @@ The workstation root has a `.workstation` too, holding only `{ "version": 1 }`: 
 - **A home** (game, mod or emulator home) and a **suite**: in the home's or suite's folder, never in the repo inside
   (`game/`). So a partner's repo never gets one.
 - **A plain folder** (research, an idea, an asset pack): in that folder.
-- **Someone else's repo** (`external/`): at its root, but kept out of git: add `.workstation` to the repo's
-  `.git/info/exclude`.
+- **Someone else's repo** (`external/`), or a **template repo** other repos are made from: at its root, but kept out
+  of git (add `.workstation` to the repo's `.git/info/exclude`), so it never lands in someone else's history or in
+  every repo made from the template.
 - Sandbox experiments, library asset sets and one-file scripts get none.
 
 The app finds files up to **4 folder levels below the root** (5 under `archive/`): the deepest place a project sits
