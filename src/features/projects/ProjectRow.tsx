@@ -158,7 +158,12 @@ export function ProjectRow(props: Props) {
               <span className="row-cell row-remote">{remote}</span>
             </span>
           }
-          description={<MilestoneLines milestones={p.milestones} onOpen={(track) => onMilestones(p, track)} />}
+          // Only with a milestone left to do: ListItem draws a description line for any element, even an empty one.
+          description={
+            p.milestones.some((m) => !m.done) && (
+              <MilestoneLines milestones={p.milestones} onOpen={(track) => onMilestones(p, track)} />
+            )
+          }
           actions={
             <>
               {canWrite && !p.registered && !p.archived && (
