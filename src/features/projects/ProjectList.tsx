@@ -18,6 +18,8 @@ import {
   valuesInUse,
 } from "./filter";
 import { groupIcon } from "./groupIcons";
+import { ListLayoutPicker } from "./ListLayoutPicker";
+import { useListLayout } from "./listLayout";
 import { ProjectFilters } from "./ProjectFilters";
 import { ProjectRow } from "./ProjectRow";
 import { useGitStatus } from "./useGitStatus";
@@ -38,6 +40,7 @@ export function ProjectList({ root }: Props) {
   const { scan, error, reload } = useProjects(root);
   const git = useGitStatus(root, scan?.projects);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
+  const layout = useListLayout();
   const [openError, setOpenError] = useState<string | null>(null);
   // The repo whose git overview is open.
   const [history, setHistory] = useState<{ path: string; name: string } | null>(null);
@@ -96,7 +99,7 @@ export function ProjectList({ root }: Props) {
         stacks={valuesInUse(projects, (p) => p.stack)}
         onChange={setFilters}
       />
-      <div className="project-scroll">
+      <div className="project-scroll" data-layout={layout}>
         {groups.length === 0 && <EmptyState title="No project matches these filters." />}
         {groups.map((group) => (
           <Panel
@@ -117,6 +120,17 @@ export function ProjectList({ root }: Props) {
                 <span className="group-count">{group.projects.length}</span>
               </span>
             </SectionTitle>
+            {layout === "table" && (
+              <div className="table-head" aria-hidden="true">
+                <span className="row-cells">
+                  <span>Name</span>
+                  <span>Status</span>
+                  <span>Git</span>
+                  <span>Stack</span>
+                  <span>Tags</span>
+                </span>
+              </div>
+            )}
             <ul className="rows">
               {group.projects.map((project) => (
                 <ProjectRow
@@ -162,6 +176,7 @@ export function ProjectList({ root }: Props) {
         </NoticeBanner>
       )}
       {list}
+      {import.meta.env.DEV && <ListLayoutPicker />}
       {history && <HistoryPanel root={root} path={history.path} name={history.name} onClose={closeHistory} />}
     </div>
   );

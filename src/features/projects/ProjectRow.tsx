@@ -11,6 +11,7 @@ import { FolderRow } from "./FolderRow";
 import { statusColor } from "./fields";
 import { gitOf, registryFlag } from "./filter";
 import { GitBadges } from "./GitBadges";
+import { useListLayout } from "./listLayout";
 import { RegisterForm } from "./RegisterForm";
 import { TagEditor } from "./TagEditor";
 
@@ -65,6 +66,7 @@ export function ProjectRow(props: Props) {
   } = props;
   const [editing, setEditing] = useState<"register" | "tags" | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const layout = useListLayout();
   const done = (saved: boolean) => {
     setEditing(null);
     if (saved) onSaved();
@@ -92,37 +94,102 @@ export function ProjectRow(props: Props) {
     ...(canWrite && p.registered ? [{ label: "Edit tags", onSelect: () => setEditing("tags") }] : []),
   ];
 
+  const name = <span className="row-name">{p.name}</span>;
+  const status = p.status && <StatusBadge status={p.status} />;
+  const gitBadges = <GitBadges git={gitOf(p, git, inside)} />;
+  const flagBadge = flag && <Badge tone={p.onDisk ? "warning" : "danger"}>{flag}</Badge>;
+  const summaryText = openable && <span className="muted small">{summary.join(" · ")}</span>;
+  const path = <code className="selectable">{p.path}</code>;
+  const stack = p.stack.length > 0 && <span>{p.stack.join(" · ")}</span>;
+  const tagChips = p.tags.map((tag) => (
+    <Chip key={tag} size="sm" selected={selectedTags.includes(tag)} onClick={() => onTag(tag)}>
+      #{tag}
+    </Chip>
+  ));
+  // shortcut: one row per trial layout (listLayout.ts); keep the picked one's branch, delete the rest.
+  const content =
+    layout === "compact"
+      ? {
+          title: (
+            <>
+              {name}
+              {status}
+              {gitBadges}
+              {flagBadge}
+              {summaryText}
+            </>
+          ),
+          meta: path,
+        }
+      : layout === "tiles"
+        ? {
+            title: (
+              <>
+                {name}
+                {status}
+              </>
+            ),
+            description: (
+              <>
+                {p.description && <span className="row-desc">{p.description}</span>}
+                <span className="row-meta">
+                  {gitBadges}
+                  {flagBadge}
+                  {summaryText}
+                </span>
+                <span className="row-meta">{tagChips}</span>
+              </>
+            ),
+          }
+        : layout === "table"
+          ? {
+              title: (
+                <span className="row-cells">
+                  <span className="row-cell">
+                    {name}
+                    {flagBadge}
+                    {summaryText}
+                  </span>
+                  <span className="row-cell">{status}</span>
+                  <span className="row-cell">{gitBadges}</span>
+                  <span className="row-cell muted small">{stack}</span>
+                  <span className="row-cell">{tagChips}</span>
+                </span>
+              ),
+            }
+          : {
+              title: (
+                <>
+                  {name}
+                  {status}
+                  {gitBadges}
+                  {flagBadge}
+                  {summaryText}
+                </>
+              ),
+              description: (
+                <>
+                  {p.description && <span className="row-desc">{p.description}</span>}
+                  <span className="row-meta">
+                    {path}
+                    {stack}
+                    {tagChips}
+                  </span>
+                </>
+              ),
+            };
+
   return (
-    <li className="project">
+    <li className="project" data-open={expanded || editing !== null ? "" : undefined}>
       <ContextMenu items={menu}>
         <ListItem
           stretched
-          wrap
+          wrap={layout === "cards" || layout === "tiles"}
           expanded={openable ? expanded : undefined}
           onClick={openable ? toggle : hasHistory ? history : undefined}
-          title={
-            <>
-              <span className="row-name">{p.name}</span>
-              {p.status && <StatusBadge status={p.status} />}
-              <GitBadges git={gitOf(p, git, inside)} />
-              {flag && <Badge tone={p.onDisk ? "warning" : "danger"}>{flag}</Badge>}
-              {openable && <span className="muted small">{summary.join(" · ")}</span>}
-            </>
-          }
-          description={
-            <>
-              {p.description && <span className="row-desc">{p.description}</span>}
-              <span className="row-meta">
-                <code className="selectable">{p.path}</code>
-                {p.stack.length > 0 && <span>{p.stack.join(" · ")}</span>}
-                {p.tags.map((tag) => (
-                  <Chip key={tag} size="sm" selected={selectedTags.includes(tag)} onClick={() => onTag(tag)}>
-                    #{tag}
-                  </Chip>
-                ))}
-              </span>
-            </>
-          }
+          title={content.title}
+          description={content.description}
+          meta={content.meta}
           actions={
             <>
               {canWrite && !p.registered && !p.archived && (
