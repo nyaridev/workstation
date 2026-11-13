@@ -99,7 +99,10 @@ delete that file to see the first run again.
 - [ ] Type "CLI Tool" in tags and press Enter: it becomes `cli-tool`. Suggestions come from tags in use.
 - [ ] **Add to projects.json**: the flag goes, the row shows the description and tags. In `projects.json` the entry
       sits at its place by path, in the documented key order, and the rest of the file is unchanged.
-- [ ] **Edit tags** (the tag icon) on a registered project: remove one, add one, save. Only that entry's `tags` changed.
+- [ ] **Edit tags** (the tag icon, or the right-click menu) on a registered project opens a dialog: every tag in use as
+      a chip, the project's own first and on. Ticking or unticking one never moves the chips; a typed tag (Enter)
+      joins at the end. Remove one, add one, Save tags: only that entry's `tags` changed. Cancel or Escape changes
+      nothing.
 - [ ] A repo with a GitHub remote prefills Owner with the remote's owner; a repo without one says `local`.
 
 ## 7. Installers (ADR-0016)

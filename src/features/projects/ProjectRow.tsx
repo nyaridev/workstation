@@ -1,6 +1,6 @@
 // ProjectRow: one project on one line (ADR-0018), in the same columns as every row: the name (its description and
 // path as a tooltip, its flags and what's inside), the status, the git badges and the remote's owner/name; then its
-// actions (register it in projects.json, edit its tags, pull it, open the folder) as icon buttons. A suite or home
+// actions (register it in projects.json, edit its tags in a dialog, pull it, open the folder) as icon buttons. A suite or home
 // opens to show the projects and important folders inside it; a repo opens its git overview. A right click offers the
 // same actions.
 
@@ -12,11 +12,8 @@ import { FolderRow } from "./FolderRow";
 import { statusColor } from "./fields";
 import { gitOf, registryFlag } from "./filter";
 import { GitBadges } from "./GitBadges";
-import { InlineTags } from "./InlineTags";
 import { RegisterForm } from "./RegisterForm";
 import { TagDialog } from "./TagDialog";
-import { TagPopover } from "./TagPopover";
-import { useTagEditMode } from "./tagEditMode";
 
 interface Props {
   root: string;
@@ -56,9 +53,8 @@ function StatusBadge({ status }: { status: string }) {
 export function ProjectRow(props: Props) {
   const { root, project: p, inside, git, suggestions, canWrite, onOpen, onPull, onHistory, onSaved } = props;
   const [editing, setEditing] = useState<"register" | null>(null);
-  // The tag editor is open: the popover, the field in place, or the dialog, by the trial mode (tagEditMode.ts).
+  // The tag dialog is open.
   const [tagsOpen, setTagsOpen] = useState(false);
-  const mode = useTagEditMode();
   const [expanded, setExpanded] = useState(false);
   const [pulling, setPulling] = useState(false);
   const done = (saved: boolean) => {
@@ -127,18 +123,6 @@ export function ProjectRow(props: Props) {
               <span className="row-cell">
                 <GitBadges git={gitOf(p, git, inside)} />
               </span>
-              {mode === "inline" && (
-                <span className="row-cell">
-                  <InlineTags
-                    root={root}
-                    project={p}
-                    canEdit={canWrite && p.registered}
-                    editing={tagsOpen}
-                    onEditingChange={setTagsOpen}
-                    onSaved={onSaved}
-                  />
-                </span>
-              )}
               <span className="row-cell row-remote">{remote}</span>
             </span>
           }
@@ -153,23 +137,12 @@ export function ProjectRow(props: Props) {
                   disabled={editing !== null}
                 />
               )}
-              {canWrite && p.registered && mode === "popover" && (
-                <TagPopover
-                  root={root}
-                  project={p}
-                  suggestions={suggestions}
-                  open={tagsOpen}
-                  onOpenChange={setTagsOpen}
-                  onSaved={onSaved}
-                />
-              )}
-              {canWrite && p.registered && mode !== "popover" && (
+              {canWrite && p.registered && (
                 <IconButton
                   size="sm"
                   icon={<Icon icon={TagIcon} />}
                   label="Edit tags"
-                  active={tagsOpen}
-                  onClick={() => setTagsOpen(!tagsOpen)}
+                  onClick={() => setTagsOpen(true)}
                 />
               )}
               {canPull && (
@@ -195,7 +168,7 @@ export function ProjectRow(props: Props) {
       {editing === "register" && (
         <RegisterForm root={root} project={p} git={git[p.path]} suggestions={suggestions} onDone={done} />
       )}
-      {canWrite && p.registered && mode === "dialog" && (
+      {canWrite && p.registered && (
         <TagDialog
           root={root}
           project={p}

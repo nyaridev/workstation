@@ -1,5 +1,5 @@
-// TagDialog: tag editing 3 (tagEditMode.ts): a dialog with every tag in use as a toggle chip and a field for a new
-// one; Save writes them, Cancel leaves them.
+// TagDialog: edits a registered project's tags: every tag in use as a toggle chip, the project's own first and on,
+// and a field for a new one; Save writes them to projects.json, Cancel leaves them.
 
 import { Button, Chip, Dialog, Notice, TextField } from "iro-ui";
 import { useState } from "react";
@@ -22,11 +22,13 @@ function Body({ root, project, suggestions, onOpenChange, onSaved }: Omit<Props,
   const [tags, setDraft] = useState(project.tags);
   const [typed, setTyped] = useState("");
   const { save, saving, error } = useSaveTags(root, project.path, onSaved);
-  // The project's own tags first, so a new one shows next to the others.
-  const all = [...new Set([...tags, ...suggestions])];
+  // The order is set when the dialog opens (the project's own tags first), so chips never move while toggling; a
+  // typed tag joins at the end and stays there even when unticked.
+  const [order, setOrder] = useState(() => [...new Set([...project.tags, ...suggestions])]);
   const toggle = (tag: string) => setDraft(tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag]);
   const add = () => {
     const tag = toTag(typed);
+    if (tag && !order.includes(tag)) setOrder([...order, tag]);
     if (tag && !tags.includes(tag)) setDraft([...tags, tag]);
     setTyped("");
   };
@@ -35,7 +37,7 @@ function Body({ root, project, suggestions, onOpenChange, onSaved }: Omit<Props,
     <>
       <fieldset className="chips tag-dialog-chips">
         <legend className="sr-only">Tags</legend>
-        {all.map((tag) => (
+        {order.map((tag) => (
           <Chip key={tag} size="sm" selected={tags.includes(tag)} onClick={() => toggle(tag)}>
             #{tag}
           </Chip>

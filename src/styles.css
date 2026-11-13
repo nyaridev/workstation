@@ -441,58 +441,7 @@ code {
   gap: var(--iro-space-1);
 }
 
-/* ── Tag editing on trial (tagEditMode.ts) ─ shortcut: keep the picked one's rules, delete the rest. */
-/* 1 · The popover from the tag icon. */
-.tag-popover {
-  display: grid;
-  gap: var(--iro-space-3);
-  width: calc(var(--iro-space-6) * 12);
-}
-
-/* 2 · A tags column, edited in place. */
-.project-scroll[data-tags="inline"] .row-cells {
-  grid-template-columns: 10rem 7.5rem minmax(0, 1fr) minmax(0, 1fr) 10rem;
-}
-
-.row-tags {
-  display: flex;
-  gap: var(--iro-space-1);
-  align-items: center;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.row-tags-button {
-  justify-content: flex-start;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.row-tags-edit {
-  display: flex;
-  flex: 1;
-  gap: var(--iro-space-1);
-  align-items: center;
-  min-width: 0;
-}
-
-/* While editing, the field takes the git column too, and its tags stay on one line. */
-.row-cells:has(.row-tags-edit) > .row-cell:nth-child(3) {
-  display: none;
-}
-
-.row-cells > .row-cell:has(.row-tags-edit) {
-  grid-column: 3 / 5;
-}
-
-.row-tags-edit .iro-tag-input {
-  flex: 1;
-  flex-wrap: nowrap;
-  min-width: 0;
-  overflow-x: auto;
-}
-
-/* 3 · The dialog with every tag. */
+/* The tag dialog: every tag in use, then the new-tag field and the buttons. */
 .tag-dialog-chips {
   margin-bottom: var(--iro-space-3);
 }
@@ -500,23 +449,6 @@ code {
 .tag-dialog-buttons {
   justify-content: flex-end;
   margin-top: var(--iro-space-4);
-}
-
-/* The dev-only trial picker, floating in the bottom-right corner. */
-.dev-layout-picker {
-  position: fixed;
-  right: var(--iro-space-4);
-  bottom: var(--iro-space-4);
-  z-index: 10;
-  display: flex;
-  gap: var(--iro-space-3);
-  align-items: center;
-  padding: var(--iro-space-2) var(--iro-space-3);
-}
-
-.dev-layout-label {
-  color: var(--iro-fg-3);
-  font-size: var(--iro-text-xs);
 }
 
 /* Rows without a chevron keep its room, so every row's columns line up. shortcut: reaches into iro-ui's ListItem. */
