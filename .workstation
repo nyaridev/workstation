@@ -3,7 +3,7 @@
   "kind": "app",
   "stack": ["Tauri", "Rust", "React", "iro-ui"],
   "owner": "nyaridev",
-  "status": "prototyping",
+  "status": "released",
   "description": "Overseer for WORKSTATION folders: lists and tags projects, watches for changes, switches workstations, ships a starter kit.",
   "tags": ["public", "workstation", "desktop", "tooling"],
   "notes": "The .workstation format: `docs/workstation-file.md`.",
