@@ -428,6 +428,26 @@ code {
   display: flex;
   gap: var(--iro-space-2);
   align-items: center;
+  min-height: var(--row-line);
+}
+
+/* Rows line up to the top, and their first line is what a one-line row holds (--row-line), so a one-line row looks
+   as before and one with a milestone line under it keeps its chevron and buttons beside its first line. */
+.project-scroll {
+  --row-line: calc(var(--iro-control-lg) - var(--iro-space-2) * 2);
+}
+
+.project-scroll .iro-list-item,
+.project-scroll .iro-list-item-main {
+  align-items: flex-start;
+}
+
+.project-scroll .iro-list-item-chevron {
+  height: var(--row-line);
+}
+
+.project-scroll .iro-list-item-actions {
+  margin-top: calc(var(--iro-space-2) + (var(--row-line) - var(--iro-control-sm)) / 2);
 }
 
 .row-cells {
@@ -464,23 +484,34 @@ code {
 
 /* The name's tooltip: the description, then the path. */
 /* The milestone being worked on, as a second line under the row's cells (ProjectRow). */
+/* The milestone line is one ghost button, pulled back by its padding and border so its flag lines up with the name;
+   the row's buttons and chevron stay on the first line (below). */
 .row-milestone {
-  display: flex;
   gap: var(--iro-space-3);
-  align-items: center;
-  min-width: 0;
+  justify-content: flex-start;
+  max-width: 100%;
+  margin-inline-start: calc((var(--iro-space-2) + 1px) * -1);
+  color: var(--iro-fg-2);
+  font-weight: 400;
 }
 
-/* Pulled back by its padding and border, so the flag lines up with the project's name. */
 .row-milestone-name {
   min-width: 0;
   max-width: 24rem;
-  margin-inline-start: calc((var(--iro-space-2) + 1px) * -1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .row-milestone-bar {
   flex: none;
   width: calc(var(--iro-space-6) * 4);
+}
+
+.row-milestone-count {
+  flex: none;
+  color: var(--iro-fg-3);
+  font-size: var(--iro-text-xs);
 }
 
 .milestones-head {
