@@ -76,6 +76,12 @@ pub fn set_look(app: AppHandle, look: Look) -> Result<Settings, String> {
     settings::set_look(&config_dir(&app)?, look)
 }
 
+/// Saves the list filters of the workstation at `root`, so they come back at the next start.
+#[tauri::command]
+pub fn set_filters(app: AppHandle, root: String, filters: serde_json::Value) -> Result<(), String> {
+    settings::set_filters(&config_dir(&app)?, &root, filters)
+}
+
 /// Turns the start entry on or off, then saves how the app behaves and returns the settings. When the system refuses
 /// the entry, nothing is saved and the reason comes back (ADR-0015).
 #[tauri::command]
@@ -181,6 +187,12 @@ pub async fn git_pull(root: String, path: String) -> Result<usize, String> {
     })
     .await
     .map_err(|e| e.to_string())?
+}
+
+/// When each of these projects was last edited (Unix seconds), for sorting by it. Reads only; runs off the main thread.
+#[tauri::command]
+pub async fn last_edited(root: String, paths: Vec<String>) -> Result<HashMap<String, u64>, String> {
+    tauri::async_runtime::spawn_blocking(move || scan::last_edited(Path::new(&root), paths)).await.map_err(|e| e.to_string())
 }
 
 /// A guess at a project's stack from its files, for the Register form.

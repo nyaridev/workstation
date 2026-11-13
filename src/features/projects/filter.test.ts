@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fakeProjects } from "../../lib/fakeProjects";
+import type { Project } from "../../lib/types";
 import {
   filterProjects,
   gitOf,
@@ -7,6 +8,8 @@ import {
   NO_FILTERS,
   nestProjects,
   registryFlag,
+  restoreFilters,
+  sortProjects,
   tagCounts,
   tagsInUse,
   valuesInUse,
@@ -121,5 +124,34 @@ describe("valuesInUse", () => {
   it("lists each value once, sorted, without empty ones", () => {
     expect(valuesInUse(fakeProjects, (p) => [p.owner])).toEqual(["local", "nari-games", "nyaridev"]);
     expect(valuesInUse(fakeProjects, (p) => p.stack)).toContain("Godot 4.7");
+  });
+});
+
+describe("sortProjects", () => {
+  const projects = fakeProjects.slice(0, 4);
+  const sorted = (by: "name" | "edited", edited: Record<string, number> = {}) =>
+    sortProjects(projects, by, edited).map((p) => p.name);
+
+  it("sorts by name, numbers in order", () => {
+    expect(sorted("name")).toEqual(projects.map((p) => p.name).sort((a, b) => a.localeCompare(b)));
+  });
+
+  it("puts the last edited first, and those without a time last by name", () => {
+    const [a, b, c, d] = projects as [Project, Project, Project, Project];
+    const order = sorted("edited", { [c.path]: 300, [a.path]: 100, [d.path]: 200 });
+    expect(order).toEqual([c.name, d.name, a.name, b.name]);
+  });
+});
+
+describe("restoreFilters", () => {
+  it("keeps what's valid and drops the rest, with an empty search", () => {
+    const saved = { query: "old", tags: ["game", 3], status: "shipped", changed: "yes", sort: "edited", junk: 1 };
+    expect(restoreFilters(saved)).toEqual({ ...NO_FILTERS, tags: ["game"], status: "shipped", sort: "edited" });
+  });
+
+  it("gives the defaults for nothing or for junk", () => {
+    expect(restoreFilters(undefined)).toEqual(NO_FILTERS);
+    expect(restoreFilters("text")).toEqual(NO_FILTERS);
+    expect(restoreFilters({ sort: "size" }).sort).toBe("name");
   });
 });

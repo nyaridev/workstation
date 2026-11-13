@@ -181,4 +181,6 @@ export interface Preferences {
 export interface Settings {
   look: Look;
   preferences: Preferences;
+  /** Each workstation's list filters by its root, as the window saved them (`restoreFilters` checks them). */
+  filters: Record<string, unknown>;
 }

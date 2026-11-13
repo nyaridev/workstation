@@ -2,7 +2,7 @@
 
 import { toast } from "iro-ui";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
-import { getSettings, setLook, setPreferences } from "../lib/backend";
+import { getSettings, setFilters, setLook, setPreferences } from "../lib/backend";
 import type { Look, Preferences, Settings } from "../lib/types";
 
 // ── Types ─────────────────────────────────
@@ -11,6 +11,8 @@ interface SettingsState {
   settings: Settings | null;
   saveLook: (look: Look) => void;
   savePreferences: (preferences: Preferences) => void;
+  /** Saves a workstation's list filters; a failure only loses them for the next start, so it stays quiet. */
+  saveFilters: (root: string, filters: unknown) => void;
 }
 
 // ── State ─────────────────────────────────
@@ -28,11 +30,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     );
   const saveLook = (look: Look) => save(setLook(look));
   const savePreferences = (preferences: Preferences) => save(setPreferences(preferences));
+  const saveFilters = (root: string, filters: unknown) => {
+    setSettings((old) => old && { ...old, filters: { ...old.filters, [root]: filters } });
+    void setFilters(root, filters).catch(() => {});
+  };
 
-  return <SettingsContext value={{ settings, saveLook, savePreferences }}>{children}</SettingsContext>;
+  return <SettingsContext value={{ settings, saveLook, savePreferences, saveFilters }}>{children}</SettingsContext>;
 }
 
-/** The settings and ways to save the look and the preferences. Only inside `SettingsProvider`. */
+/** The settings and ways to save the look, the preferences and the list filters. Only inside `SettingsProvider`. */
 export function useSettings(): SettingsState {
   const state = useContext(SettingsContext);
   if (!state) throw new Error("useSettings needs a SettingsProvider above it");

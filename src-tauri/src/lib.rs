@@ -50,6 +50,8 @@ pub fn run() {
             commands::get_settings,
             commands::set_look,
             commands::set_preferences,
+            commands::set_filters,
+            commands::last_edited,
             commands::list_workstations,
             commands::add_workstation,
             commands::remove_workstation,

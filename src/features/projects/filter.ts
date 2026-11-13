@@ -22,6 +22,9 @@ const GROUPS: [kinds: string[], label: string][] = [
 export const ANY = "";
 
 // ── Types ─────────────────────────────────
+/** How projects are ordered inside their group. */
+export type SortBy = "name" | "edited";
+
 export interface Filters {
   query: string;
   /** A group label from `groupProjects` ("Games", "Archive"…), or ANY. */
@@ -37,6 +40,8 @@ export interface Filters {
   changed: boolean;
   /** Only projects that don't match projects.json (`registryFlag`). */
   flagged: boolean;
+  /** Not a filter: the order inside each group. */
+  sort: SortBy;
 }
 
 export interface Group {
@@ -61,7 +66,35 @@ export const NO_FILTERS: Filters = {
   stack: ANY,
   changed: false,
   flagged: false,
+  sort: "name",
 };
+
+/** Saved filters (`settings.json`, which anyone could edit) as Filters: unknown or ill-typed values take the
+ * defaults, and the search always starts empty. */
+export function restoreFilters(saved: unknown): Filters {
+  const s: Record<string, unknown> = saved && typeof saved === "object" ? (saved as Record<string, unknown>) : {};
+  const text = (key: "group" | "status" | "owner" | "stack") => (typeof s[key] === "string" ? s[key] : NO_FILTERS[key]);
+  const flag = (key: "changed" | "flagged") => (typeof s[key] === "boolean" ? s[key] : NO_FILTERS[key]);
+  return {
+    query: "",
+    group: text("group"),
+    tags: Array.isArray(s.tags) ? s.tags.filter((t): t is string => typeof t === "string") : [],
+    status: text("status"),
+    owner: text("owner"),
+    stack: text("stack"),
+    changed: flag("changed"),
+    flagged: flag("flagged"),
+    sort: s.sort === "edited" ? "edited" : "name",
+  };
+}
+
+/** The projects by name, or last edited first (`edited`: Unix seconds by path; those without a time go last, by
+ * name). */
+export function sortProjects(projects: Project[], by: SortBy, edited: Record<string, number>): Project[] {
+  const byName = (a: Project, b: Project) => a.name.localeCompare(b.name, undefined, { numeric: true });
+  const byEdited = (a: Project, b: Project) => (edited[b.path] ?? -1) - (edited[a.path] ?? -1) || byName(a, b);
+  return [...projects].sort(by === "edited" ? byEdited : byName);
+}
 
 /** True when a repo has uncommitted changes or unpushed commits. */
 export function hasChanges(git: GitStatus | undefined): boolean {

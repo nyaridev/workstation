@@ -1,8 +1,9 @@
 // ProjectList: the projects of the open workstation, grouped by kind, with search, tag and status filters.
 
 import { Button, EmptyState, Icon, Notice, Panel, SectionTitle, Spinner, toast } from "iro-ui";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { NoticeBanner } from "../../app/NoticeBanner";
+import { useSettings } from "../../app/SettingsProvider";
 import { gitPull, openFolder, openRepoPage } from "../../lib/backend";
 import { HistoryPanel } from "../history/HistoryPanel";
 import { STATUSES } from "./fields";
@@ -11,9 +12,10 @@ import {
   type Filters,
   filterProjects,
   groupProjects,
-  NO_FILTERS,
   nestProjects,
   registryFlag,
+  restoreFilters,
+  sortProjects,
   tagCounts,
   valuesInUse,
 } from "./filter";
@@ -21,10 +23,13 @@ import { groupIcon } from "./groupIcons";
 import { ProjectFilters } from "./ProjectFilters";
 import { ProjectRow } from "./ProjectRow";
 import { useGitStatus } from "./useGitStatus";
+import { useLastEdited } from "./useLastEdited";
 import { useProjects } from "./useProjects";
 
 interface Props {
   root: string;
+  /** This workstation's filters from the last time, as saved (`restoreFilters` checks them). */
+  saved: unknown;
 }
 
 // The status picker lists statuses from first idea to done; unknown ones go last.
@@ -34,10 +39,16 @@ const statusOrder = (status: string) => {
 };
 
 /** Scans `root` and lists its projects. */
-export function ProjectList({ root }: Props) {
+export function ProjectList({ root, saved }: Props) {
   const { scan, error, reload } = useProjects(root);
   const git = useGitStatus(root, scan?.projects);
-  const [filters, setFilters] = useState<Filters>(NO_FILTERS);
+  const { saveFilters } = useSettings();
+  const [filters, setFilters] = useState<Filters>(() => restoreFilters(saved));
+  // Everything but the search is saved for the next start, once per change.
+  const { query: _search, ...kept } = filters;
+  const keptKey = JSON.stringify(kept);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keptKey stands for `kept`; saveFilters changes every render
+  useEffect(() => saveFilters(root, JSON.parse(keptKey)), [root, keptKey]);
   const [openError, setOpenError] = useState<string | null>(null);
   // The repo whose git overview is open.
   const [history, setHistory] = useState<{ path: string; name: string } | null>(null);
@@ -47,8 +58,9 @@ export function ProjectList({ root }: Props) {
   const projects = useMemo(() => scan?.projects ?? [], [scan]);
   // A suite's repos are listed inside the suite's row, not on their own.
   const { top, inside } = useMemo(() => nestProjects(projects), [projects]);
+  const edited = useLastEdited(root, top, filters.sort === "edited");
   const shown = useMemo(() => filterProjects(top, filters, git, inside), [top, filters, git, inside]);
-  const groups = useMemo(() => groupProjects(shown), [shown]);
+  const groups = useMemo(() => groupProjects(sortProjects(shown, filters.sort, edited)), [shown, filters.sort, edited]);
   // The kind tabs count what the other filters let through, so each tab says what clicking it shows.
   const kinds = useMemo(
     () =>

@@ -1,10 +1,10 @@
-// ProjectFilters: the bar above the list. One line holds the search and a square Filters button whose menu has tags,
-// status, owner, stack, "has changes" and "needs attention" (lit while any is set); the kind chips go under it, then
-// the filters in use as removable chips, only when there are any.
+// ProjectFilters: the bar above the list. One line holds the search and a square Filters button whose menu has the
+// order (name or last edited), tags, status, owner, stack, "has changes" and "needs attention" (lit while a filter is
+// set); the kind chips go under it, then the filters in use as removable chips, only when there are any.
 
-import { Button, Checkbox, Chip, Field, Icon, IconButton, Popover, Select, TextField } from "iro-ui";
+import { Button, Checkbox, Chip, Field, Icon, IconButton, Popover, Segmented, Select, TextField } from "iro-ui";
 import { SearchIcon, SlidersIcon } from "iro-ui/icons";
-import { ANY, type Filters, NO_FILTERS } from "./filter";
+import { ANY, type Filters, NO_FILTERS, type SortBy } from "./filter";
 import { TagPicker } from "./TagPicker";
 
 interface Props {
@@ -67,6 +67,19 @@ export function ProjectFilters(props: Props) {
             />
           }
         >
+          <Field label="Sort by">
+            <Segmented<SortBy>
+              size="sm"
+              full
+              aria-label="Sort by"
+              options={[
+                { value: "name", label: "Name" },
+                { value: "edited", label: "Last edited" },
+              ]}
+              value={filters.sort}
+              onValueChange={(sort) => set({ sort })}
+            />
+          </Field>
           <Field label="Tags">
             <TagPicker tags={tags} selected={filters.tags} onToggle={toggleTag} />
           </Field>
@@ -121,7 +134,7 @@ export function ProjectFilters(props: Props) {
             </li>
           ))}
           <li>
-            <Button size="sm" variant="ghost" onClick={() => onChange(NO_FILTERS)}>
+            <Button size="sm" variant="ghost" onClick={() => onChange({ ...NO_FILTERS, sort: filters.sort })}>
               Clear filters
             </Button>
           </li>

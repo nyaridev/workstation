@@ -2,10 +2,12 @@
 //! A folder with no entry is unregistered; an entry whose folder doesn't exist is missing.
 
 // ── Imports ───────────────────────────────
+mod edited;
 mod layout;
 mod registry;
 mod stack;
 
+pub use edited::last_edited;
 pub use layout::affects_projects;
 pub use registry::{Entry, add as register, set_tags};
 use registry::same_path;

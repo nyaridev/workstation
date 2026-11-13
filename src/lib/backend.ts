@@ -56,6 +56,7 @@ const nativeFrame = new URLSearchParams(location.search).has("native");
 let fakeSettings: Settings = {
   look: { nativeFrame, liquidBackground: true },
   preferences: { checkForUpdates: true, startWithSystem: false, closeToTray: true },
+  filters: {},
 };
 
 const updateFlag = new URLSearchParams(location.search).get("update");
@@ -154,6 +155,20 @@ export async function scanWorkstation(root: string): Promise<Scan> {
   return broken
     ? { projects: fakeList.filter((p) => !p.registered), registryError: "projects.json can't be read: line 3" }
     : { projects: fakeList, registryError: null };
+}
+
+/** Saves the list filters of the workstation at `root`, so they come back at the next start. */
+export async function setFilters(root: string, filters: unknown): Promise<void> {
+  if (inTauri) return invoke("set_filters", { root, filters });
+  fakeSettings = { ...fakeSettings, filters: { ...fakeSettings.filters, [root]: filters } };
+}
+
+/** When each of these projects was last edited, in Unix seconds; paths without a time are left out. */
+export async function lastEdited(root: string, paths: string[]): Promise<Record<string, number>> {
+  if (inTauri) return invoke("last_edited", { root, paths });
+  // Fake: a different day for each project, so the order differs from the names'.
+  const now = Math.floor(Date.now() / 1000);
+  return Object.fromEntries(paths.map((path, i) => [path, now - ((i * 7) % paths.length) * 86_400]));
 }
 
 /** Git status of the repos among `paths`; plain folders are left out. */

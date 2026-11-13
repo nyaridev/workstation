@@ -58,7 +58,14 @@ delete that file to see the first run again.
       show as chips (× removes one). Escape or a click outside closes the list.
 - [ ] The Filters menu: Status, Owner and Stack each filter; "Needs attention" keeps only flagged projects, as does the
       banner's **Show them** (which turns into **Show all**). Each one in use shows as a chip; "Clear filters" resets
-      everything.
+      everything but the order.
+- [ ] **Sort by** in the Filters menu: Name (the default) orders each group by name; Last edited puts the project you
+      last changed a file in first (edit one in another app, switch back: it moves up). Projects whose folder is
+      missing go last.
+- [ ] Set a kind, a tag, a filter and Last edited, quit from the tray and start again: they're all back (the search
+      starts empty). Another workstation keeps its own.
+- [ ] Hover a project whose name ends in "…": the name pans to its end, waits, and starts over; moving away puts it
+      back. Short names stay still, and nothing moves with reduced motion on.
 - [ ] **Open folder** (the open-folder icon) opens the project in Explorer.
 - [ ] Right-clicking a project or folder row opens a menu with the same actions as its buttons (and Show what's
       inside, Git overview), and each one works.

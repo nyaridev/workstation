@@ -1,9 +1,10 @@
-//! Settings: the app's own settings (the look, and how the app behaves: updates, starting and closing) as
-//! `settings.json` in the app config folder (ADR-0009, ADR-0014, ADR-0015).
+//! Settings: the app's own settings (the look, how the app behaves: updates, starting and closing, and each
+//! workstation's list filters) as `settings.json` in the app config folder (ADR-0009, ADR-0014, ADR-0015).
 //! Missing fields take their defaults, so older files still load; an unreadable file gives the defaults.
 
 // ── Imports ───────────────────────────────
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 use std::fs;
 use std::path::Path;
 
@@ -18,6 +19,8 @@ const TEMP_NAME: &str = "settings.json.tmp";
 pub struct Settings {
     pub look: Look,
     pub preferences: Preferences,
+    /// Each workstation's list filters by its root, kept as the window sends them; the window checks them on load.
+    pub filters: Map<String, Value>,
 }
 
 /// How the window looks.
@@ -88,6 +91,13 @@ pub fn set_preferences(config_dir: &Path, preferences: Preferences) -> Result<Se
     Ok(settings)
 }
 
+/// Saves one workstation's list filters.
+pub fn set_filters(config_dir: &Path, root: &str, filters: Value) -> Result<(), String> {
+    let mut settings = load(config_dir);
+    settings.filters.insert(root.to_string(), filters);
+    save(config_dir, &settings)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -124,6 +134,20 @@ mod tests {
         assert_eq!(set_look(&dir, look.clone()).unwrap().look, look);
         assert_eq!(load(&dir).look, look);
         assert!(!dir.join(TEMP_NAME).exists());
+    }
+
+    #[test]
+    fn filters_are_kept_per_workstation() {
+        let temp = Temp::new();
+        let look = Look { native_frame: true, liquid_background: false };
+        set_look(&temp.0, look.clone()).unwrap();
+        set_filters(&temp.0, "D:/one", serde_json::json!({ "sort": "edited", "tags": ["game"] })).unwrap();
+        set_filters(&temp.0, "D:/two", serde_json::json!({ "sort": "name" })).unwrap();
+        set_filters(&temp.0, "D:/one", serde_json::json!({ "sort": "name" })).unwrap();
+        let saved = load(&temp.0);
+        assert_eq!(saved.filters["D:/one"], serde_json::json!({ "sort": "name" }), "the newest replaces the old");
+        assert_eq!(saved.filters["D:/two"], serde_json::json!({ "sort": "name" }));
+        assert_eq!(saved.look, look, "the rest stays");
     }
 
     #[test]

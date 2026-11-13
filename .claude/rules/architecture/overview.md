@@ -9,11 +9,11 @@ folder the app remembers; `projects.json` in it is the only project registry (`d
 | Module                                | Owns                                                  | May depend on              |
 | ------------------------------------- | ----------------------------------------------------- | -------------------------- |
 | `src-tauri/src/workstations.rs`       | the user's list of workstations                       | nothing in the app         |
-| `src-tauri/src/scan/`                 | finding projects, reading and writing `projects.json` | nothing in the app         |
+| `src-tauri/src/scan/`                 | finding projects, reading and writing `projects.json`, when each was last edited | nothing in the app |
 | `src-tauri/src/git.rs`                | running `git` for status                              | nothing in the app         |
 | `src-tauri/src/kit.rs`                | copying the embedded starter kit                      | nothing in the app         |
 | `src-tauri/src/update.rs`             | the app's own updates from GitHub releases (ADR-0014) | `settings.rs`, `tauri`     |
-| `src-tauri/src/settings.rs`           | the app's settings (`settings.json`, ADR-0009)        | nothing in the app         |
+| `src-tauri/src/settings.rs`           | the app's settings and each workstation's saved list filters (`settings.json`, ADR-0009) | nothing in the app |
 | `src-tauri/src/window.rs`             | building the main window with its frame               | `settings.rs`, `tauri`     |
 | `src-tauri/src/tray.rs`, `start.rs`   | the tray and closing; the start entry (ADR-0015)      | `settings.rs`, `tauri`     |
 | `src-tauri/src/watch.rs`              | the watcher and `projects-changed`                    | `scan/`, `tauri`           |
