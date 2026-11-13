@@ -111,3 +111,17 @@ release. A development build (`start-dev.bat`) never checks.
 - [ ] Update and restart: the banner shows the download's progress, the installer runs on its own, and the new
       version opens with the same workstations and settings.
 - [ ] Settings → App → About: Check now finds it too; "Check for updates" off means no banner at the next start.
+
+## 9. Tray and starting with the system (ADR-0015)
+
+The tray and closing work in `start-dev.bat`; the start entry and the installer's box need an installed build.
+
+- [ ] The tray shows Workstation's icon with the tooltip "Workstation". A left click shows the window; the right-click
+      menu has Open Workstation and Quit Workstation, and Quit ends the app.
+- [ ] With "Close to tray" on (the default), closing the window hides it and the app keeps running; turned off,
+      closing quits.
+- [ ] Starting Workstation again while it runs brings the open window forward instead of a second copy.
+- [ ] Installer: the Welcome page has "Start Workstation with Windows", checked. Install with it checked: Settings →
+      App → Start shows "Start with Windows" on, and Task Manager → Startup apps lists Workstation.
+- [ ] Sign out and in: Workstation starts hidden in the tray (minimized when "Close to tray" is off).
+- [ ] Turn "Start with Windows" off: the Startup apps entry goes. Uninstalling removes it too.

@@ -53,7 +53,7 @@ function fakeRegister(entry: NewEntry) {
 const nativeFrame = new URLSearchParams(location.search).has("native");
 let fakeSettings: Settings = {
   look: { nativeFrame, liquidBackground: true },
-  preferences: { checkForUpdates: true },
+  preferences: { checkForUpdates: true, startWithSystem: false, closeToTray: true },
 };
 
 const updateFlag = new URLSearchParams(location.search).get("update");
@@ -84,7 +84,7 @@ function fakeRemove(root: string): Listing {
 // ── App and settings ──────────────────────
 /** The running version and the frame the window got at start. */
 export async function appInfo(): Promise<AppInfo> {
-  return inTauri ? invoke("app_info") : { version: "0.1.0", frame: nativeFrame ? "native" : "custom" };
+  return inTauri ? invoke("app_info") : { version: "0.1.0", os: "windows", frame: nativeFrame ? "native" : "custom" };
 }
 
 /** The saved settings. */

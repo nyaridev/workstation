@@ -1,5 +1,5 @@
-//! Settings: the app's own settings (the look, and how the app behaves: updates) as `settings.json` in the app config
-//! folder (ADR-0009, ADR-0014).
+//! Settings: the app's own settings (the look, and how the app behaves: updates, starting and closing) as
+//! `settings.json` in the app config folder (ADR-0009, ADR-0014, ADR-0015).
 //! Missing fields take their defaults, so older files still load; an unreadable file gives the defaults.
 
 // ── Imports ───────────────────────────────
@@ -42,11 +42,15 @@ impl Default for Look {
 pub struct Preferences {
     /// Look for a newer release at start and every 6 hours (ADR-0014).
     pub check_for_updates: bool,
+    /// Start, minimized, when the user signs in (ADR-0015).
+    pub start_with_system: bool,
+    /// Closing the window hides it in the tray; Quit is in the tray icon's menu.
+    pub close_to_tray: bool,
 }
 
 impl Default for Preferences {
     fn default() -> Self {
-        Self { check_for_updates: true }
+        Self { check_for_updates: true, start_with_system: false, close_to_tray: true }
     }
 }
 
@@ -94,7 +98,10 @@ mod tests {
         let temp = Temp::new();
         assert_eq!(load(&temp.0), Settings::default());
         assert!(load(&temp.0).look.liquid_background);
-        assert!(load(&temp.0).preferences.check_for_updates, "updates are checked unless turned off");
+        let preferences = load(&temp.0).preferences;
+        assert!(preferences.check_for_updates, "updates are checked unless turned off");
+        assert!(!preferences.start_with_system, "starting with the system is the user's choice");
+        assert!(preferences.close_to_tray);
         temp.file(FILE_NAME, "{ not json");
         assert_eq!(load(&temp.0), Settings::default());
     }
@@ -104,6 +111,9 @@ mod tests {
         let temp = Temp::new();
         temp.file(FILE_NAME, r#"{ "look": { "nativeFrame": true } }"#);
         assert_eq!(load(&temp.0).look, Look { native_frame: true, liquid_background: true });
+        temp.file(FILE_NAME, r#"{ "preferences": { "checkForUpdates": false } }"#);
+        let preferences = load(&temp.0).preferences;
+        assert!(!preferences.check_for_updates && !preferences.start_with_system && preferences.close_to_tray);
     }
 
     #[test]
@@ -121,9 +131,10 @@ mod tests {
         let temp = Temp::new();
         let look = Look { native_frame: true, liquid_background: false };
         set_look(&temp.0, look.clone()).unwrap();
-        let saved = set_preferences(&temp.0, Preferences { check_for_updates: false }).unwrap();
+        let preferences = Preferences { check_for_updates: false, start_with_system: true, close_to_tray: false };
+        let saved = set_preferences(&temp.0, preferences.clone()).unwrap();
         assert_eq!(saved, load(&temp.0));
         assert_eq!(saved.look, look);
-        assert!(!saved.preferences.check_for_updates);
+        assert_eq!(saved.preferences, preferences);
     }
 }

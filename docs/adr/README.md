@@ -18,9 +18,9 @@ src-tauri/src/
 │                      repo's history (commits, unpushed, uncommitted files). Reads only, never fetches
 ├─ kit.rs              the embedded starter kit and "set up here" (never overwrites)
 ├─ update.rs           the app's own updates through Tauri's signed updater: status, checks, install (ADR-0014)
-├─ settings.rs         the app's settings in settings.json: the look, the preferences (check for updates)
-├─ window.rs           builds the main window with the frame the settings pick
-├─ tray.rs, start.rs   the tray and close-to-tray; the start entry and the installer's choice (M16, ADR-0015)
+├─ settings.rs         the app's settings in settings.json: the look, the preferences (updates, start, tray)
+├─ window.rs           builds the main window with the frame the settings pick; brings it forward
+├─ tray.rs, start.rs   the tray and close-to-tray; the start entry and the installer's choice (ADR-0015)
 └─ test_support.rs     temp folders for tests (test builds only)
 src/
 ├─ app/                the window: header (the title bar), views.ts, window controls, backdrop, settings context,
@@ -31,10 +31,10 @@ src/
 │                      TagPicker, Register form, tag editor and tag input, useProjects
 ├─ features/history/   a repo's git overview sheet (commits, unpushed, uncommitted files), format.ts
 ├─ features/settings/  Settings in tabs (ADR-0013): Workstations (WorkstationSettings) and App (LookSettings,
-│                      AboutSettings), each section a card
+│                      StartSettings, AboutSettings), each section a card
 ├─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
 └─ styles.css          layout only, with iro-ui's tokens (every control is an iro-ui component, ADR-0008, ADR-0010)
-src-tauri/windows/     the installer's hooks (M16)
+src-tauri/windows/     the installer's hooks: the "Start Workstation with Windows" box (ADR-0015)
 .github/workflows/     check.yml, release.yml (M17, ADR-0016)
 kit/                   the starter workstation (stored as dot-* and *.kit.md), embedded at build time
 scripts/               check-size.mjs, check-boundaries.mjs
@@ -100,27 +100,27 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | M13 | Header and banners like Scrappy's (ADR-0012) | done |
 | M14 | Settings in tabs: Workstations, App (ADR-0013) | done |
 | M15 | Updates through Tauri's signed updater, the update banner (ADR-0014) | done (real update: `docs/manual-check.md` → 8, after the first release) |
-| M16 | Start with the system, close to the tray, one copy (ADR-0015) | next |
-| M17 | Windows, macOS and Linux: cross-platform fixes, installers, GitHub Actions (ADR-0016) | planned |
+| M16 | Start with the system, close to the tray, one copy (ADR-0015) | done (start entry and installer box: `docs/manual-check.md` → 9, after M17) |
+| M17 | Windows, macOS and Linux: cross-platform fixes, installers, GitHub Actions (ADR-0016) | next |
 | M18 | Verify and polish, then release | planned |
 
-### M16: Start with the system, close to the tray, one copy
+### M17: Windows, macOS and Linux
 
-1. `tauri-plugin-single-instance` (registered first: a second start shows the window), `tauri-plugin-autostart`, and
-   Tauri's `tray-icon` feature.
-2. `settings.rs`: `startWithSystem` (off) and `closeToTray` (on) in the preferences, with tests.
-3. `start.rs`: turns the start entry on or off when the preference is saved; at start, a release build takes the
-   installer's choice once (`HKCU\Software\com.nyaridev.workstation\StartWithSystem`, then deleted) and turns a lost
-   entry back on. The choice-taking logic is a plain function with tests. Started with `--minimized`: hidden in the
-   tray, or minimized when close-to-tray is off.
-4. `tray.rs`: the tray icon (click shows the window; menu Open Workstation, Quit Workstation) and closing the window
-   hides it while close-to-tray is on, read at each close.
-5. `src-tauri/windows/hooks.nsh`: "Start Workstation with Windows" on the installer's Welcome page, checked; it writes
-   the choice for the app; uninstalling removes the start entry. Wired in `tauri.release.conf.json` (M17 builds it).
-6. Settings → App: a Start card with "Start with Windows" ("Open at login" elsewhere) and "Close to tray", and the
-   hint on what each does. `setPreferences` answers with the reason when the system refuses the start entry.
-7. Check: `pnpm check`, the fake Settings in the browser pane, then one run of the real app (`start-dev.bat`): the
-   tray icon, close to tray, Quit, a second start. The start entry and the installer page wait for an installer (M17).
+1. `workstations.rs`: `same_root` compares by each system's rule (case ignored on Windows and macOS, not on Linux;
+   `\` and `/` alike on Windows only), with tests for each rule.
+2. `git.rs`: `CREATE_NO_WINDOW` only under `cfg(windows)`; check the rest of `src-tauri/src` for Windows-only calls.
+3. macOS: Scrappy's `overlay` frame (`window.rs` `Frame::Overlay`, the header leaves room for the system's buttons at
+   its left end and drops `WindowControls`); "Use the system title bar" still wins.
+4. Icons: `pnpm tauri icon assets/brand/icon.svg` fills `src-tauri/icons/` for every system.
+5. `tauri.release.conf.json`: NSIS per user with `windows/hooks.nsh` (there now), app and dmg, AppImage and deb, the
+   category and short description. `tauri.updater.conf.json`: `createUpdaterArtifacts`.
+6. `.github/workflows/check.yml` (`pnpm build` and `pnpm check` on Windows, macOS and Linux, with the Linux libraries
+   including `libayatana-appindicator3-dev` for the tray) and `release.yml` (Scrappy's: `tauri-action` from a `v*` tag,
+   signed, a draft release, `--config` both files, the "updater key is set" step).
+7. `build.bat` builds the Windows installer into `release\`; `.claude/skills/release/SKILL.md` describes releasing
+   through the workflow; `README.md`, `AGENTS.md` and `docs/manual-check.md` → 7 follow.
+8. Check: `pnpm check`; `build.bat` makes the installer and its Welcome page shows the box (`docs/manual-check.md` →
+   9). With the owner's yes, push `main` and watch `check.yml` pass on all three systems.
 
 ### M18: Verify and polish, then release
 

@@ -10,11 +10,11 @@ compares them with each workstation's `projects.json` (format and entry template
 them by tags, and watches for projects being added, moved or removed. The built app also carries a starter kit that
 sets up a new WORKSTATION. Public: github.com/nyaridev/workstation.
 
-Stage: M15 done, not released. The window draws its own title bar and works like Scrappy's. The app lists a
-workstation's projects with search, tag, status and "has changes" filters, flags, git badges and "Open folder";
-rescans on its own when projects or `projects.json` change; registers unregistered projects and edits tags; sets up
-new workstations from the built-in kit (`kit/`). Now: M16–M17 bring the tray, starting with the system and
-installers for Windows, macOS and Linux (ADR-0015, ADR-0016); M18 releases. In `pnpm dev`, `?update` fakes a
+Stage: M16 done, not released. The window draws its own title bar and works like Scrappy's, closes to the tray and
+can start with the system. The app lists a workstation's projects with search, tag, status and "has changes" filters,
+flags, git badges and "Open folder"; rescans on its own when projects or `projects.json` change; registers
+unregistered projects and edits tags; sets up new workstations from the built-in kit (`kit/`). Now: M17 brings
+installers for Windows, macOS and Linux (ADR-0016); M18 releases. In `pnpm dev`, `?update` fakes a
 newer release, `?empty` shows the first-run screen and `?broken` an unreadable `projects.json`.
 
 If the user wants a workstation set up rather than the app built ("set up this workstation for me"), don't install

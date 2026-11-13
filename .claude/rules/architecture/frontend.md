@@ -47,7 +47,7 @@ The window shows what Rust sends and passes clicks on. It doesn't read files, de
 - `src/app/`: `App.tsx` (the header and the views; the first-run screen until there's a workstation),
   `views.ts` (`MAIN_VIEWS` for the tabs, `HEADER_VIEWS` for the header's icon buttons), `WindowControls.tsx`,
   `AppBackdrop.tsx` (iro-ui's `Backdrop`, liquid unless Settings turns it off), `SettingsProvider.tsx`
-  (`useSettings`), the update chip, `NoticeBanner`, the status banner and shared hooks.
+  (`useSettings`), the update banner, `NoticeBanner`, the status banner and shared hooks.
 - The header is the title bar (ADR-0009, ADR-0010) and follows `AppInfo.frame`: `custom` adds `WindowControls` and
   makes the header the drag area (`data-tauri-drag-region` on the header and its empty parts, never on controls);
   `native` is a plain header.

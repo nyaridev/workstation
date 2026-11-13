@@ -1,11 +1,12 @@
 // SettingsView: Settings in tabs (ADR-0013), each section a card: Workstations (the saved ones, opening, adding,
-// setting up and removing them: ADR-0017) and App (the look and the build).
+// setting up and removing them: ADR-0017) and App (the look, starting and closing, and the build).
 
 import { Icon, type TabItem, Tabs } from "iro-ui";
 import { FoldersIcon, InfoIcon } from "iro-ui/icons";
 import { useState } from "react";
 import { AboutSettings } from "./AboutSettings";
 import { LookSettings } from "./LookSettings";
+import { StartSettings } from "./StartSettings";
 import { WorkstationSettings } from "./WorkstationSettings";
 import "./settings.css";
 
@@ -28,6 +29,7 @@ const TABS: TabItem<Tab>[] = [
     content: (
       <>
         <LookSettings />
+        <StartSettings />
         <AboutSettings />
       </>
     ),

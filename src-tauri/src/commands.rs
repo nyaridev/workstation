@@ -6,6 +6,7 @@ use crate::git;
 use crate::kit;
 use crate::scan::{self, Entry, Scan};
 use crate::settings::{self, Look, Preferences, Settings};
+use crate::start;
 use crate::update::{self, UpdateStatus, Updates};
 use crate::watch;
 use crate::window::Frame;
@@ -23,11 +24,13 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const HISTORY_LIMIT: usize = 200;
 
 // ── Types ─────────────────────────────────
-/// The running version, and the frame the window got at start.
+/// The running version, the system, and the frame the window got at start.
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppInfo {
     version: &'static str,
+    /// `windows`, `macos` or `linux`, for words like "Start with Windows".
+    os: &'static str,
     frame: Frame,
 }
 
@@ -58,7 +61,7 @@ fn follow_open(app: &AppHandle, listing: Listing) -> Listing {
 /// The running version and the window's frame.
 #[tauri::command]
 pub fn app_info(frame: State<Frame>) -> AppInfo {
-    AppInfo { version: VERSION, frame: *frame }
+    AppInfo { version: VERSION, os: std::env::consts::OS, frame: *frame }
 }
 
 /// The saved settings, or the defaults.
@@ -73,9 +76,11 @@ pub fn set_look(app: AppHandle, look: Look) -> Result<Settings, String> {
     settings::set_look(&config_dir(&app)?, look)
 }
 
-/// Saves how the app behaves and returns the settings.
+/// Turns the start entry on or off, then saves how the app behaves and returns the settings. When the system refuses
+/// the entry, nothing is saved and the reason comes back (ADR-0015).
 #[tauri::command]
 pub fn set_preferences(app: AppHandle, preferences: Preferences) -> Result<Settings, String> {
+    start::sync(&app, preferences.start_with_system)?;
     settings::set_preferences(&config_dir(&app)?, preferences)
 }
 

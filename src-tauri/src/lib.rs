@@ -5,8 +5,10 @@ mod git;
 mod kit;
 mod scan;
 mod settings;
+mod start;
 #[cfg(test)]
 mod test_support;
+mod tray;
 mod update;
 mod watch;
 mod window;
@@ -17,18 +19,32 @@ use tauri::Manager;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // First, so a second start hands over to the running app before anything else opens.
+        .plugin(tauri_plugin_single_instance::init(|app, _, _| window::bring_forward(app)))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(start::plugin())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(watch::Watcher::default())
         .setup(|app| {
-            let look = commands::config_dir(app.handle()).map(|dir| settings::load(&dir).look).unwrap_or_default();
-            let frame = window::open(app, &look)?;
+            let config_dir = commands::config_dir(app.handle());
+            if let Ok(dir) = &config_dir {
+                start::restore(app.handle(), dir);
+            }
+            let look = config_dir.map(|dir| settings::load(&dir).look).unwrap_or_default();
+            tray::add(app)?;
+            let shown = match (start::started_minimized(), tray::closes_to_tray(app.handle())) {
+                (false, _) => window::Shown::Normal,
+                (true, true) => window::Shown::Hidden,
+                (true, false) => window::Shown::Minimized,
+            };
+            let frame = window::open(app, &look, shown)?;
             app.manage(frame);
             app.manage(update::Updates::default());
             update::start_checks(app.handle().clone());
             Ok(())
         })
+        .on_window_event(tray::on_window_event)
         .invoke_handler(tauri::generate_handler![
             commands::app_info,
             commands::get_settings,

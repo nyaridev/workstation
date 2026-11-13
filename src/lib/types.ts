@@ -133,9 +133,11 @@ export interface GitHistory {
 /** How the window is framed (`window::Frame`): `custom` draws its own title bar, `native` has the system's. */
 export type Frame = "custom" | "native";
 
-/** The running version and the window's frame (`commands::AppInfo`). */
+/** The running version, the system and the window's frame (`commands::AppInfo`). */
 export interface AppInfo {
   version: string;
+  /** `windows`, `macos` or `linux`. */
+  os: string;
   frame: Frame;
 }
 
@@ -151,6 +153,10 @@ export interface Look {
 export interface Preferences {
   /** Look for a newer release at start and every 6 hours. */
   checkForUpdates: boolean;
+  /** Start, minimized, when the user signs in. */
+  startWithSystem: boolean;
+  /** Closing the window hides it in the tray. */
+  closeToTray: boolean;
 }
 
 /** The app's settings (`settings::Settings`). */
