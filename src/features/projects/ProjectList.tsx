@@ -1,24 +1,11 @@
 // ProjectList: the projects of the open workstation, grouped by kind, with search, tag and status filters.
 
 import { Button, CountBubble, EmptyState, Icon, Notice, Panel, SectionTitle, Spinner } from "iro-ui";
-import {
-  AppWindowIcon,
-  ArchiveIcon,
-  FlaskIcon,
-  FolderIcon,
-  GamepadIcon,
-  GlobeIcon,
-  ImagesIcon,
-  LayersIcon,
-  LightbulbIcon,
-  PuzzleIcon,
-  ServerIcon,
-  WrenchIcon,
-} from "iro-ui/icons";
 import { useCallback, useMemo, useState } from "react";
 import { NoticeBanner } from "../../app/NoticeBanner";
 import { openFolder } from "../../lib/backend";
 import { HistoryPanel } from "../history/HistoryPanel";
+import { FilterLayoutPicker } from "./FilterLayoutPicker";
 import { STATUSES } from "./fields";
 import {
   ANY,
@@ -31,6 +18,9 @@ import {
   tagCounts,
   valuesInUse,
 } from "./filter";
+import { useFilterLayout } from "./filterLayout";
+import { groupIcon } from "./groupIcons";
+import { KindRail } from "./KindRail";
 import { ProjectFilters } from "./ProjectFilters";
 import { ProjectRow } from "./ProjectRow";
 import { useGitStatus } from "./useGitStatus";
@@ -39,21 +29,6 @@ import { useProjects } from "./useProjects";
 interface Props {
   root: string;
 }
-
-/** Each group's icon in its heading; a group not listed gets a folder. */
-const GROUP_ICONS: Record<string, typeof FolderIcon> = {
-  Games: GamepadIcon,
-  Mods: PuzzleIcon,
-  Emulators: ServerIcon,
-  Apps: AppWindowIcon,
-  Tools: WrenchIcon,
-  Frameworks: LayersIcon,
-  "Asset packs": ImagesIcon,
-  Research: FlaskIcon,
-  Ideas: LightbulbIcon,
-  External: GlobeIcon,
-  Archive: ArchiveIcon,
-};
 
 // The status picker lists statuses from first idea to done; unknown ones go last.
 const statusOrder = (status: string) => {
@@ -66,6 +41,7 @@ export function ProjectList({ root }: Props) {
   const { scan, error, reload } = useProjects(root);
   const git = useGitStatus(root, scan?.projects);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
+  const layout = useFilterLayout();
   const [openError, setOpenError] = useState<string | null>(null);
   // The repo whose git overview is open.
   const [history, setHistory] = useState<{ path: string; name: string } | null>(null);
@@ -113,28 +89,10 @@ export function ProjectList({ root }: Props) {
       </div>
     );
 
-  return (
-    <div className="projects">
-      {[scan.registryError, openError].filter(Boolean).map((message) => (
-        <NoticeBanner key={message} tone="danger" role="alert">
-          <span className="selectable">{message}</span>
-        </NoticeBanner>
-      ))}
-      {flagged > 0 && (
-        <NoticeBanner
-          tone="warning"
-          actions={
-            !filters.flagged && (
-              <Button size="sm" onClick={() => setFilters({ ...filters, flagged: true })}>
-                Show them
-              </Button>
-            )
-          }
-        >
-          {flagged} project{flagged === 1 ? " doesn't" : "s don't"} match projects.json.
-        </NoticeBanner>
-      )}
+  const list = (
+    <>
       <ProjectFilters
+        layout={layout}
         filters={filters}
         groups={kinds}
         tags={counts}
@@ -159,7 +117,7 @@ export function ProjectList({ root }: Props) {
               level={2}
               id={`group-${group.label}`}
               className="group-title"
-              icon={<Icon icon={GROUP_ICONS[group.label] ?? FolderIcon} />}
+              icon={<Icon icon={groupIcon(group.label)} />}
             >
               <span className="group-name">
                 {group.label}
@@ -191,6 +149,38 @@ export function ProjectList({ root }: Props) {
           </Panel>
         ))}
       </div>
+    </>
+  );
+
+  return (
+    <div className="projects">
+      {[scan.registryError, openError].filter(Boolean).map((message) => (
+        <NoticeBanner key={message} tone="danger" role="alert">
+          <span className="selectable">{message}</span>
+        </NoticeBanner>
+      ))}
+      {flagged > 0 && (
+        <NoticeBanner
+          tone="warning"
+          actions={
+            // Always a button, so the banner keeps its height when it switches.
+            <Button size="sm" onClick={() => setFilters({ ...filters, flagged: !filters.flagged })}>
+              {filters.flagged ? "Show all" : "Show them"}
+            </Button>
+          }
+        >
+          {flagged} project{flagged === 1 ? " doesn't" : "s don't"} match projects.json.
+        </NoticeBanner>
+      )}
+      {layout === "rail" ? (
+        <div className="projects-body">
+          <KindRail groups={kinds} value={filters.group} onChange={(group) => setFilters({ ...filters, group })} />
+          <div className="projects-column">{list}</div>
+        </div>
+      ) : (
+        list
+      )}
+      {import.meta.env.DEV && <FilterLayoutPicker />}
       {history && <HistoryPanel root={root} path={history.path} name={history.name} onClose={closeHistory} />}
     </div>
   );
