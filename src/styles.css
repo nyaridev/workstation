@@ -397,12 +397,6 @@ code {
 }
 
 /* One line per project (ADR-0018): the same columns in every row, the actions at the end. */
-/* shortcut: iro-ui's ListItem main is a content-box <div> without onClick (60px) but a border-box <button> with it
-   (44px); drop this once iro-ui sets border-box itself. */
-.project-scroll .iro-list-item-main {
-  box-sizing: border-box;
-}
-
 .project-scroll .iro-list-item-title {
   display: flex;
   gap: var(--iro-space-2);
