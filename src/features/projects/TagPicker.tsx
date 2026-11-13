@@ -1,6 +1,7 @@
-// TagPicker: the Tags dropdown in the filter bar: a search box and a checkbox per tag in use, with its count.
+// TagPicker: the Tags dropdown in the filter bar: a search box and a checkbox per tag in use, with its count. Its
+// trigger looks like the Select dropdowns beside it.
 
-import { Button, Checkbox, Icon, Popover, TextField } from "iro-ui";
+import { Checkbox, Icon, Popover, TextField } from "iro-ui";
 import { ChevronDownIcon } from "iro-ui/icons";
 import { useState } from "react";
 
@@ -18,12 +19,18 @@ export function TagPicker({ tags, selected, onToggle }: Props) {
 
   return (
     <Popover
-      align="end"
+      align="start"
       className="tag-picker"
       trigger={
-        <Button size="sm" iconEnd={<Icon icon={ChevronDownIcon} />}>
-          Tags{selected.length > 0 && ` · ${selected.length}`}
-        </Button>
+        // shortcut: borrows iro-ui's Select classes, since its MultiSelect has no search or counts; switch when it does.
+        <button type="button" className="iro-select picker" data-size="sm" aria-label="Tags">
+          <span className="iro-select-value">
+            {selected.length === 0 ? "Any tag" : `${selected.length} ${selected.length === 1 ? "tag" : "tags"}`}
+          </span>
+          <span className="iro-select-icon">
+            <Icon icon={ChevronDownIcon} />
+          </span>
+        </button>
       }
     >
       <TextField
