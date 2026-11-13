@@ -12,8 +12,11 @@ import { FolderRow } from "./FolderRow";
 import { statusColor } from "./fields";
 import { gitOf, registryFlag } from "./filter";
 import { GitBadges } from "./GitBadges";
+import { InlineTags } from "./InlineTags";
 import { RegisterForm } from "./RegisterForm";
-import { TagEditor } from "./TagEditor";
+import { TagDialog } from "./TagDialog";
+import { TagPopover } from "./TagPopover";
+import { useTagEditMode } from "./tagEditMode";
 
 interface Props {
   root: string;
@@ -52,7 +55,10 @@ function StatusBadge({ status }: { status: string }) {
 /** A project line; its tags toggle the tag filter. */
 export function ProjectRow(props: Props) {
   const { root, project: p, inside, git, suggestions, canWrite, onOpen, onPull, onHistory, onSaved } = props;
-  const [editing, setEditing] = useState<"register" | "tags" | null>(null);
+  const [editing, setEditing] = useState<"register" | null>(null);
+  // The tag editor is open: the popover, the field in place, or the dialog, by the trial mode (tagEditMode.ts).
+  const [tagsOpen, setTagsOpen] = useState(false);
+  const mode = useTagEditMode();
   const [expanded, setExpanded] = useState(false);
   const [pulling, setPulling] = useState(false);
   const done = (saved: boolean) => {
@@ -89,7 +95,7 @@ export function ProjectRow(props: Props) {
     ...(canWrite && !p.registered && !p.archived
       ? [{ label: "Register…", onSelect: () => setEditing("register") }]
       : []),
-    ...(canWrite && p.registered ? [{ label: "Edit tags", onSelect: () => setEditing("tags") }] : []),
+    ...(canWrite && p.registered ? [{ label: "Edit tags", onSelect: () => setTagsOpen(true) }] : []),
   ];
 
   const remote = own && (own.owner ? `${own.owner}/${own.repo ?? "?"}` : "no remote");
@@ -121,6 +127,18 @@ export function ProjectRow(props: Props) {
               <span className="row-cell">
                 <GitBadges git={gitOf(p, git, inside)} />
               </span>
+              {mode === "inline" && (
+                <span className="row-cell">
+                  <InlineTags
+                    root={root}
+                    project={p}
+                    canEdit={canWrite && p.registered}
+                    editing={tagsOpen}
+                    onEditingChange={setTagsOpen}
+                    onSaved={onSaved}
+                  />
+                </span>
+              )}
               <span className="row-cell row-remote">{remote}</span>
             </span>
           }
@@ -135,13 +153,23 @@ export function ProjectRow(props: Props) {
                   disabled={editing !== null}
                 />
               )}
-              {canWrite && p.registered && (
+              {canWrite && p.registered && mode === "popover" && (
+                <TagPopover
+                  root={root}
+                  project={p}
+                  suggestions={suggestions}
+                  open={tagsOpen}
+                  onOpenChange={setTagsOpen}
+                  onSaved={onSaved}
+                />
+              )}
+              {canWrite && p.registered && mode !== "popover" && (
                 <IconButton
                   size="sm"
                   icon={<Icon icon={TagIcon} />}
                   label="Edit tags"
-                  onClick={() => setEditing("tags")}
-                  disabled={editing !== null}
+                  active={tagsOpen}
+                  onClick={() => setTagsOpen(!tagsOpen)}
                 />
               )}
               {canPull && (
@@ -167,7 +195,16 @@ export function ProjectRow(props: Props) {
       {editing === "register" && (
         <RegisterForm root={root} project={p} git={git[p.path]} suggestions={suggestions} onDone={done} />
       )}
-      {editing === "tags" && <TagEditor root={root} project={p} suggestions={suggestions} onDone={done} />}
+      {canWrite && p.registered && mode === "dialog" && (
+        <TagDialog
+          root={root}
+          project={p}
+          suggestions={suggestions}
+          open={tagsOpen}
+          onOpenChange={setTagsOpen}
+          onSaved={onSaved}
+        />
+      )}
       {expanded && (
         <ul className="rows nested">
           {inner.map((child) => (

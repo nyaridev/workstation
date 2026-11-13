@@ -30,13 +30,8 @@ export function TagInput({ label, tags, suggestions, onChange }: Props) {
         <fieldset className="chips suggested">
           <legend className="sr-only">Tags in use</legend>
           {unused.map((tag) => (
-            <Chip
-              key={tag}
-              size="sm"
-              icon={<Icon icon={PlusIcon} size={12} />}
-              aria-label={`Add ${tag}`}
-              onClick={() => change([...tags, tag])}
-            >
+            <Chip key={tag} size="sm" icon={<Icon icon={PlusIcon} size={12} />} onClick={() => change([...tags, tag])}>
+              <span className="sr-only">Add </span>
               {tag}
             </Chip>
           ))}

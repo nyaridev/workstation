@@ -20,6 +20,8 @@ import {
 import { groupIcon } from "./groupIcons";
 import { ProjectFilters } from "./ProjectFilters";
 import { ProjectRow } from "./ProjectRow";
+import { TagEditModePicker } from "./TagEditModePicker";
+import { useTagEditMode } from "./tagEditMode";
 import { useGitStatus } from "./useGitStatus";
 import { useProjects } from "./useProjects";
 
@@ -38,6 +40,7 @@ export function ProjectList({ root }: Props) {
   const { scan, error, reload } = useProjects(root);
   const git = useGitStatus(root, scan?.projects);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
+  const tagMode = useTagEditMode();
   const [openError, setOpenError] = useState<string | null>(null);
   // The repo whose git overview is open.
   const [history, setHistory] = useState<{ path: string; name: string } | null>(null);
@@ -110,7 +113,7 @@ export function ProjectList({ root }: Props) {
         stacks={valuesInUse(projects, (p) => p.stack)}
         onChange={setFilters}
       />
-      <div className="project-scroll">
+      <div className="project-scroll" data-tags={tagMode}>
         {groups.length === 0 && <EmptyState title="No project matches these filters." />}
         {groups.map((group) => (
           <Panel
@@ -175,6 +178,7 @@ export function ProjectList({ root }: Props) {
         </NoticeBanner>
       )}
       {list}
+      {import.meta.env.DEV && <TagEditModePicker />}
       {history && <HistoryPanel root={root} path={history.path} name={history.name} onClose={closeHistory} />}
     </div>
   );
