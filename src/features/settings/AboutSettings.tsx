@@ -1,13 +1,14 @@
-// AboutSettings: which build is running, and its own updates from GitHub (the status, Check now, Update and restart,
-// and whether it checks on its own: ADR-0014).
+// AboutSettings: which build is running and on which system, its own updates from GitHub (the status, Check now,
+// Update and restart: ADR-0014), and how it behaves: checking for updates, starting with the system and closing to the
+// tray (ADR-0015).
 
 import { Button, Icon, Panel, ProgressBar, PropertyList, SectionTitle, Switch } from "iro-ui";
 import { ArrowUpCircleIcon, InfoIcon, RefreshIcon } from "iro-ui/icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSettings } from "../../app/SettingsProvider";
 import { useUpdate } from "../../app/useUpdate";
-import { checkForUpdate, installUpdate } from "../../lib/backend";
-import type { UpdateStatus } from "../../lib/types";
+import { appInfo, checkForUpdate, installUpdate } from "../../lib/backend";
+import type { AppInfo, Preferences, UpdateStatus } from "../../lib/types";
 import { ago } from "../history/format";
 
 // ── Private helpers ───────────────────────
@@ -27,12 +28,20 @@ function updateLine(status: UpdateStatus): string {
 // ── Public API ────────────────────────────
 /** The About section of Settings. */
 export function AboutSettings() {
+  const [info, setInfo] = useState<AppInfo | null>(null);
   const { settings, savePreferences } = useSettings();
   const status = useUpdate();
   const [installError, setInstallError] = useState<string | null>(null);
+  useEffect(() => void appInfo().then(setInfo), []);
   const preferences = settings?.preferences;
   const busy = status?.step != null;
   const failed = Boolean(status?.error || installError);
+  const startLabel = info?.os === "windows" ? "Start with Windows" : "Open at login";
+  const trayLabel = info?.os === "macos" ? "Close to the menu bar" : "Close to tray";
+  const toTray = preferences?.closeToTray ?? false;
+
+  /** Saves one switch; a start entry the system refuses comes back as the save's error toast. */
+  const save = (change: Partial<Preferences>) => preferences && savePreferences({ ...preferences, ...change });
 
   async function install() {
     setInstallError(null);
@@ -42,7 +51,12 @@ export function AboutSettings() {
   return (
     <Panel as="section" className="settings-section">
       <SectionTitle icon={<Icon icon={InfoIcon} />}>About</SectionTitle>
-      <PropertyList properties={[{ label: "Version", value: status?.current, mono: true }]} />
+      <PropertyList
+        properties={[
+          { label: "Version", value: status?.current ?? info?.version, mono: true },
+          { label: "System", value: info?.os },
+        ]}
+      />
       {status && (
         <div className="settings-update">
           <span
@@ -79,15 +93,30 @@ export function AboutSettings() {
           )}
         </div>
       )}
-      <div className="settings-row">
+      <div className="settings-switches">
         <Switch
           label="Check for updates"
           checked={preferences?.checkForUpdates ?? false}
           disabled={!preferences}
-          onCheckedChange={(checkForUpdates) => preferences && savePreferences({ ...preferences, checkForUpdates })}
+          onCheckedChange={(checkForUpdates) => save({ checkForUpdates })}
         />
-        <p className="settings-hint">Checks at start and every 6 hours.</p>
+        <Switch
+          label={startLabel}
+          checked={preferences?.startWithSystem ?? false}
+          disabled={!preferences}
+          onCheckedChange={(startWithSystem) => save({ startWithSystem })}
+        />
+        <Switch
+          label={trayLabel}
+          checked={toTray}
+          disabled={!preferences}
+          onCheckedChange={(closeToTray) => save({ closeToTray })}
+        />
       </div>
+      <p className="settings-hint">
+        Checks at start and every 6 hours. {startLabel} opens Workstation {toTray ? "in the tray" : "minimized"}.
+        {toTray && " Quit from the tray icon's menu."}
+      </p>
     </Panel>
   );
 }

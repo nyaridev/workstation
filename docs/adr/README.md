@@ -31,7 +31,7 @@ src/
 │                      TagPicker, Register form, tag editor and tag input, useProjects
 ├─ features/history/   a repo's git overview sheet (commits, unpushed, uncommitted files), format.ts
 ├─ features/settings/  Settings in tabs (ADR-0013): Workstations (WorkstationSettings) and App (LookSettings,
-│                      StartSettings, AboutSettings), each section a card
+│                      AboutSettings: the build, updates, start and tray), each section a card
 ├─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
 └─ styles.css          layout only, with iro-ui's tokens (every control is an iro-ui component, ADR-0008, ADR-0010)
 src-tauri/windows/     the installer's hooks: the "Start Workstation with Windows" box (ADR-0015)

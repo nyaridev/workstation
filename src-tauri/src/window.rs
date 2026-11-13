@@ -46,8 +46,8 @@ pub fn open(app: &App, look: &Look, shown: Shown) -> tauri::Result<Frame> {
     let frame = frame_for(std::env::consts::OS, look.native_frame);
     let builder = WebviewWindowBuilder::new(app, MAIN, WebviewUrl::default())
         .title("Workstation")
-        .inner_size(1100.0, 720.0)
-        .min_inner_size(760.0, 520.0)
+        .inner_size(1200.0, 780.0)
+        .min_inner_size(820.0, 560.0)
         .center()
         .decorations(frame != Frame::Custom)
         .visible(!matches!(shown, Shown::Hidden));

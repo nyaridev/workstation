@@ -125,6 +125,6 @@ The tray and closing work in `start-dev.bat`; the start entry and the installer'
       closing quits.
 - [ ] Starting Workstation again while it runs brings the open window forward instead of a second copy.
 - [ ] Installer: the Welcome page has "Start Workstation with Windows", checked. Install with it checked: Settings →
-      App → Start shows "Start with Windows" on, and Task Manager → Startup apps lists Workstation.
+      App → About shows "Start with Windows" on, and Task Manager → Startup apps lists Workstation.
 - [ ] Sign out and in: Workstation starts hidden in the tray (minimized when "Close to tray" is off).
 - [ ] Turn "Start with Windows" off: the Startup apps entry goes. Uninstalling removes it too.
