@@ -74,7 +74,9 @@ delete that file to see the first run again.
       panel work; nothing is fetched or changed. The folder icon beside × opens the repo's folder; for a repo with a
       remote, the open-in-browser icon opens its page.
 - [ ] In the overview, each changed file shows +added −removed and opens to its diff (compare with `git diff HEAD`);
-      an untracked or binary file says why it has none, and a huge one is cut with "… N more lines".
+      an untracked or binary file says why it has none, and a huge one is cut with "… N more lines". Line numbers
+      match the file; long paths show their end. Past 20 files, "Load 20 more" adds the next ones.
+- [ ] Drag the overview's left edge to widen or narrow it; a double-click on the edge puts it back.
 - [ ] Commit something in a terminal, switch back to the app: the badge updates.
 - [ ] Right-click a repo with a remote (or a repo folder inside a home): **Open in browser** opens its page (GitHub or
       another host, from `origin`, ssh or https). Repos without a remote don't offer it.

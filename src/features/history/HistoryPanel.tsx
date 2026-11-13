@@ -71,6 +71,7 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
       onOpenChange={(open) => !open && onClose()}
       title={name}
       closeLabel="Close the git overview"
+      resizable
       actions={
         <>
           <IconButton size="sm" icon={<Icon icon={FolderOpenIcon} />} label="Open folder" onClick={onOpenFolder} />
