@@ -24,7 +24,8 @@ interface Props {
 export function FolderRow({ folder, git, onOpen, onPull, onOpenPage, onHistory }: Props) {
   const [pulling, setPulling] = useState(false);
   const hasHistory = folder.repo && git !== undefined;
-  const canPull = git !== undefined && git.unpushed !== null;
+  // Only when the remote has commits this copy lacks (as of the last fetch).
+  const canPull = (git?.behind ?? 0) > 0;
   const pull = async () => {
     setPulling(true);
     await onPull();

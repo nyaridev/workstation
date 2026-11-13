@@ -78,9 +78,10 @@ delete that file to see the first run again.
 - [ ] Commit something in a terminal, switch back to the app: the badge updates.
 - [ ] Right-click a repo with a remote (or a repo folder inside a home): **Open in browser** opens its page (GitHub or
       another host, from `origin`, ssh or https). Repos without a remote don't offer it.
-- [ ] Pull (the down-arrow icon, ADR-0018) shows only on repos that track an upstream, and on repo folders inside a
-      home. Push a commit from another clone, then Pull: "Pulled 1 commit into …", and the files are there. Pull
-      again: "… is up to date". With a local commit the remote doesn't have and a new remote commit, Pull refuses with
+- [ ] Pull (the down-arrow icon, ADR-0018) shows only on repos, and repo folders inside a home, that are behind their
+      upstream as of the last fetch (the app never fetches). Push a commit from another clone, `git fetch` in this
+      one, switch back: Pull shows. Pull: "Pulled 1 commit into …", the files are there, and the button goes away.
+      With a local commit the remote doesn't have and a new remote commit, Pull refuses with
       git's reason and changes nothing. A private repo without saved credentials fails with git's reason, never a
       hang.
 

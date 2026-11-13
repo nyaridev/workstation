@@ -90,8 +90,8 @@ export function ProjectRow(props: Props) {
   const history = () => onHistory(p.path, p.name);
   // Its own repo (a game home's `game/`), not the totals of the repos inside a suite.
   const own = p.repo ? git[p.path] : undefined;
-  // Only a branch that tracks an upstream has something to pull from.
-  const canPull = p.onDisk && own !== undefined && own.unpushed !== null;
+  // Only when the remote has commits this copy lacks (as of the last fetch).
+  const canPull = p.onDisk && (own?.behind ?? 0) > 0;
   const pull = async () => {
     setPulling(true);
     await onPull(p.path, p.name);

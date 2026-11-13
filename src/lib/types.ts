@@ -60,6 +60,8 @@ export interface GitStatus {
   uncommitted: number;
   /** Null when the branch has no upstream. */
   unpushed: number | null;
+  /** Commits on the upstream that aren't here, as of the last fetch; null when the branch has no upstream. */
+  behind: number | null;
   /** The owner in the origin URL; null without a remote. */
   owner: string | null;
   /** The repo's name in the origin URL; null without a remote. */

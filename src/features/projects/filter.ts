@@ -80,6 +80,7 @@ export function gitOf(p: Project, git: GitStatuses, inside: Map<string, Project[
     branch: "",
     uncommitted: sum((s) => s.uncommitted),
     unpushed: sum((s) => s.unpushed ?? 0),
+    behind: sum((s) => s.behind ?? 0),
     owner: null,
     repo: null,
   };

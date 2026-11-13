@@ -36,11 +36,14 @@ interface Props {
 
 /** How many commits Rust sends at most (`HISTORY_LIMIT` in commands.rs). */
 const LIMIT = 200;
+/** Uncommitted files shown at first, and added by each "Load more". */
+const PAGE = 20;
 
 /** Opens from the right; Escape, the close button or a click beside it closes it. */
 export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClose }: Props) {
   const [history, setHistory] = useState<GitHistory | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [shown, setShown] = useState(PAGE);
 
   const load = useCallback(() => {
     gitHistory(root, path).then(
@@ -54,6 +57,7 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
 
   useEffect(() => {
     setHistory(null);
+    setShown(PAGE);
     load();
     window.addEventListener("focus", load);
     return () => window.removeEventListener("focus", load);
@@ -83,7 +87,9 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
       className="history"
     >
       <div className="history-head">
-        <code className="muted small selectable">{path}</code>
+        <code className="muted small selectable path-end">
+          <bdi>{path}</bdi>
+        </code>
         <Button size="sm" variant="ghost" icon={<Icon icon={RefreshIcon} />} onClick={load}>
           Refresh
         </Button>
@@ -116,16 +122,18 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
               <Accordion
                 multiple
                 className="changes"
-                items={history.changes.map((change) => ({
+                items={history.changes.slice(0, shown).map((change) => ({
                   value: change.path,
                   title: (
                     <span className="change-title">
                       <span className="change-code">{changeLabel(change.code)}</span>
-                      <code className="change-path">{change.path}</code>
+                      <code className="change-path path-end">
+                        <bdi>{change.path}</bdi>
+                      </code>
                       {change.added !== null && (
                         <span className="change-count">
-                          <span className="diff-add">+{change.added}</span>{" "}
-                          <span className="diff-del">−{change.removed}</span>
+                          <span className="count-add">+{change.added}</span>{" "}
+                          <span className="count-del">−{change.removed}</span>
                         </span>
                       )}
                     </span>
@@ -134,10 +142,19 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
                 }))}
               />
             )}
+            {history.changes.length > shown && (
+              <Button size="sm" variant="ghost" className="load-more" onClick={() => setShown(shown + PAGE)}>
+                {history.changes.length - shown > PAGE
+                  ? `Load ${PAGE} more (${history.changes.length - shown} left)`
+                  : `Load the last ${history.changes.length - shown}`}
+              </Button>
+            )}
           </section>
 
           <section aria-labelledby="history-commits">
-            <SectionTitle id="history-commits">Commits</SectionTitle>
+            <SectionTitle id="history-commits">
+              Commits ({history.commits.length === LIMIT ? `${LIMIT}+` : history.commits.length})
+            </SectionTitle>
             {history.commits.length === 0 && <p className="muted small">No commits yet.</p>}
             <Timeline
               items={history.commits.map((commit) => ({

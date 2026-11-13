@@ -28,6 +28,8 @@ pub struct Status {
     pub uncommitted: usize,
     /// Commits not on the upstream branch; None when the branch has no upstream.
     pub unpushed: Option<usize>,
+    /// Commits on the upstream branch that aren't here, as of the last fetch (the app never fetches); None without one.
+    pub behind: Option<usize>,
     /// The owner in the `origin` URL (`nyaridev` in github.com/nyaridev/prepkit); None without a remote.
     pub owner: Option<String>,
     /// The repo's name in the `origin` URL (`prepkit`); None without a remote.
@@ -212,8 +214,9 @@ pub fn status(repo: &Path) -> Option<Status> {
     let branch = git(repo, &["symbolic-ref", "--short", "HEAD"]).or_else(|| git(repo, &["rev-parse", "--short", "HEAD"]))?;
     let uncommitted = git(repo, &["status", "--porcelain"])?.lines().count();
     let unpushed = git(repo, &["rev-list", "--count", "@{u}..HEAD"]).and_then(|n| n.parse().ok());
+    let behind = git(repo, &["rev-list", "--count", "HEAD..@{u}"]).and_then(|n| n.parse().ok());
     let (owner, name) = git(repo, &["remote", "get-url", "origin"]).and_then(|url| remote_of(&url)).unzip();
-    Some(Status { branch, uncommitted, unpushed, owner, repo: name.flatten() })
+    Some(Status { branch, uncommitted, unpushed, behind, owner, repo: name.flatten() })
 }
 
 /// The overview of one repo with its latest `limit` commits, or None when git can't read it. Reads only: no fetch.
@@ -332,6 +335,7 @@ mod tests {
             branch: "main".into(),
             uncommitted: 1,
             unpushed: None,
+            behind: None,
             owner: Some("acme".into()),
             repo: Some("tool".into()),
         };

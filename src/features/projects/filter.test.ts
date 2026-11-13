@@ -44,9 +44,9 @@ describe("filterProjects", () => {
 
   it("keeps only repos with changes when asked", () => {
     const git = {
-      "games/roblox/fish-dive/": { branch: "main", uncommitted: 0, unpushed: 0, owner: null, repo: null },
-      "games/godot/swamp/game/": { branch: "main", uncommitted: 0, unpushed: 3, owner: null, repo: null },
-      "tools/rename/": { branch: "main", uncommitted: 2, unpushed: null, owner: null, repo: null },
+      "games/roblox/fish-dive/": { branch: "main", uncommitted: 0, unpushed: 0, behind: 0, owner: null, repo: null },
+      "games/godot/swamp/game/": { branch: "main", uncommitted: 0, unpushed: 3, behind: 0, owner: null, repo: null },
+      "tools/rename/": { branch: "main", uncommitted: 2, unpushed: null, behind: null, owner: null, repo: null },
     };
     expect(names(filterProjects(fakeProjects, { ...all, changed: true }, git))).toEqual(["Swamp", "rename"]);
   });
@@ -93,14 +93,22 @@ describe("gitOf", () => {
   it("sums the repos inside a project that isn't a repo, and ignores its own entry", () => {
     const swamp = fakeProjects.find((p) => p.name === "Swamp");
     const git = {
-      "games/godot/swamp/": { branch: "main", uncommitted: 9, unpushed: 9, owner: null, repo: null },
-      "games/godot/swamp/game/": { branch: "main", uncommitted: 1, unpushed: 2, owner: null, repo: null },
-      "games/godot/swamp/wiki/": { branch: "main", uncommitted: 3, unpushed: null, owner: null, repo: null },
+      "games/godot/swamp/": { branch: "main", uncommitted: 9, unpushed: 9, behind: 0, owner: null, repo: null },
+      "games/godot/swamp/game/": { branch: "main", uncommitted: 1, unpushed: 2, behind: 0, owner: null, repo: null },
+      "games/godot/swamp/wiki/": {
+        branch: "main",
+        uncommitted: 3,
+        unpushed: null,
+        behind: null,
+        owner: null,
+        repo: null,
+      },
     };
     expect(swamp && gitOf(swamp, git, new Map())).toEqual({
       branch: "",
       uncommitted: 4,
       unpushed: 2,
+      behind: 0,
       owner: null,
       repo: null,
     });

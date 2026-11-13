@@ -18,9 +18,10 @@ in `.claude/rules/architecture/overview.md`). A pull changes a repo's files and 
   its flags and what's inside), the status, the git badges, the remote's `owner/name`, then the path. No description,
   stack or tags on the row; the search still finds them, and the tags still filter.
 - **The remote:** `git::Status` gains `repo`, the name in the `origin` URL, next to the `owner` it already had.
-- **Pull by hand:** a Pull button on repos that track an upstream branch, and the same in the right-click menu. It
-  runs `git pull --ff-only` in the repo (a game home's `game/`), with git's own credentials and no prompt in a
-  console (`GIT_TERMINAL_PROMPT=0`). Fast-forward only: it never merges or rebases, and git refuses when local
+- **Pull by hand:** a Pull button on repos that are behind their upstream branch as of the last fetch (the app
+  never fetches, so it shows after the user or their tools fetch), and the same in the right-click menu. It runs
+  `git pull --ff-only` in the repo (a game home's `game/`), with git's own credentials and no prompt in a console
+  (`GIT_TERMINAL_PROMPT=0`). Fast-forward only: it never merges or rebases, and git refuses when local
   changes would be overwritten or the branches have split; the app shows git's reason. Nothing pulls on its own.
 - **The rules change:** besides `projects.json` and kit files, the app may run `git pull --ff-only` in a repo when the
   user clicks Pull; besides the updater, the only network traffic is git's own during that pull.
