@@ -10,11 +10,11 @@ compares them with each workstation's `projects.json` (format and entry template
 them by tags, and watches for projects being added, moved or removed. The built app also carries a starter kit that
 sets up a new WORKSTATION. Public: github.com/nyaridev/workstation.
 
-Stage: M9 done, not released. The window draws its own title bar (no Windows frame) and the app updates itself from
-GitHub releases. The app lists a workstation's projects with search, tag, status and "has changes" filters, flags,
+Stage: M12 done, not released. The window draws its own title bar and works like Scrappy's. The app lists a workstation's projects with search, tag, status and "has changes" filters, flags,
 git badges and "Open folder"; rescans on its own when projects or `projects.json` change; registers unregistered
-projects and edits tags; sets up new workstations from the built-in kit (`kit/`). Now: M10–M12 rebuild the window's
-shell like Scrappy's (ADR-0009, ADR-0010), then M13 releases. In `pnpm dev`, `?update` fakes a newer release,
+projects and edits tags; sets up new workstations from the built-in kit (`kit/`). Now: M13–M17 bring Scrappy's header,
+Settings tabs, signed updates, the tray and installers for Windows, macOS and Linux (ADR-0012 to 0016); M18
+releases. In `pnpm dev`, `?update` fakes a newer release,
 `?empty` shows the first-run screen and `?broken` an unreadable `projects.json`.
 
 If the user wants a workstation set up rather than the app built ("set up this workstation for me"), don't install
@@ -45,3 +45,4 @@ the layout, the module table and the current milestone's steps.
 | `.claude/rules/architecture/code-organization.md` | `src/**`, `src-tauri/src/**` |
 | `.claude/rules/architecture/backend.md`           | `src-tauri/**`               |
 | `.claude/rules/architecture/frontend.md`          | `src/**`, `index.html`, `vite.config.ts` |
+| `.claude/rules/architecture/release.md`           | `.github/**`, `src-tauri/tauri*.json`, `src-tauri/windows/**`, `build.bat` |

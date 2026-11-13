@@ -1,6 +1,6 @@
 # ADR-0007: Self-update from GitHub releases
 
-**Status:** Accepted
+**Status:** Superseded by ADR-0014
 **Date:** 2026-11-08
 
 ## Context

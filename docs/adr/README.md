@@ -17,9 +17,11 @@ src-tauri/src/
 ├─ git.rs              branch, uncommitted, unpushed, remote owner (the `git` command, 8 repos at a time); one
 │                      repo's history (commits, unpushed, uncommitted files). Reads only, never fetches
 ├─ kit.rs              the embedded starter kit and "set up here" (never overwrites)
-├─ update.rs           the app's own updates: check, download, SHA-256, swap the exe (gh or curl.exe)
+├─ update.rs           the app's own updates: check, download, SHA-256, swap the exe (gh or curl.exe); Tauri's
+│                      signed updater from M15 (ADR-0014)
 ├─ settings.rs         the app's settings in settings.json: the look (native title bar, liquid background)
 ├─ window.rs           builds the main window with the frame the settings pick
+├─ tray.rs, start.rs   the tray and close-to-tray; the start entry and the installer's choice (M16, ADR-0015)
 └─ test_support.rs     temp folders for tests (test builds only)
 src/
 ├─ app/                the window: header (the title bar), views.ts, window controls, backdrop, settings context,
@@ -28,9 +30,11 @@ src/
 │                      statuses, tags), the list, row (opens to inner projects and FolderRows), filters and
 │                      TagPicker, Register form, tag editor and tag input, useProjects
 ├─ features/history/   a repo's git overview sheet (commits, unpushed, uncommitted files), format.ts
-├─ features/settings/  the Settings view: the look switches and the version
+├─ features/settings/  the Settings view: the look switches and the version (tabs and cards from M14, ADR-0013)
 ├─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
 └─ styles.css          layout only, with iro-ui's tokens (every control is an iro-ui component, ADR-0008, ADR-0010)
+src-tauri/windows/     the installer's hooks (M16)
+.github/workflows/     check.yml, release.yml (M17, ADR-0016)
 kit/                   the starter workstation (stored as dot-* and *.kit.md), embedded at build time
 scripts/               check-size.mjs, check-boundaries.mjs
 assets/brand/          icon.svg (the app icon and header mark), the README's banners, dark and light
@@ -57,17 +61,22 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 
 | ADR | Title | Status |
 | --- | --- | --- |
-| [0001](0001-tauri-app-with-rust-core.md) | Tauri app with the logic in Rust | Accepted (UI styling replaced by 0008) |
+| [0001](0001-tauri-app-with-rust-core.md) | Tauri app with the logic in Rust | Accepted (UI styling replaced by 0008; the portable exe by 0016) |
 | [0002](0002-projects-from-disk-and-registry.md) | Projects come from the disk, PROJECTS.md stays the registry | Superseded by 0004 |
 | [0003](0003-workstations-and-starter-kit.md) | Several workstations per user, and a starter kit in the exe | Accepted (partly replaced by 0004, 0005) |
 | [0004](0004-projects-json-registry.md) | projects.json is the registry | Accepted (marker replaced by 0005, archiving by 0006) |
 | [0005](0005-workstations-added-by-hand.md) | Workstations are added by hand and recognized by projects.json | Accepted |
 | [0006](0006-archived-projects-leave-the-registry.md) | Archived projects leave projects.json | Accepted |
-| [0007](0007-self-update-from-github-releases.md) | Self-update from GitHub releases | Accepted |
+| [0007](0007-self-update-from-github-releases.md) | Self-update from GitHub releases | Superseded by 0014 |
 | [0008](0008-ui-from-iro-ui.md) | The UI is built from iro-ui | Accepted (extended by 0010) |
 | [0009](0009-window-built-in-rust-with-a-frame-setting.md) | Rust builds the window, and a setting picks its frame | Accepted |
 | [0010](0010-scrappy-window-shell.md) | The window's shell works like Scrappy's | Accepted (rows: 0011) |
 | [0011](0011-project-rows-from-iro-ui-list-item.md) | Project rows are iro-ui's ListItem, stretched; the Tags filter stays | Accepted |
+| [0012](0012-header-and-banners-like-scrappy.md) | The header and its banners look like Scrappy's | Accepted |
+| [0013](0013-settings-in-tabs.md) | Settings in tabs, each section a card | Accepted |
+| [0014](0014-updates-through-tauri-updater.md) | Updates through Tauri's signed updater | Accepted |
+| [0015](0015-start-with-system-and-tray.md) | Start with the system, close to the tray, one copy at a time | Accepted |
+| [0016](0016-installers-for-three-systems.md) | Installers for Windows, macOS and Linux, built by GitHub Actions | Accepted |
 
 ## Milestones
 
@@ -86,15 +95,29 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | M10 | Window and settings in Rust, the liquid backdrop (ADR-0009) | done (real window: the owner checks the frame and the liquid) |
 | M11 | Scrappy's header, views and the Settings view (ADR-0010) | done (real window: `docs/manual-check.md` → 2) |
 | M12 | Every control from iro-ui: rows, tooltips, context menus (ADR-0010, ADR-0011; iro-ui v1.3.0) | done |
-| M13 | Verify and polish, then release | next |
+| M13 | Header and banners like Scrappy's (ADR-0012) | in progress |
+| M14 | Settings in tabs: Workstations, App (ADR-0013) | planned |
+| M15 | Updates through Tauri's signed updater, the update banner (ADR-0014) | planned |
+| M16 | Start with the system, close to the tray, one copy (ADR-0015) | planned |
+| M17 | Windows, macOS and Linux: cross-platform fixes, installers, GitHub Actions (ADR-0016) | planned |
+| M18 | Verify and polish, then release | planned |
 
-### M13: Verify and polish, then release
+### M13: Header and banners like Scrappy's
 
-1. The owner goes through `docs/manual-check.md` in the real window; fix what it turns up.
-2. The owner reviews `kit/` (what it says about Roblox with Rojo, ideas without game-forge, the owners placeholders)
-   and the parts left out (ADRs, the migration map, ume).
-3. `LICENSE`, chosen by the owner (MIT like PrepKit, or PolyForm Noncommercial like Shiori).
-4. With the owner's yes: push, make the repo public, and attach `release\Workstation.exe` to a GitHub release.
+1. The header takes Scrappy's look: no bottom line, its padding, the mark and name as a plain Home button with a
+   tooltip in a slot that drags, and the name hidden (still read out) under 960 px.
+2. Only the switcher stays in the header: Add, Set up new and Remove from list move to Settings (the Workstations
+   tab, M14; until then a plain section in Settings), and the root path leaves the header.
+3. `src/app/NoticeBanner.tsx`: Scrappy's slim banner in a tone. The status error and notice, the unreadable
+   `projects.json` and the "don't match projects.json" banner use it, under the header.
+4. Check: `pnpm check`, then `pnpm dev` in the browser pane: default, `?broken`, narrow (820 px) and wide.
+
+### M18: Verify and polish, then release
+
+1. The owner goes through `docs/manual-check.md` in the real app on Windows (and macOS or Linux when at hand); fix
+   what it turns up.
+2. The owner reviews `kit/` and the parts left out.
+3. With the owner's yes: tag `v0.1.0`, let the release workflow build the draft, publish it.
 
 ### Later
 
@@ -116,3 +139,4 @@ In `.claude/rules/architecture/`:
 - `code-organization.md`: file size, section order and dividers for `src/**` and `src-tauri/src/**`.
 - `backend.md`: Rust rules and the "How to add" recipes, for `src-tauri/**`.
 - `frontend.md`: the window (iro-ui, header and frame, desktop behavior) and its "How to add" recipes, for `src/**`.
+- `release.md`: installers, the GitHub workflows, the updater's config and the installer's hooks.

@@ -12,9 +12,10 @@ folder the app remembers; `projects.json` in it is the only project registry (`d
 | `src-tauri/src/scan/`                 | finding projects, reading and writing `projects.json` | nothing in the app         |
 | `src-tauri/src/git.rs`                | running `git` for status                              | nothing in the app         |
 | `src-tauri/src/kit.rs`                | copying the embedded starter kit                      | nothing in the app         |
-| `src-tauri/src/update.rs`             | the app's own updates from GitHub releases            | nothing in the app         |
+| `src-tauri/src/update.rs`             | the app's own updates from GitHub releases (ADR-0014) | `settings.rs`, `tauri`     |
 | `src-tauri/src/settings.rs`           | the app's settings (`settings.json`, ADR-0009)        | nothing in the app         |
 | `src-tauri/src/window.rs`             | building the main window with its frame               | `settings.rs`, `tauri`     |
+| `src-tauri/src/tray.rs`, `start.rs`   | the tray and closing; the start entry (ADR-0015)      | `settings.rs`, `tauri`     |
 | `src-tauri/src/watch.rs`              | the watcher and `projects-changed`                    | `scan/`, `tauri`           |
 | `src-tauri/src/commands.rs`, `lib.rs` | the Tauri surface                                     | the modules above, `tauri` |
 | `src/lib/`                            | every `invoke` and `listen`, fake data outside Tauri  | `@tauri-apps/*`            |
@@ -49,9 +50,10 @@ folder the app remembers; `projects.json` in it is the only project registry (`d
 
 - Never delete, move or rename anything inside a workstation. The only writes are adding or editing `projects.json`
   entries and copying kit files that don't exist yet.
-- The only network calls are `update.rs`'s, through `gh` or `curl.exe`, to this app's GitHub releases (ADR-0007).
-  No HTTP client in the app, no telemetry.
+- The only network calls are the updater's, to this app's own GitHub releases (ADR-0014). No other HTTP client, no
+  telemetry.
 - No paths to anyone's PC in code, config, tests or docs. Tests build fake workstations in a temp folder.
 - Only `src/lib/backend.ts` imports `@tauri-apps/*`; the window is iro-ui in the sumi style and works like Scrappy's
   (ADR-0008, ADR-0010). Details: `frontend.md`.
+- Builds, installers, workflows and the updater's keys follow `release.md` (ADR-0016).
 - Architecture changes need a new ADR in `docs/adr/`, plus an update to `docs/adr/README.md` and these rules.

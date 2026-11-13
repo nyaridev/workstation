@@ -5,9 +5,13 @@ paths:
 
 # Rust backend
 
-- Logic modules (`workstations.rs`, `settings.rs`, `scan/`, `git.rs`, `kit.rs`, `update.rs`) never `use tauri`. They
-  take plain paths and return `Result<T, String>` or their own error type. Only `lib.rs`, `commands.rs`, `watch.rs`
-  and `window.rs` touch Tauri.
+- Logic modules (`workstations.rs`, `settings.rs`, `scan/`, `git.rs`, `kit.rs`) never `use tauri`. They take plain
+  paths and return `Result<T, String>` or their own error type. Only `lib.rs`, `commands.rs`, `watch.rs`, `window.rs`,
+  `update.rs`, `tray.rs` and `start.rs` touch Tauri.
+- Tauri plugins (updater, autostart, single-instance) are called from Rust; the window gets no plugin permissions for
+  them, only commands. The single-instance plugin is registered first.
+- Code that differs per system uses `cfg(target_os = ...)` or `cfg(windows)`, and compiles on Windows, macOS and Linux
+  (CI checks all three, ADR-0016). Compare paths with `workstations.rs`'s per-system rule, never by hand.
 - The main window is built in `window.rs` with the frame `settings.rs`'s look picks (ADR-0009): `custom` is
   `decorations(false)`, `native` the system frame. Windows come from Rust, never from `tauri.conf.json`.
 - `settings.rs` keeps `settings.json` in the app config folder: missing or unreadable gives the defaults, unknown keys
