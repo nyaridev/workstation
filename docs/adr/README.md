@@ -1,8 +1,8 @@
 # Architecture
 
 Workstation is a desktop app that oversees WORKSTATION folders. Rust does every disk read and write; React only shows
-what Rust sends it; a workstation is just a root folder the app remembers, and its `projects.json` is the registry
-(format: [`docs/projects-json.md`](../projects-json.md)).
+what Rust sends it, in an iro-ui window that works like Scrappy's; a workstation is just a root folder the app
+remembers, and its `projects.json` is the registry (format: [`docs/projects-json.md`](../projects-json.md)).
 
 ## Shape
 
@@ -18,18 +18,22 @@ src-tauri/src/
 │                      repo's history (commits, unpushed, uncommitted files). Reads only, never fetches
 ├─ kit.rs              the embedded starter kit and "set up here" (never overwrites)
 ├─ update.rs           the app's own updates: check, download, SHA-256, swap the exe (gh or curl.exe)
+├─ settings.rs         the app's settings in settings.json: the look (native title bar, liquid background)
+├─ window.rs           builds the main window with the frame the settings pick
 └─ test_support.rs     temp folders for tests (test builds only)
 src/
-├─ app/                the window, its title bar, first-run screen, workstation switcher and status banner
-├─ features/projects/  project list: filter.ts (filters, nesting, grouping), fields.ts (kinds, statuses, tags), the
-│                      list, row (opens to inner projects and FolderRows), filters and TagPicker, Register form,
-│                      tag editor and tag input, useProjects
+├─ app/                the window: header (the title bar), views.ts, window controls, backdrop, settings context,
+│                      first-run screen, workstation switcher, update chip, status banner
+├─ features/projects/  ProjectsView and the project list: filter.ts (filters, nesting, grouping), fields.ts (kinds,
+│                      statuses, tags), the list, row (opens to inner projects and FolderRows), filters and
+│                      TagPicker, Register form, tag editor and tag input, useProjects
 ├─ features/history/   a repo's git overview sheet (commits, unpushed, uncommitted files), format.ts
+├─ features/settings/  the Settings view: the look switches and the version
 ├─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
-└─ styles.css          layout only, with iro-ui's tokens (every control is an iro-ui component, ADR-0008)
+└─ styles.css          layout only, with iro-ui's tokens (every control is an iro-ui component, ADR-0008, ADR-0010)
 kit/                   the starter workstation (stored as dot-* and *.kit.md), embedded at build time
-scripts/               check-size.mjs
-assets/brand/          the README's banners, dark and light
+scripts/               check-size.mjs, check-boundaries.mjs
+assets/brand/          icon.svg (the app icon and header mark), the README's banners, dark and light
 ```
 
 ## Modules
@@ -41,10 +45,13 @@ assets/brand/          the README's banners, dark and light
 | `git.rs` | running `git` for status | nothing in the app |
 | `kit.rs` | copying the embedded kit | nothing in the app |
 | `update.rs` | the app's own updates from GitHub releases | nothing in the app |
+| `settings.rs` | the app's settings | nothing in the app |
+| `window.rs` | building the main window with its frame | `settings.rs`, `tauri` |
 | `watch.rs` | the file watcher and its event | `scan/`, `tauri` |
 | `commands.rs`, `lib.rs` | the Tauri surface | every module above, `tauri` |
-| `src/lib/` | talking to Rust | `@tauri-apps/api` |
-| `src/features/`, `src/app/` | the UI | `src/lib/` |
+| `src/lib/` | talking to Rust | `@tauri-apps/*` |
+| `src/app/` | the header, views list, backdrop and settings context | `src/lib/`, `iro-ui` |
+| `src/features/<view>/` | one view each | `src/lib/`, `iro-ui` |
 
 ## Decisions
 
@@ -57,7 +64,10 @@ assets/brand/          the README's banners, dark and light
 | [0005](0005-workstations-added-by-hand.md) | Workstations are added by hand and recognized by projects.json | Accepted |
 | [0006](0006-archived-projects-leave-the-registry.md) | Archived projects leave projects.json | Accepted |
 | [0007](0007-self-update-from-github-releases.md) | Self-update from GitHub releases | Accepted |
-| [0008](0008-ui-from-iro-ui.md) | The UI is built from iro-ui | Accepted |
+| [0008](0008-ui-from-iro-ui.md) | The UI is built from iro-ui | Accepted (extended by 0010) |
+| [0009](0009-window-built-in-rust-with-a-frame-setting.md) | Rust builds the window, and a setting picks its frame | Accepted |
+| [0010](0010-scrappy-window-shell.md) | The window's shell works like Scrappy's | Accepted (rows: 0011) |
+| [0011](0011-project-rows-from-iro-ui-list-item.md) | Project rows are iro-ui's ListItem, stretched; the Tags filter stays | Accepted |
 
 ## Milestones
 
@@ -73,23 +83,12 @@ assets/brand/          the README's banners, dark and light
 | M7 | Release prep: app icon, README, manual check list, release build | done |
 | M8 | Custom title bar | done (real window: `docs/manual-check.md` → 2) |
 | M9 | Self-update from GitHub releases | done (real install: `docs/manual-check.md` → 8, after the first release) |
-| M10 | Verify and polish, then release | next |
+| M10 | Window and settings in Rust, the liquid backdrop (ADR-0009) | done (real window: the owner checks the frame and the liquid) |
+| M11 | Scrappy's header, views and the Settings view (ADR-0010) | done (real window: `docs/manual-check.md` → 2) |
+| M12 | Every control from iro-ui: rows, tooltips, context menus (ADR-0010, ADR-0011; iro-ui v1.3.0) | done |
+| M13 | Verify and polish, then release | next |
 
-### M8: Custom title bar
-
-1. A frameless main window (`decorations: false`); the window permissions for minimize, maximize, close and dragging.
-2. `src/app/TitleBar.tsx`: the mark and name, the workstation switcher and path, a drag area (double-click
-   maximizes), a slot for M9's update button, then minimize, maximize/restore and close.
-3. The title bar on every screen: loading, first run, and the open workstation.
-4. A title bar section in `docs/manual-check.md`.
-
-### M9: Self-update from GitHub releases
-
-ADR-0007. `update.rs` checks the latest release (on start, every 6 hours, on focus at most every 10 minutes) with
-`gh` when it's logged in, else `curl.exe`; downloads `Workstation.exe`, checks GitHub's SHA-256, swaps the running exe
-and restarts. The title bar's `UpdateChip` offers it; the `release` skill makes releases it can install.
-
-### M10: Verify and polish, then release
+### M13: Verify and polish, then release
 
 1. The owner goes through `docs/manual-check.md` in the real window; fix what it turns up.
 2. The owner reviews `kit/` (what it says about Roblox with Rojo, ideas without game-forge, the owners placeholders)
@@ -98,6 +97,9 @@ and restarts. The title bar's `UpdateChip` offers it; the `release` skill makes 
 4. With the owner's yes: push, make the repo public, and attach `release\Workstation.exe` to a GitHub release.
 
 ### Later
+
+- The header's path disappears below about 900 px wide: the switcher's buttons take the room. A narrower switcher
+  (its actions in a menu) would keep it.
 
 - Editing the other fields of an entry (name, status, description, notes) in the app: today only tags.
 - Read the workstation's place rules from a file instead of `scan/layout.rs` if the layout ever differs between
@@ -113,3 +115,4 @@ In `.claude/rules/architecture/`:
 - `overview.md`: the direction, the module table, where new things go. Always loaded.
 - `code-organization.md`: file size, section order and dividers for `src/**` and `src-tauri/src/**`.
 - `backend.md`: Rust rules and the "How to add" recipes, for `src-tauri/**`.
+- `frontend.md`: the window (iro-ui, header and frame, desktop behavior) and its "How to add" recipes, for `src/**`.

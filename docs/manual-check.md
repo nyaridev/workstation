@@ -22,15 +22,24 @@ delete that file to see the first run again.
 - [ ] **Remove from list** asks first, removes it from the dropdown, and leaves the folder untouched.
 - [ ] Close and reopen the app: the list and the open workstation are remembered.
 
-## 2. The title bar
+## 2. The header and Settings
 
-- [ ] No Windows frame: the app's own bar, with the mark, the switcher and the path. On Windows 11 the corners are
-      round and the window has its shadow.
-- [ ] Dragging the empty part of the bar, the name or the path moves the window; dragging to the top edge maximizes,
-      to a side snaps it. Double-clicking the empty part maximizes and restores.
+- [ ] No Windows frame: the header is the title bar, with the mark, the switcher and the path at the left, and the
+      Settings button and window buttons at the right. On Windows 11 the corners are round and the window has its
+      shadow.
+- [ ] Dragging the empty part of the header or the path moves the window; dragging to the top edge
+      maximizes, to a side snaps it. Double-clicking the empty part maximizes and restores.
 - [ ] Minimize, Maximize (its icon turns into Restore) and Close work; Close quits the app.
-- [ ] The switcher's dropdown and buttons still work inside the bar, and clicking them doesn't drag.
-- [ ] The first-run screen has the bar too.
+- [ ] The switcher's dropdown and buttons, and the Settings button, work inside the header, and clicking them doesn't
+      drag.
+- [ ] The first-run screen has the header too.
+- [ ] The liquid background flows behind the window. Settings → "Liquid background" off stops it at once; on brings
+      it back. Both are remembered after a restart.
+- [ ] Settings → "Use the system title bar", then restart: the Windows frame is back, the header has no window
+      buttons and doesn't drag. Turn it off and restart: the custom header returns.
+- [ ] Settings and back: the project list keeps its filters and scroll. Clicking the mark or the name from Settings
+      goes back to the projects.
+- [ ] Right-clicking shows no browser menu, except in the search field; text in the list can't be selected.
 
 ## 3. The project list (real workstation, read-only)
 
@@ -47,6 +56,8 @@ delete that file to see the first run again.
 - [ ] Status, Owner and Stack each filter, and turn blue while set. "Needs attention" keeps only flagged projects, as
       does the banner's **Show them**. "Clear filters" resets everything.
 - [ ] **Open folder** opens the project in Explorer.
+- [ ] Right-clicking a project or folder row opens a menu with the same actions as its buttons (and Show what's
+      inside, Git overview), and each one works.
 
 ## 4. Git
 

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "tauri": "tauri",
-    "check": "node scripts/check-size.mjs && tsc && biome check . && vitest run --passWithNoTests && cargo test --manifest-path src-tauri/Cargo.toml",
+    "check": "node scripts/check-size.mjs && node scripts/check-boundaries.mjs && tsc && biome check . && vitest run --passWithNoTests && cargo test --manifest-path src-tauri/Cargo.toml",
     "format": "biome check --write .",
     "test": "vitest run --passWithNoTests"
   },
@@ -15,7 +15,7 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2.8.4",
     "@tauri-apps/plugin-opener": "^2",
-    "iro-ui": "github:nyaridev/iro-ui#v1.1.0",
+    "iro-ui": "github:nyaridev/iro-ui#v1.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

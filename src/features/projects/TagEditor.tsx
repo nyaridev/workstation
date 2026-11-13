@@ -34,7 +34,7 @@ export function TagEditor({ root, project, suggestions, onDone }: Props) {
     <Panel className="editor">
       <TagInput label={`Tags of ${project.name}`} tags={tags} suggestions={suggestions} onChange={setDraft} />
       {error && (
-        <Notice tone="danger" role="alert">
+        <Notice tone="danger" role="alert" className="selectable">
           {error}
         </Notice>
       )}

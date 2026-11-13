@@ -1,7 +1,7 @@
 // HistoryPanel: a repo's git overview in a side sheet: branch and upstream, what's unpushed or behind, the
 // uncommitted files, and the latest commits with the unpushed ones marked. Reads only; it never fetches.
 
-import { Badge, Button, Icon, Notice, SectionTitle, Sheet, Spinner, Timeline } from "iro-ui";
+import { Badge, Button, Icon, Notice, SectionTitle, Sheet, Spinner, Timeline, Tooltip } from "iro-ui";
 import { BranchIcon, RefreshIcon } from "iro-ui/icons";
 import { useCallback, useEffect, useState } from "react";
 import { gitHistory } from "../../lib/backend";
@@ -52,14 +52,14 @@ export function HistoryPanel({ root, path, name, onClose }: Props) {
       className="history"
     >
       <div className="history-head">
-        <code className="muted small">{path}</code>
+        <code className="muted small selectable">{path}</code>
         <Button size="sm" variant="ghost" icon={<Icon icon={RefreshIcon} />} onClick={load}>
           Refresh
         </Button>
       </div>
 
       {error && (
-        <Notice tone="danger" role="alert">
+        <Notice tone="danger" role="alert" className="selectable">
           {error}
         </Notice>
       )}
@@ -105,9 +105,9 @@ export function HistoryPanel({ root, path, name, onClose }: Props) {
                   </>
                 ),
                 time: (
-                  <time dateTime={commit.date} title={new Date(commit.date).toLocaleString()}>
-                    {ago(commit.date)}
-                  </time>
+                  <Tooltip content={new Date(commit.date).toLocaleString()}>
+                    <time dateTime={commit.date}>{ago(commit.date)}</time>
+                  </Tooltip>
                 ),
                 description: (
                   <>

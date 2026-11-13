@@ -1,13 +1,24 @@
 // Backend: every call to Rust (invoke and listen), with fake data when running in a plain browser.
 // In `pnpm dev`, add `?empty` to the URL to see the first-run screen, `?broken` for an unreadable projects.json,
-// `?update` for a newer release.
+// `?update` for a newer release, `?native` for the system title bar.
 
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-dialog";
 import { fakeProjects } from "./fakeProjects";
-import type { GitHistory, GitStatuses, Listing, NewEntry, Scan, SetupResult, UpdateCheck } from "./types";
+import type {
+  AppInfo,
+  GitHistory,
+  GitStatuses,
+  Listing,
+  Look,
+  NewEntry,
+  Scan,
+  Settings,
+  SetupResult,
+  UpdateCheck,
+} from "./types";
 
 // ── Fake backend ──────────────────────────
 const inTauri = "__TAURI_INTERNALS__" in window;
@@ -37,10 +48,31 @@ function fakeRegister(entry: NewEntry) {
   fakeList = fakeList.map((p) => (p.path === entry.path ? { ...p, ...entry, notes: null, registered: true } : p));
 }
 
+const nativeFrame = new URLSearchParams(location.search).has("native");
+let fakeSettings: Settings = { look: { nativeFrame, liquidBackground: true } };
+
 function fakeRemove(root: string): Listing {
   const workstations = fake.workstations.filter((w) => w.root !== root);
   fake = { workstations, open: fake.open === root ? (workstations[0]?.root ?? null) : fake.open };
   return fake;
+}
+
+// ── App and settings ──────────────────────
+/** The running version and the frame the window got at start. */
+export async function appInfo(): Promise<AppInfo> {
+  return inTauri ? invoke("app_info") : { version: "0.1.0", frame: nativeFrame ? "native" : "custom" };
+}
+
+/** The saved settings. */
+export async function getSettings(): Promise<Settings> {
+  return inTauri ? invoke("get_settings") : fakeSettings;
+}
+
+/** Saves a new look and returns the settings; the frame applies at the next start. */
+export async function setLook(look: Look): Promise<Settings> {
+  if (inTauri) return invoke("set_look", { look });
+  fakeSettings = { ...fakeSettings, look };
+  return fakeSettings;
 }
 
 // ── Workstations ──────────────────────────

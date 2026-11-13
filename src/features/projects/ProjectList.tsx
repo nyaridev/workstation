@@ -71,7 +71,7 @@ export function ProjectList({ root }: Props) {
   if (error)
     return (
       <div className="center">
-        <Notice tone="danger" role="alert">
+        <Notice tone="danger" role="alert" className="selectable">
           {error}
         </Notice>
       </div>

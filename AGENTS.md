@@ -11,10 +11,11 @@ them by tags, and watches for projects being added, moved or removed. The built 
 sets up a new WORKSTATION. Public: github.com/nyaridev/workstation.
 
 Stage: M9 done, not released. The window draws its own title bar (no Windows frame) and the app updates itself from
-GitHub releases. The app lists a workstation's projects with search, tag, status and "has changes"
-filters, flags, git badges and "Open folder"; rescans on its own when projects or `projects.json` change; registers
-unregistered projects and edits tags; sets up new workstations from the built-in kit (`kit/`). Next: M10 (verify,
-polish, release). In `pnpm dev`, `?update` fakes a newer release. In `pnpm dev`, `?empty` shows the first-run screen and `?broken` an unreadable `projects.json`.
+GitHub releases. The app lists a workstation's projects with search, tag, status and "has changes" filters, flags,
+git badges and "Open folder"; rescans on its own when projects or `projects.json` change; registers unregistered
+projects and edits tags; sets up new workstations from the built-in kit (`kit/`). Now: M10–M12 rebuild the window's
+shell like Scrappy's (ADR-0009, ADR-0010), then M13 releases. In `pnpm dev`, `?update` fakes a newer release,
+`?empty` shows the first-run screen and `?broken` an unreadable `projects.json`.
 
 If the user wants a workstation set up rather than the app built ("set up this workstation for me"), don't install
 Node or Rust: ask which they mean, recommend the kit, and set it up with `setup-kit.ps1` (`README.md` → "The folder
@@ -27,7 +28,7 @@ The new workstation's GitHub owners are the user's own, never this repo's `nyari
 | --------------- | ----------------------------------------------------------------------------------- |
 | `pnpm dev`      | The UI alone in a browser at http://localhost:4420                                  |
 | `start-dev.bat` | The real app with hot reload                                                        |
-| `pnpm check`    | Size check + `tsc` + Biome + Vitest + `cargo test`; must pass before a task is done |
+| `pnpm check`    | Size and boundary checks + `tsc` + Biome + Vitest + `cargo test`; must pass before a task is done |
 | `build.bat`     | Portable `release\Workstation.exe`                                                  |
 
 Before a release, go through `docs/manual-check.md` in the real window: it covers what the tests can't. Releases follow
@@ -43,3 +44,4 @@ the layout, the module table and the current milestone's steps.
 | `.claude/rules/architecture/overview.md`          | everything                   |
 | `.claude/rules/architecture/code-organization.md` | `src/**`, `src-tauri/src/**` |
 | `.claude/rules/architecture/backend.md`           | `src-tauri/**`               |
+| `.claude/rules/architecture/frontend.md`          | `src/**`, `index.html`, `vite.config.ts` |

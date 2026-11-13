@@ -4,11 +4,15 @@ mod commands;
 mod git;
 mod kit;
 mod scan;
+mod settings;
 #[cfg(test)]
 mod test_support;
 mod update;
 mod watch;
+mod window;
 mod workstations;
+
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -21,9 +25,15 @@ pub fn run() {
             if let (Ok(exe), Ok(dir)) = (std::env::current_exe(), commands::updates_dir(app.handle())) {
                 update::clean_up(&exe, &dir);
             }
+            let look = commands::config_dir(app.handle()).map(|dir| settings::load(&dir).look).unwrap_or_default();
+            let frame = window::open(app, &look)?;
+            app.manage(frame);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::app_info,
+            commands::get_settings,
+            commands::set_look,
             commands::list_workstations,
             commands::add_workstation,
             commands::remove_workstation,

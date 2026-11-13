@@ -1,0 +1,34 @@
+/* The Settings view: one column of sections in the middle of the window. */
+
+.settings {
+  display: grid;
+  flex: 1;
+  gap: var(--iro-space-6);
+  align-content: start;
+  align-self: center;
+  width: min(100%, calc(var(--iro-space-6) * 18));
+  min-height: 0;
+  padding: var(--iro-space-6);
+  overflow-y: auto;
+}
+
+.settings-section,
+.settings-row {
+  display: grid;
+  gap: var(--iro-space-3);
+}
+
+.settings-row {
+  gap: var(--iro-space-1);
+}
+
+/* A switch's label is only as wide as its toggle and text, so the empty row beside it doesn't toggle it. */
+.settings .iro-switch-label {
+  justify-self: start;
+}
+
+.settings-hint {
+  margin: 0;
+  color: var(--iro-fg-3);
+  font-size: var(--iro-text-sm);
+}

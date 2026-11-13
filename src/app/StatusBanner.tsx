@@ -16,6 +16,7 @@ export function StatusBanner({ error, notice, offerSetup, onSetup }: Props) {
       <Banner
         tone="danger"
         role="alert"
+        className="selectable"
         actions={
           offerSetup && (
             <Button size="sm" onClick={() => onSetup(offerSetup)}>

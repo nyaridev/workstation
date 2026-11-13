@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <title>Workstation</title>
-  <!-- The lit tile: four project folders, one lit (the open workstation), on no background. Same mark as assets/brand/. -->
+  <!-- The lit tile: four project folders, one lit (the open workstation), on no background. The app icon (`pnpm tauri icon assets/brand/icon.svg`) and the header mark. -->
   <g fill="#38bdf8" fill-opacity="0.4">
     <rect x="8" y="8" width="232" height="232" rx="56"/>
     <rect x="8" y="272" width="232" height="232" rx="56"/>

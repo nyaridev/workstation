@@ -90,7 +90,7 @@ export function RegisterForm({ root, project, git, suggestions, onDone }: Props)
           <TagInput label="Tags" tags={entry.tags} suggestions={suggestions} onChange={(tags) => set({ tags })} />
         </div>
         {error && (
-          <Notice tone="danger" role="alert" className="wide">
+          <Notice tone="danger" role="alert" className="wide selectable">
             {error}
           </Notice>
         )}

@@ -1,9 +1,9 @@
 // ProjectRow: one project in the list — name, flags, description, tags, stack, and its actions (open the folder,
-// register it in projects.json, or edit its tags). A suite or home opens to show the projects and important folders
-// inside it.
+// register it in projects.json, or edit its tags), as an iro-ui ListItem whose button lies under its chips (ADR-0011).
+// A suite or home opens to show the projects and important folders inside it; a repo opens its git overview. A right
+// click offers the same actions.
 
-import { Badge, Button, Chip, Icon } from "iro-ui";
-import { ChevronRightIcon } from "iro-ui/icons";
+import { Badge, Button, Chip, ContextMenu, ListItem, type MenuEntry } from "iro-ui";
 import { type CSSProperties, useState } from "react";
 import type { GitStatuses, Project } from "../../lib/types";
 import { FolderRow } from "./FolderRow";
@@ -79,72 +79,68 @@ export function ProjectRow(props: Props) {
   // A repo of its own (not a home that holds one) opens its git overview instead.
   const hasHistory = !openable && p.repo && git[p.path] !== undefined;
 
+  const toggle = () => setExpanded(!expanded);
+  const history = () => onHistory(p.path, p.name);
+  const menu: MenuEntry[] = [
+    ...(openable ? [{ label: expanded ? "Hide what's inside" : "Show what's inside", onSelect: toggle }] : []),
+    ...(hasHistory ? [{ label: "Git overview", onSelect: history }] : []),
+    { label: "Open folder", onSelect: () => onOpen(p.path), disabled: !p.onDisk },
+    ...(canWrite && !p.registered && !p.archived
+      ? [{ label: "Register…", onSelect: () => setEditing("register") }]
+      : []),
+    ...(canWrite && p.registered ? [{ label: "Edit tags", onSelect: () => setEditing("tags") }] : []),
+  ];
+
   return (
     <li className="project">
-      <div className="row" data-clickable={openable || hasHistory || undefined}>
-        {/* The whole row is clickable: this button lies under the row's content, which lets clicks through except on
-            its own buttons. */}
-        {openable && (
-          <button
-            type="button"
-            aria-expanded={expanded}
-            aria-label={`${expanded ? "Hide" : "Show"} what's inside ${p.name}`}
-            onClick={() => setExpanded(!expanded)}
-            className="row-hit"
-          />
-        )}
-        {hasHistory && (
-          <button
-            type="button"
-            aria-label={`Show the git history of ${p.name}`}
-            onClick={() => onHistory(p.path, p.name)}
-            className="row-hit"
-          />
-        )}
-        <div className="row-body">
-          <div className="row-head">
-            {openable && (
-              <Icon icon={ChevronRightIcon} size={14} className="chevron" data-open={expanded || undefined} />
-            )}
-            <span className="row-name">{p.name}</span>
-            {p.status && <StatusBadge status={p.status} />}
-            <GitBadges git={gitOf(p, git, inside)} />
-            {flag && <Badge tone={p.onDisk ? "warning" : "danger"}>{flag}</Badge>}
-            {openable && <span className="muted small">{summary.join(" · ")}</span>}
-          </div>
-          {p.description && <p className="row-desc">{p.description}</p>}
-          <div className="row-meta">
-            <code>{p.path}</code>
-            {p.stack.length > 0 && <span>{p.stack.join(" · ")}</span>}
-            {p.tags.map((tag) => (
-              <Chip
-                key={tag}
-                size="sm"
-                className="hit"
-                selected={selectedTags.includes(tag)}
-                onClick={() => onTag(tag)}
-              >
-                #{tag}
-              </Chip>
-            ))}
-          </div>
-        </div>
-        <div className="row-actions">
-          {canWrite && !p.registered && !p.archived && (
-            <Button size="sm" onClick={() => setEditing("register")} disabled={editing !== null}>
-              Register…
-            </Button>
-          )}
-          {canWrite && p.registered && (
-            <Button size="sm" onClick={() => setEditing("tags")} disabled={editing !== null}>
-              Edit tags
-            </Button>
-          )}
-          <Button size="sm" disabled={!p.onDisk} onClick={() => onOpen(p.path)}>
-            Open folder
-          </Button>
-        </div>
-      </div>
+      <ContextMenu items={menu}>
+        <ListItem
+          stretched
+          wrap
+          expanded={openable ? expanded : undefined}
+          onClick={openable ? toggle : hasHistory ? history : undefined}
+          title={
+            <>
+              <span className="row-name">{p.name}</span>
+              {p.status && <StatusBadge status={p.status} />}
+              <GitBadges git={gitOf(p, git, inside)} />
+              {flag && <Badge tone={p.onDisk ? "warning" : "danger"}>{flag}</Badge>}
+              {openable && <span className="muted small">{summary.join(" · ")}</span>}
+            </>
+          }
+          description={
+            <>
+              {p.description && <span className="row-desc">{p.description}</span>}
+              <span className="row-meta">
+                <code className="selectable">{p.path}</code>
+                {p.stack.length > 0 && <span>{p.stack.join(" · ")}</span>}
+                {p.tags.map((tag) => (
+                  <Chip key={tag} size="sm" selected={selectedTags.includes(tag)} onClick={() => onTag(tag)}>
+                    #{tag}
+                  </Chip>
+                ))}
+              </span>
+            </>
+          }
+          actions={
+            <>
+              {canWrite && !p.registered && !p.archived && (
+                <Button size="sm" onClick={() => setEditing("register")} disabled={editing !== null}>
+                  Register…
+                </Button>
+              )}
+              {canWrite && p.registered && (
+                <Button size="sm" onClick={() => setEditing("tags")} disabled={editing !== null}>
+                  Edit tags
+                </Button>
+              )}
+              <Button size="sm" disabled={!p.onDisk} onClick={() => onOpen(p.path)}>
+                Open folder
+              </Button>
+            </>
+          }
+        />
+      </ContextMenu>
       {editing === "register" && (
         <RegisterForm root={root} project={p} git={git[p.path]} suggestions={suggestions} onDone={done} />
       )}

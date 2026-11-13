@@ -5,8 +5,13 @@ paths:
 
 # Rust backend
 
-- Logic modules (`workstations.rs`, `scan/`, `git.rs`, `kit.rs`) never `use tauri`. They take plain paths and return
-  `Result<T, String>` or their own error type. Only `lib.rs`, `commands.rs` and `watch.rs` touch Tauri.
+- Logic modules (`workstations.rs`, `settings.rs`, `scan/`, `git.rs`, `kit.rs`, `update.rs`) never `use tauri`. They
+  take plain paths and return `Result<T, String>` or their own error type. Only `lib.rs`, `commands.rs`, `watch.rs`
+  and `window.rs` touch Tauri.
+- The main window is built in `window.rs` with the frame `settings.rs`'s look picks (ADR-0009): `custom` is
+  `decorations(false)`, `native` the system frame. Windows come from Rust, never from `tauri.conf.json`.
+- `settings.rs` keeps `settings.json` in the app config folder: missing or unreadable gives the defaults, unknown keys
+  are dropped, writes go to a temp file renamed over the old one. Every field has a default (`#[serde(default)]`).
 - Commands in `commands.rs` stay thin: parse arguments, call one logic function, return its result. No file work in a
   command.
 - Every struct the UI sees derives `serde::Serialize` with `#[serde(rename_all = "camelCase")]` and has a matching

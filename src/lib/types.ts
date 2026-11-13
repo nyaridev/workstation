@@ -124,3 +124,25 @@ export interface GitHistory {
   /** Newest first. */
   commits: Commit[];
 }
+
+/** How the window is framed (`window::Frame`): `custom` draws its own title bar, `native` has the system's. */
+export type Frame = "custom" | "native";
+
+/** The running version and the window's frame (`commands::AppInfo`). */
+export interface AppInfo {
+  version: string;
+  frame: Frame;
+}
+
+/** How the window looks (`settings::Look`). */
+export interface Look {
+  /** The system's own title bar; applies at the next start. */
+  nativeFrame: boolean;
+  /** iro-ui's flowing liquid behind the window. */
+  liquidBackground: boolean;
+}
+
+/** The app's settings (`settings::Settings`). */
+export interface Settings {
+  look: Look;
+}

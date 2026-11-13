@@ -5,13 +5,15 @@
 use crate::git;
 use crate::kit;
 use crate::scan::{self, Entry, Scan};
+use crate::settings::{self, Look, Settings};
 use crate::update::{self, Release};
 use crate::watch;
+use crate::window::Frame;
 use crate::workstations::{self, Listing};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, State};
 use tauri_plugin_opener::OpenerExt;
 
 // ── Constants ─────────────────────────────
@@ -29,6 +31,14 @@ pub struct UpdateCheck {
     latest: Option<Release>,
 }
 
+/// The running version, and the frame the window got at start.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppInfo {
+    version: &'static str,
+    frame: Frame,
+}
+
 /// The result of setting up a workstation: the updated list, and how many kit files were written or already there.
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -39,7 +49,8 @@ pub struct SetupResult {
 }
 
 // ── Private helpers ───────────────────────
-fn config_dir(app: &AppHandle) -> Result<PathBuf, String> {
+/// The app config folder, where the workstation list and settings live.
+pub fn config_dir(app: &AppHandle) -> Result<PathBuf, String> {
     app.path().app_config_dir().map_err(|e| format!("No config folder: {e}"))
 }
 
@@ -54,6 +65,25 @@ fn follow_open(app: &AppHandle, listing: Listing) -> Listing {
     let open = listing.workstations.iter().find(|w| w.available && Some(&w.root) == listing.open.as_ref());
     let _ = watch::follow(app, open.map(|w| w.root.as_path()));
     listing
+}
+
+// ── App ───────────────────────────────────
+/// The running version and the window's frame.
+#[tauri::command]
+pub fn app_info(frame: State<Frame>) -> AppInfo {
+    AppInfo { version: VERSION, frame: *frame }
+}
+
+/// The saved settings, or the defaults.
+#[tauri::command]
+pub fn get_settings(app: AppHandle) -> Result<Settings, String> {
+    Ok(settings::load(&config_dir(&app)?))
+}
+
+/// Saves a new look and returns the settings; the frame applies at the next start.
+#[tauri::command]
+pub fn set_look(app: AppHandle, look: Look) -> Result<Settings, String> {
+    settings::set_look(&config_dir(&app)?, look)
 }
 
 // ── Workstations ──────────────────────────
