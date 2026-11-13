@@ -45,7 +45,9 @@ delete that file to see the first run again.
 ## 3. The project list (real workstation, read-only)
 
 - [ ] Groups appear in order (Games, Apps, Tools, Frameworks, Research, Ideas, Archive…) with counts.
-- [ ] Every project in `projects.json` is there, with its description, path, stack and tags.
+- [ ] Every project in `projects.json` is there, one line each (ADR-0018): name, status, git badges and the
+      remote's `owner/name` line up in the same columns in every row. Hovering the name shows the description and
+      path.
 - [ ] Search finds by name, description, path, stack and notes; several words must all match.
 - [ ] A suite (ume) is one row; clicking anywhere on it (not its buttons or tags) opens its repos, each with its own
       row, badges and Edit tags. A game home opens to `game/`, `wiki/`, `docs/`, `assets/`, `saves/` (repos with git
@@ -53,9 +55,10 @@ delete that file to see the first run again.
 - [ ] A suite or game home shows no branch: its uncommitted and unpushed badges add up the repos inside it.
 - [ ] The kind tabs (All, Games, Apps…) show one kind at a time; their counts follow the other filters.
 - [ ] **Tags** opens a list with a search box and counts; checking two tags shows only projects with both. Picked tags
-      show as chips (× removes one); a `#tag` on a row also toggles it. Escape or a click outside closes the list.
-- [ ] Status, Owner and Stack each filter, and turn blue while set. "Needs attention" keeps only flagged projects, as
-      does the banner's **Show them**. "Clear filters" resets everything.
+      show as chips (× removes one). Escape or a click outside closes the list.
+- [ ] The Filters menu: Status, Owner and Stack each filter; "Needs attention" keeps only flagged projects, as does the
+      banner's **Show them** (which turns into **Show all**). Each one in use shows as a chip; "Clear filters" resets
+      everything.
 - [ ] **Open folder** (the open-folder icon) opens the project in Explorer.
 - [ ] Right-clicking a project or folder row opens a menu with the same actions as its buttons (and Show what's
       inside, Git overview), and each one works.
@@ -70,6 +73,11 @@ delete that file to see the first run again.
       unpushed ones marked. Compare with `git log --oneline` and `git status`. Refresh, Escape and a click beside the
       panel work; nothing is fetched or changed.
 - [ ] Commit something in a terminal, switch back to the app: the badge updates.
+- [ ] Pull (the down-arrow icon, ADR-0018) shows only on repos that track an upstream, and on repo folders inside a
+      home. Push a commit from another clone, then Pull: "Pulled 1 commit into …", and the files are there. Pull
+      again: "… is up to date". With a local commit the remote doesn't have and a new remote commit, Pull refuses with
+      git's reason and changes nothing. A private repo without saved credentials fails with git's reason, never a
+      hang.
 
 ## 5. Live updates (test workstation)
 

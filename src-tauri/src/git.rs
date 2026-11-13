@@ -1,5 +1,6 @@
-//! Git: a repo's branch, uncommitted changes, unpushed commits and remote owner, read with the `git` command.
-//! Nothing is reported when git isn't installed or a folder isn't a repo; the list works without it.
+//! Git: a repo's branch, uncommitted changes, unpushed commits and remote, read with the `git` command, and a
+//! fast-forward pull the user asks for (ADR-0018). Nothing is reported when git isn't installed or a folder isn't a
+//! repo; the list works without it.
 
 // ── Imports ───────────────────────────────
 use serde::Serialize;
@@ -27,6 +28,8 @@ pub struct Status {
     pub unpushed: Option<usize>,
     /// The owner in the `origin` URL (`nyaridev` in github.com/nyaridev/prepkit); None without a remote.
     pub owner: Option<String>,
+    /// The repo's name in the `origin` URL (`prepkit`); None without a remote.
+    pub repo: Option<String>,
 }
 
 /// One commit in a repo's history.
@@ -67,17 +70,26 @@ pub struct History {
 }
 
 // ── Private helpers ───────────────────────
-// Runs git in `dir` and returns its output as it is, or None when git is missing or the command fails.
-fn git_raw(dir: &Path, args: &[&str]) -> Option<String> {
+// Runs git in `dir`: its output, or what it printed on failure. It never prompts: there's no console to answer in.
+fn run(dir: &Path, args: &[&str]) -> Result<String, String> {
     let mut command = Command::new("git");
-    command.args(args).current_dir(dir);
+    command.args(args).current_dir(dir).env("GIT_TERMINAL_PROMPT", "0");
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
         command.creation_flags(CREATE_NO_WINDOW);
     }
-    let output = command.output().ok()?;
-    output.status.success().then(|| String::from_utf8_lossy(&output.stdout).into_owned())
+    let output = command.output().map_err(|_| "git isn't installed, or isn't on the PATH.".to_string())?;
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+    } else {
+        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
+    }
+}
+
+// The output as it is, or None when git is missing or the command fails.
+fn git_raw(dir: &Path, args: &[&str]) -> Option<String> {
+    run(dir, args).ok()
 }
 
 // The same, trimmed.
@@ -91,16 +103,36 @@ pub fn repo_dir(project: &Path) -> Option<PathBuf> {
     [project.to_path_buf(), project.join("game")].into_iter().find(|dir| dir.join(".git").exists())
 }
 
-/// The owner part of a remote URL: https://github.com/owner/repo, git@github.com:owner/repo.git, ssh://host/owner/repo.
-pub fn owner_of(url: &str) -> Option<String> {
+/// The owner and repo name of a remote URL: https://github.com/owner/repo, git@github.com:owner/repo.git,
+/// ssh://host/owner/repo. The name is None when the URL stops at the owner.
+pub fn remote_of(url: &str) -> Option<(String, Option<String>)> {
     let rest = url.split_once("://").map_or(url, |(_, rest)| rest);
     let path = match rest.split_once(':') {
         // scp-like `git@host:owner/repo` (a `host:port/` URL has digits before the slash instead).
         Some((_, after)) if !after.split('/').next().unwrap_or("").chars().all(|c| c.is_ascii_digit()) => after,
         _ => rest.split_once('/')?.1,
     };
-    let owner = path.trim_start_matches('/').split('/').next()?;
-    (!owner.is_empty() && path.contains('/')).then(|| owner.to_string())
+    let mut parts = path.trim_start_matches('/').split('/');
+    let owner = parts.next()?;
+    let name = parts.next().map(|name| name.trim_end_matches(".git")).filter(|name| !name.is_empty());
+    (!owner.is_empty() && path.contains('/')).then(|| (owner.to_string(), name.map(str::to_string)))
+}
+
+/// Fast-forwards the repo to its upstream branch with `git pull --ff-only` and returns how many commits came in. Never
+/// merges: git refuses when local changes would be overwritten or the branches have split, and its reason comes back.
+pub fn pull(repo: &Path) -> Result<usize, String> {
+    let before = git(repo, &["rev-parse", "HEAD"]);
+    run(repo, &["pull", "--ff-only", "--quiet"]).map_err(|reason| {
+        let reason: Vec<&str> = reason.lines().map(|line| line.trim_start_matches("fatal: ").trim()).collect();
+        if reason.is_empty() { "git couldn't pull this repo.".to_string() } else { reason.join(" ") }
+    })?;
+    let after = git(repo, &["rev-parse", "HEAD"]);
+    Ok(match (before, after) {
+        (Some(before), Some(after)) if before != after => {
+            git(repo, &["rev-list", "--count", &format!("{before}..{after}")]).and_then(|n| n.parse().ok()).unwrap_or(1)
+        }
+        _ => 0,
+    })
 }
 
 /// The status of one repo, or None when git can't read it.
@@ -109,8 +141,8 @@ pub fn status(repo: &Path) -> Option<Status> {
     let branch = git(repo, &["symbolic-ref", "--short", "HEAD"]).or_else(|| git(repo, &["rev-parse", "--short", "HEAD"]))?;
     let uncommitted = git(repo, &["status", "--porcelain"])?.lines().count();
     let unpushed = git(repo, &["rev-list", "--count", "@{u}..HEAD"]).and_then(|n| n.parse().ok());
-    let owner = git(repo, &["remote", "get-url", "origin"]).and_then(|url| owner_of(&url));
-    Some(Status { branch, uncommitted, unpushed, owner })
+    let (owner, name) = git(repo, &["remote", "get-url", "origin"]).and_then(|url| remote_of(&url)).unzip();
+    Some(Status { branch, uncommitted, unpushed, owner, repo: name.flatten() })
 }
 
 /// The overview of one repo with its latest `limit` commits, or None when git can't read it. Reads only: no fetch.
@@ -170,13 +202,15 @@ mod tests {
     use crate::test_support::Temp;
 
     #[test]
-    fn reads_the_owner_from_any_remote_form() {
-        assert_eq!(owner_of("https://github.com/nyaridev/prepkit.git").as_deref(), Some("nyaridev"));
-        assert_eq!(owner_of("git@github.com:nari-games/fish-dive.git").as_deref(), Some("nari-games"));
-        assert_eq!(owner_of("ssh://git@github.com/ume-roblox/ume").as_deref(), Some("ume-roblox"));
-        assert_eq!(owner_of("https://git.example.com:8443/team/repo").as_deref(), Some("team"));
-        assert_eq!(owner_of("https://github.com/"), None);
-        assert_eq!(owner_of("not a url"), None);
+    fn reads_the_owner_and_name_from_any_remote_form() {
+        let remote = |owner: &str, name: &str| Some((owner.to_string(), Some(name.to_string())));
+        assert_eq!(remote_of("https://github.com/nyaridev/prepkit.git"), remote("nyaridev", "prepkit"));
+        assert_eq!(remote_of("git@github.com:nari-games/fish-dive.git"), remote("nari-games", "fish-dive"));
+        assert_eq!(remote_of("ssh://git@github.com/ume-roblox/ume"), remote("ume-roblox", "ume"));
+        assert_eq!(remote_of("https://git.example.com:8443/team/repo"), remote("team", "repo"));
+        assert_eq!(remote_of("https://github.com/acme/"), Some(("acme".to_string(), None)));
+        assert_eq!(remote_of("https://github.com/"), None);
+        assert_eq!(remote_of("not a url"), None);
     }
 
     #[test]
@@ -203,7 +237,13 @@ mod tests {
         temp.dir("plain");
 
         let found = statuses(vec![("tool/".into(), repo.clone()), ("plain/".into(), temp.0.join("plain"))]);
-        let expected = Status { branch: "main".into(), uncommitted: 1, unpushed: None, owner: Some("acme".into()) };
+        let expected = Status {
+            branch: "main".into(),
+            uncommitted: 1,
+            unpushed: None,
+            owner: Some("acme".into()),
+            repo: Some("tool".into()),
+        };
         assert_eq!(found.get("tool/"), Some(&expected));
         assert_eq!(found.len(), 1, "plain folders have no status");
     }
@@ -240,5 +280,42 @@ mod tests {
         let commits: Vec<(&str, &str, bool)> =
             history.commits.iter().map(|c| (c.subject.as_str(), c.author.as_str(), c.unpushed)).collect();
         assert_eq!(commits, [("Second | with a pipe", "Tester", true), ("First", "Tester", false)]);
+    }
+
+    #[test]
+    fn pulls_by_fast_forward_only() {
+        let temp = Temp::new();
+        if git(&temp.0, &["--version"]).is_none() {
+            return; // git isn't installed here
+        }
+        let remote = temp.dir("remote.git");
+        git(&remote, &["init", "-q", "--bare", "-b", "main"]).unwrap();
+        let commit = |dir: &str, file: &str| {
+            temp.file(&format!("{dir}/{file}"), file);
+            let repo = temp.0.join(dir);
+            git(&repo, &["add", file]).unwrap();
+            git(&repo, &["-c", "user.name=Tester", "-c", "user.email=t@example.com", "commit", "-qm", file]).unwrap();
+        };
+
+        let here = temp.dir("here");
+        git(&here, &["init", "-q", "-b", "main"]).unwrap();
+        assert!(pull(&here).is_err(), "no upstream: nothing to pull from");
+        commit("here", "a.txt");
+        git(&here, &["remote", "add", "origin", &remote.to_string_lossy()]).unwrap();
+        git(&here, &["push", "-q", "-u", "origin", "main"]).unwrap();
+
+        git(&temp.0, &["clone", "-q", &remote.to_string_lossy(), "there"]).unwrap();
+        let there = temp.0.join("there");
+        commit("there", "b.txt");
+        commit("there", "c.txt");
+        git(&there, &["push", "-q"]).unwrap();
+        assert_eq!(pull(&here), Ok(2));
+        assert_eq!(pull(&here), Ok(0), "already up to date");
+
+        commit("there", "d.txt");
+        git(&there, &["push", "-q"]).unwrap();
+        commit("here", "e.txt");
+        assert!(pull(&here).is_err(), "split branches are never merged");
+        assert!(history(&here, 10).unwrap().commits.iter().all(|c| c.subject != "d.txt"));
     }
 }

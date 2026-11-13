@@ -20,7 +20,9 @@ paths:
   command.
 - Every struct the UI sees derives `serde::Serialize` with `#[serde(rename_all = "camelCase")]` and has a matching
   type in `src/lib/types.ts`.
-- Run `git` through `std::process::Command` with `CREATE_NO_WINDOW` on Windows, so no console flashes.
+- Run `git` through `std::process::Command` with `CREATE_NO_WINDOW` on Windows, so no console flashes, and
+  `GIT_TERMINAL_PROMPT=0`, so git never waits for a password in a console nobody sees. `git.rs` only reads, except
+  `pull`: `git pull --ff-only`, run only from the Pull button (ADR-0018). Never merge, rebase, reset or check out.
 - Paths that cross to the UI are relative to the workstation root, with forward slashes and a trailing slash
   (`games/roblox/fish-dive/`), the same form as `projects.json`.
 - Tests build fake workstations in a temp folder (`std::env::temp_dir()` plus a unique name) and clean them up.

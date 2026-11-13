@@ -1,9 +1,9 @@
 // ProjectList: the projects of the open workstation, grouped by kind, with search, tag and status filters.
 
-import { Button, EmptyState, Icon, Notice, Panel, SectionTitle, Spinner } from "iro-ui";
+import { Button, EmptyState, Icon, Notice, Panel, SectionTitle, Spinner, toast } from "iro-ui";
 import { useCallback, useMemo, useState } from "react";
 import { NoticeBanner } from "../../app/NoticeBanner";
-import { openFolder } from "../../lib/backend";
+import { gitPull, openFolder } from "../../lib/backend";
 import { HistoryPanel } from "../history/HistoryPanel";
 import { STATUSES } from "./fields";
 import {
@@ -18,8 +18,6 @@ import {
   valuesInUse,
 } from "./filter";
 import { groupIcon } from "./groupIcons";
-import { ListLayoutPicker } from "./ListLayoutPicker";
-import { useListLayout } from "./listLayout";
 import { ProjectFilters } from "./ProjectFilters";
 import { ProjectRow } from "./ProjectRow";
 import { useGitStatus } from "./useGitStatus";
@@ -40,7 +38,6 @@ export function ProjectList({ root }: Props) {
   const { scan, error, reload } = useProjects(root);
   const git = useGitStatus(root, scan?.projects);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
-  const layout = useListLayout();
   const [openError, setOpenError] = useState<string | null>(null);
   // The repo whose git overview is open.
   const [history, setHistory] = useState<{ path: string; name: string } | null>(null);
@@ -65,8 +62,22 @@ export function ProjectList({ root }: Props) {
   const tags = useMemo(() => counts.map(([tag]) => tag), [counts]);
   const flagged = projects.filter((p) => registryFlag(p) !== null).length;
 
-  const toggleTag = (tag: string) =>
-    setFilters((f) => ({ ...f, tags: f.tags.includes(tag) ? f.tags.filter((t) => t !== tag) : [...f.tags, tag] }));
+  // Pulls a repo by fast-forward (ADR-0018), says how it went, then rescans so its badges catch up.
+  const pull = (path: string, name: string) =>
+    gitPull(root, path).then(
+      (pulled) => {
+        toast({
+          tone: "success",
+          title:
+            pulled === 0 ? `${name} is up to date` : `Pulled ${pulled} commit${pulled === 1 ? "" : "s"} into ${name}`,
+        });
+        reload();
+      },
+      (error) => {
+        toast({ tone: "error", title: `Couldn't pull ${name}`, description: String(error) });
+      },
+    );
+
   const open = (path: string) =>
     openFolder(root, path).then(
       () => setOpenError(null),
@@ -99,7 +110,7 @@ export function ProjectList({ root }: Props) {
         stacks={valuesInUse(projects, (p) => p.stack)}
         onChange={setFilters}
       />
-      <div className="project-scroll" data-layout={layout}>
+      <div className="project-scroll">
         {groups.length === 0 && <EmptyState title="No project matches these filters." />}
         {groups.map((group) => (
           <Panel
@@ -120,17 +131,6 @@ export function ProjectList({ root }: Props) {
                 <span className="group-count">{group.projects.length}</span>
               </span>
             </SectionTitle>
-            {layout === "table" && (
-              <div className="table-head" aria-hidden="true">
-                <span className="row-cells">
-                  <span>Name</span>
-                  <span>Status</span>
-                  <span>Git</span>
-                  <span>Stack</span>
-                  <span>Tags</span>
-                </span>
-              </div>
-            )}
             <ul className="rows">
               {group.projects.map((project) => (
                 <ProjectRow
@@ -139,11 +139,10 @@ export function ProjectList({ root }: Props) {
                   project={project}
                   inside={inside}
                   git={git}
-                  selectedTags={filters.tags}
                   suggestions={tags}
                   canWrite={scan.registryError === null}
-                  onTag={toggleTag}
                   onOpen={open}
+                  onPull={pull}
                   onHistory={showHistory}
                   onSaved={reload}
                 />
@@ -176,7 +175,6 @@ export function ProjectList({ root }: Props) {
         </NoticeBanner>
       )}
       {list}
-      {import.meta.env.DEV && <ListLayoutPicker />}
       {history && <HistoryPanel root={root} path={history.path} name={history.name} onClose={closeHistory} />}
     </div>
   );

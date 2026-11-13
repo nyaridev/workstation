@@ -1,17 +1,17 @@
-// ProjectRow: one project in the list — name, flags, description, tags, stack, and its actions (open the folder,
-// register it in projects.json, or edit its tags), as an iro-ui ListItem whose button lies under its chips (ADR-0011).
-// A suite or home opens to show the projects and important folders inside it; a repo opens its git overview. A right
-// click offers the same actions.
+// ProjectRow: one project on one line (ADR-0018), in the same columns as every row: the name (its description and
+// path as a tooltip, its flags and what's inside), the status, the git badges and the remote's owner/name; then its
+// actions (register it in projects.json, edit its tags, pull it, open the folder) as icon buttons. A suite or home
+// opens to show the projects and important folders inside it; a repo opens its git overview. A right click offers the
+// same actions.
 
-import { Badge, Chip, ContextMenu, Icon, IconButton, ListItem, type MenuEntry } from "iro-ui";
-import { FilePlusIcon, FolderOpenIcon, TagIcon } from "iro-ui/icons";
+import { Badge, ContextMenu, Icon, IconButton, ListItem, type MenuEntry, Tooltip } from "iro-ui";
+import { ArrowDownIcon, FilePlusIcon, FolderOpenIcon, TagIcon } from "iro-ui/icons";
 import { type CSSProperties, useState } from "react";
 import type { GitStatuses, Project } from "../../lib/types";
 import { FolderRow } from "./FolderRow";
 import { statusColor } from "./fields";
 import { gitOf, registryFlag } from "./filter";
 import { GitBadges } from "./GitBadges";
-import { useListLayout } from "./listLayout";
 import { RegisterForm } from "./RegisterForm";
 import { TagEditor } from "./TagEditor";
 
@@ -22,13 +22,13 @@ interface Props {
   inside: Map<string, Project[]>;
   /** Git status by path; a project or folder without one isn't a repo (or git couldn't read it). */
   git: GitStatuses;
-  selectedTags: string[];
   /** Tags already in use, suggested while editing. */
   suggestions: string[];
   /** False while projects.json can't be read, so nothing is offered that would write it. */
   canWrite: boolean;
-  onTag: (tag: string) => void;
   onOpen: (path: string) => void;
+  /** Pulls the repo at a path by fast-forward (ADR-0018); the row shows it working until it settles. */
+  onPull: (path: string, name: string) => Promise<void>;
   /** Opens the git overview of a repo (by path), with the name to show. */
   onHistory: (path: string, name: string) => void;
   onSaved: () => void;
@@ -51,22 +51,10 @@ function StatusBadge({ status }: { status: string }) {
 
 /** A project line; its tags toggle the tag filter. */
 export function ProjectRow(props: Props) {
-  const {
-    root,
-    project: p,
-    inside,
-    git,
-    selectedTags,
-    suggestions,
-    canWrite,
-    onTag,
-    onOpen,
-    onHistory,
-    onSaved,
-  } = props;
+  const { root, project: p, inside, git, suggestions, canWrite, onOpen, onPull, onHistory, onSaved } = props;
   const [editing, setEditing] = useState<"register" | "tags" | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const layout = useListLayout();
+  const [pulling, setPulling] = useState(false);
   const done = (saved: boolean) => {
     setEditing(null);
     if (saved) onSaved();
@@ -84,9 +72,19 @@ export function ProjectRow(props: Props) {
 
   const toggle = () => setExpanded(!expanded);
   const history = () => onHistory(p.path, p.name);
+  // Its own repo (a game home's `game/`), not the totals of the repos inside a suite.
+  const own = p.repo ? git[p.path] : undefined;
+  // Only a branch that tracks an upstream has something to pull from.
+  const canPull = p.onDisk && own !== undefined && own.unpushed !== null;
+  const pull = async () => {
+    setPulling(true);
+    await onPull(p.path, p.name);
+    setPulling(false);
+  };
   const menu: MenuEntry[] = [
     ...(openable ? [{ label: expanded ? "Hide what's inside" : "Show what's inside", onSelect: toggle }] : []),
     ...(hasHistory ? [{ label: "Git overview", onSelect: history }] : []),
+    ...(canPull ? [{ label: "Pull from the remote", onSelect: () => void pull(), disabled: pulling }] : []),
     { label: "Open folder", onSelect: () => onOpen(p.path), disabled: !p.onDisk },
     ...(canWrite && !p.registered && !p.archived
       ? [{ label: "Register…", onSelect: () => setEditing("register") }]
@@ -94,102 +92,38 @@ export function ProjectRow(props: Props) {
     ...(canWrite && p.registered ? [{ label: "Edit tags", onSelect: () => setEditing("tags") }] : []),
   ];
 
-  const name = <span className="row-name">{p.name}</span>;
-  const status = p.status && <StatusBadge status={p.status} />;
-  const gitBadges = <GitBadges git={gitOf(p, git, inside)} />;
-  const flagBadge = flag && <Badge tone={p.onDisk ? "warning" : "danger"}>{flag}</Badge>;
-  const summaryText = openable && <span className="muted small">{summary.join(" · ")}</span>;
-  const path = <code className="selectable">{p.path}</code>;
-  const stack = p.stack.length > 0 && <span>{p.stack.join(" · ")}</span>;
-  const tagChips = p.tags.map((tag) => (
-    <Chip key={tag} size="sm" selected={selectedTags.includes(tag)} onClick={() => onTag(tag)}>
-      #{tag}
-    </Chip>
-  ));
-  // shortcut: one row per trial layout (listLayout.ts); keep the picked one's branch, delete the rest.
-  const content =
-    layout === "compact"
-      ? {
-          title: (
-            <>
-              {name}
-              {status}
-              {gitBadges}
-              {flagBadge}
-              {summaryText}
-            </>
-          ),
-          meta: path,
-        }
-      : layout === "tiles"
-        ? {
-            title: (
-              <>
-                {name}
-                {status}
-              </>
-            ),
-            description: (
-              <>
-                {p.description && <span className="row-desc">{p.description}</span>}
-                <span className="row-meta">
-                  {gitBadges}
-                  {flagBadge}
-                  {summaryText}
-                </span>
-                <span className="row-meta">{tagChips}</span>
-              </>
-            ),
-          }
-        : layout === "table"
-          ? {
-              title: (
-                <span className="row-cells">
-                  <span className="row-cell">
-                    {name}
-                    {flagBadge}
-                    {summaryText}
-                  </span>
-                  <span className="row-cell">{status}</span>
-                  <span className="row-cell">{gitBadges}</span>
-                  <span className="row-cell muted small">{stack}</span>
-                  <span className="row-cell">{tagChips}</span>
-                </span>
-              ),
-            }
-          : {
-              title: (
-                <>
-                  {name}
-                  {status}
-                  {gitBadges}
-                  {flagBadge}
-                  {summaryText}
-                </>
-              ),
-              description: (
-                <>
-                  {p.description && <span className="row-desc">{p.description}</span>}
-                  <span className="row-meta">
-                    {path}
-                    {stack}
-                    {tagChips}
-                  </span>
-                </>
-              ),
-            };
+  const remote = own && (own.owner ? `${own.owner}/${own.repo ?? "?"}` : "no remote");
 
   return (
-    <li className="project" data-open={expanded || editing !== null ? "" : undefined}>
+    <li className="project">
       <ContextMenu items={menu}>
         <ListItem
           stretched
-          wrap={layout === "cards" || layout === "tiles"}
           expanded={openable ? expanded : undefined}
           onClick={openable ? toggle : hasHistory ? history : undefined}
-          title={content.title}
-          description={content.description}
-          meta={content.meta}
+          title={
+            <span className="row-cells">
+              <span className="row-cell">
+                <Tooltip
+                  content={
+                    <span className="row-tip">
+                      {p.description && <span>{p.description}</span>}
+                      <code>{p.path}</code>
+                    </span>
+                  }
+                >
+                  <span className="row-name">{p.name}</span>
+                </Tooltip>
+                {flag && <Badge tone={p.onDisk ? "warning" : "danger"}>{flag}</Badge>}
+                {openable && <span className="muted small">{summary.join(" · ")}</span>}
+              </span>
+              <span className="row-cell">{p.status && <StatusBadge status={p.status} />}</span>
+              <span className="row-cell">
+                <GitBadges git={gitOf(p, git, inside)} />
+              </span>
+              <span className="row-cell row-remote">{remote}</span>
+            </span>
+          }
           actions={
             <>
               {canWrite && !p.registered && !p.archived && (
@@ -208,6 +142,15 @@ export function ProjectRow(props: Props) {
                   label="Edit tags"
                   onClick={() => setEditing("tags")}
                   disabled={editing !== null}
+                />
+              )}
+              {canPull && (
+                <IconButton
+                  size="sm"
+                  icon={<Icon icon={ArrowDownIcon} />}
+                  label="Pull from the remote"
+                  loading={pulling}
+                  onClick={() => void pull()}
                 />
               )}
               <IconButton
@@ -236,6 +179,7 @@ export function ProjectRow(props: Props) {
               folder={folder}
               git={git[folder.path]}
               onOpen={onOpen}
+              onPull={() => onPull(folder.path, `${p.name} / ${folder.name}`)}
               onHistory={() => onHistory(folder.path, `${p.name} / ${folder.name}`)}
             />
           ))}

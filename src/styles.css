@@ -391,85 +391,23 @@ code {
   font-weight: 600;
 }
 
-.row-desc {
-  color: var(--iro-fg-2);
-  font-size: var(--iro-text-sm);
-}
-
-.row-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--iro-space-1) var(--iro-space-3);
-  align-items: center;
-}
-
 .status-colored {
   color: var(--status-ink);
   background: color-mix(in srgb, var(--status) 18%, transparent);
 }
 
-/* ── List layouts on trial (listLayout.ts) ─ shortcut: keep the picked one's rules, delete the rest; the
-   `.iro-list-item…` selectors reach into iro-ui's ListItem and go with them. */
-
-/* 2 · Compact: one line per project, badges beside the name, the path at the end. */
-.project-scroll[data-layout="compact"] .iro-list-item-title,
-.project-scroll[data-layout="table"] .iro-list-item-title {
+/* One line per project (ADR-0018): the same columns in every row, the actions at the end. */
+.project-scroll .iro-list-item-title {
   display: flex;
   gap: var(--iro-space-2);
   align-items: center;
 }
 
-.project-scroll[data-layout="compact"] .iro-list-item-meta code {
-  color: var(--iro-fg-4);
-}
-
-/* 3 · Tiles: plain group headings over a grid of tiles; an opened tile takes the whole row. */
-.project-scroll[data-layout="tiles"] .group {
-  overflow: visible;
-  background: none;
-  border: 0;
-  box-shadow: none;
-}
-
-.project-scroll[data-layout="tiles"] .group-title {
-  padding: 0 0 var(--iro-space-2);
-  border-bottom: 0;
-}
-
-.project-scroll[data-layout="tiles"] .group > .rows {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(calc(var(--iro-space-6) * 12), 1fr));
-  gap: var(--iro-space-3);
-  padding: 0;
-}
-
-.project-scroll[data-layout="tiles"] .group > .rows > .project {
-  overflow: hidden;
-  background: var(--iro-surface);
-  border: 1px solid var(--iro-line);
-  border-radius: var(--iro-radius-lg);
-  box-shadow: var(--iro-shadow-card);
-}
-
-.project-scroll[data-layout="tiles"] .group > .rows > .project[data-open] {
-  grid-column: 1 / -1;
-}
-
-/* A tile's actions sit in its top-right corner, over the text's end. */
-.project-scroll[data-layout="tiles"] .group > .rows > .project > .iro-list-item {
-  align-items: flex-start;
-}
-
-/* 4 · Table: the same columns in every row, under a header row. */
-.project-scroll[data-layout="table"] {
-  /* shortcut: rem column widths; they don't follow the text size. Upgrade to measured columns if Table wins. */
-  --table-cols: 12rem 7.5rem 14rem 9rem 1fr;
-}
-
 .row-cells {
+  /* shortcut: rem column widths; they don't follow the text size. Measure them if that starts to matter. */
   display: grid;
   flex: 1;
-  grid-template-columns: var(--table-cols);
+  grid-template-columns: 12rem 7.5rem minmax(0, 1fr) 12rem;
   gap: var(--iro-space-3);
   align-items: center;
   min-width: 0;
@@ -483,49 +421,32 @@ code {
   overflow: hidden;
 }
 
-/* Rows without a chevron keep its room, so every row's columns line up. */
-.project-scroll[data-layout="table"] .iro-list-item-main:not(:has(> .iro-list-item-chevron))::before {
-  flex: none;
-  width: 1.1em;
-  font-size: var(--iro-text-xs);
-  content: "";
-}
-
-/* Lined up with the rows: their list's and button's padding, then the chevron's room and gap. */
-.table-head {
-  display: flex;
-  gap: var(--iro-space-3);
-  padding: var(--iro-space-2) var(--iro-space-4) var(--iro-space-2) calc(var(--iro-space-2) * 2);
+/* The remote's owner/name, at the row's end beside the actions. */
+.row-remote {
+  justify-content: flex-end;
   color: var(--iro-fg-4);
-  font-size: var(--iro-text-2xs);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border-bottom: 1px solid var(--iro-line);
+  font-size: var(--iro-text-xs);
+  white-space: nowrap;
 }
 
-.table-head::before {
+/* Room for three icon buttons in every row, so the columns before them end in the same place. */
+.project-scroll .iro-list-item-actions {
+  justify-content: flex-end;
+  min-width: calc(var(--iro-control-sm) * 3 + var(--iro-space-1) * 2 + var(--iro-space-2));
+}
+
+/* The name's tooltip: the description, then the path. */
+.row-tip {
+  display: grid;
+  gap: var(--iro-space-1);
+}
+
+/* Rows without a chevron keep its room, so every row's columns line up. shortcut: reaches into iro-ui's ListItem. */
+.project-scroll .iro-list-item-main:not(:has(> .iro-list-item-chevron))::before {
   flex: none;
   width: 1.1em;
   font-size: var(--iro-text-xs);
   content: "";
-}
-
-/* The dev-only layout picker, floating in the bottom-right corner. */
-.dev-layout-picker {
-  position: fixed;
-  right: var(--iro-space-4);
-  bottom: var(--iro-space-4);
-  z-index: 10;
-  display: flex;
-  gap: var(--iro-space-3);
-  align-items: center;
-  padding: var(--iro-space-2) var(--iro-space-3);
-}
-
-.dev-layout-label {
-  color: var(--iro-fg-3);
-  font-size: var(--iro-text-xs);
 }
 
 .folder-title {

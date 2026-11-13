@@ -76,7 +76,13 @@ export function gitOf(p: Project, git: GitStatuses, inside: Map<string, Project[
   const repos = paths.map((path) => git[path]).filter((s): s is GitStatus => !!s);
   if (repos.length === 0) return undefined;
   const sum = (count: (s: GitStatus) => number) => repos.reduce((total, s) => total + count(s), 0);
-  return { branch: "", uncommitted: sum((s) => s.uncommitted), unpushed: sum((s) => s.unpushed ?? 0), owner: null };
+  return {
+    branch: "",
+    uncommitted: sum((s) => s.uncommitted),
+    unpushed: sum((s) => s.unpushed ?? 0),
+    owner: null,
+    repo: null,
+  };
 }
 
 /** Why a project doesn't match projects.json, or null when it does. Archived folders must have no entry. */

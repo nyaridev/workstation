@@ -158,16 +158,29 @@ export async function scanWorkstation(root: string): Promise<Scan> {
 export async function gitStatus(root: string, paths: string[]): Promise<GitStatuses> {
   if (inTauri) return invoke("git_status", { root, paths });
   return {
-    "apps/desktop/workstation/": { branch: "main", uncommitted: 4, unpushed: 2, owner: "nyaridev" },
-    "games/roblox/fish-dive/": { branch: "main", uncommitted: 0, unpushed: 0, owner: "nari-games" },
-    "tools/rename/": { branch: "feature/batch", uncommitted: 1, unpushed: null, owner: "nyaridev" },
-    "frameworks/kit/kit-core/": { branch: "main", uncommitted: 0, unpushed: 0, owner: "nyaridev" },
-    "frameworks/kit/kit-ui/": { branch: "main", uncommitted: 3, unpushed: 1, owner: "nyaridev" },
+    "apps/desktop/workstation/": {
+      branch: "main",
+      uncommitted: 4,
+      unpushed: 2,
+      owner: "nyaridev",
+      repo: "workstation",
+    },
+    "games/roblox/fish-dive/": { branch: "main", uncommitted: 0, unpushed: 0, owner: "nari-games", repo: "fish-dive" },
+    "tools/rename/": { branch: "feature/batch", uncommitted: 1, unpushed: null, owner: "nyaridev", repo: "rename" },
+    "frameworks/kit/kit-core/": { branch: "main", uncommitted: 0, unpushed: 0, owner: "nyaridev", repo: "kit-core" },
+    "frameworks/kit/kit-ui/": { branch: "main", uncommitted: 3, unpushed: 1, owner: "nyaridev", repo: "kit-ui" },
     // A game home reads as its game/ repo, as the real backend reports it.
-    "games/godot/swamp/": { branch: "main", uncommitted: 0, unpushed: 2, owner: "local" },
-    "games/godot/swamp/game/": { branch: "main", uncommitted: 0, unpushed: 2, owner: "local" },
-    "games/godot/swamp/wiki/": { branch: "main", uncommitted: 5, unpushed: 0, owner: "local" },
+    "games/godot/swamp/": { branch: "main", uncommitted: 0, unpushed: 2, owner: null, repo: null },
+    "games/godot/swamp/game/": { branch: "main", uncommitted: 0, unpushed: 2, owner: null, repo: null },
+    "games/godot/swamp/wiki/": { branch: "main", uncommitted: 5, unpushed: 0, owner: "nari-games", repo: "swamp-wiki" },
   };
+}
+
+/** Pulls the repo at `path` by fast-forward only (ADR-0018); answers how many commits came in. */
+export async function gitPull(root: string, path: string): Promise<number> {
+  if (inTauri) return invoke("git_pull", { root, path });
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  return path.includes("fish-dive") ? 0 : 3;
 }
 
 /** The git overview of the repo at `path`: branch, upstream, uncommitted files and the latest commits. */

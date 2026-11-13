@@ -14,8 +14,9 @@ src-tauri/src/
 ├─ scan/               layout.rs (place rules, change filter), registry.rs (read/write projects.json),
 │                      stack.rs (stack guess), mod.rs (merge)
 ├─ watch.rs            debounced watcher → `projects-changed`
-├─ git.rs              branch, uncommitted, unpushed, remote owner (the `git` command, 8 repos at a time); one
-│                      repo's history (commits, unpushed, uncommitted files). Reads only, never fetches
+├─ git.rs              branch, uncommitted, unpushed, remote owner/name (the `git` command, 8 repos at a time); one
+│                      repo's history (commits, unpushed, uncommitted files); `git pull --ff-only` on the user's
+│                      click (ADR-0018). Never fetches on its own
 ├─ kit.rs              the embedded starter kit and "set up here" (never overwrites)
 ├─ update.rs           the app's own updates through Tauri's signed updater: status, checks, install (ADR-0014)
 ├─ settings.rs         the app's settings in settings.json: the look, the preferences (updates, start, tray)
@@ -79,6 +80,7 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | [0015](0015-start-with-system-and-tray.md) | Start with the system, close to the tray, one copy at a time | Accepted |
 | [0016](0016-installers-for-three-systems.md) | Installers for Windows, macOS and Linux, built by GitHub Actions | Accepted |
 | [0017](0017-workstations-switched-in-settings.md) | Workstations are switched in Settings only | Accepted |
+| [0018](0018-compact-rows-and-pull-by-hand.md) | Compact project rows, and pulling a repo by hand | Accepted |
 
 ## Milestones
 

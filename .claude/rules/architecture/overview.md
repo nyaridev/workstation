@@ -49,9 +49,10 @@ folder the app remembers; `projects.json` in it is the only project registry (`d
 ## Rules
 
 - Never delete, move or rename anything inside a workstation. The only writes are adding or editing `projects.json`
-  entries and copying kit files that don't exist yet.
-- The only network calls are the updater's, to this app's own GitHub releases (ADR-0014). No other HTTP client, no
-  telemetry.
+  entries, copying kit files that don't exist yet, and `git pull --ff-only` in a repo when the user clicks Pull
+  (ADR-0018).
+- The only network calls are the updater's, to this app's own GitHub releases (ADR-0014), and git's own during a pull
+  the user asked for. No other HTTP client, no telemetry, nothing fetched on a timer.
 - No paths to anyone's PC in code, config, tests or docs. Tests build fake workstations in a temp folder.
 - Only `src/lib/backend.ts` imports `@tauri-apps/*`; the window is iro-ui in the sumi style and works like Scrappy's
   (ADR-0008, ADR-0010). Details: `frontend.md`.

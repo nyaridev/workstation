@@ -62,6 +62,8 @@ export interface GitStatus {
   unpushed: number | null;
   /** The owner in the origin URL; null without a remote. */
   owner: string | null;
+  /** The repo's name in the origin URL; null without a remote. */
+  repo: string | null;
 }
 
 /** Git status by project path; projects that aren't repos have no key. */

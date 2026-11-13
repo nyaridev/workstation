@@ -146,6 +146,19 @@ pub async fn git_history(root: String, path: String) -> Result<git::History, Str
     .map_err(|e| e.to_string())?
 }
 
+/// Pulls the repo at `path` (a project, or a repo folder inside one) by fast-forward only, and returns how many commits
+/// came in (ADR-0018). Runs off the main thread: it waits on the network.
+#[tauri::command]
+pub async fn git_pull(root: String, path: String) -> Result<usize, String> {
+    let folder = scan::folder(Path::new(&root), &path)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let repo = git::repo_dir(&folder).ok_or("This folder isn't a git repo.")?;
+        git::pull(&repo)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 /// A guess at a project's stack from its files, for the Register form.
 #[tauri::command]
 pub fn guess_stack(root: String, path: String) -> Result<Vec<String>, String> {

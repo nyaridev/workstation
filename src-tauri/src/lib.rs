@@ -59,6 +59,7 @@ pub fn run() {
             commands::open_folder,
             commands::git_status,
             commands::git_history,
+            commands::git_pull,
             commands::guess_stack,
             commands::register_project,
             commands::set_tags,
