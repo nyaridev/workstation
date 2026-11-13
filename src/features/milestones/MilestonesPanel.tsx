@@ -1,20 +1,80 @@
-// MilestonesPanel: a project's plan in a side sheet, from its `milestones` in projects.json: every milestone in
-// order, the done ones checked and the one being worked on (the first not done) marked. Reads only.
+// MilestonesPanel: a project's plans in a side sheet, from its `milestones` in projects.json. A project with several
+// tracks gets a tab for each. A plan shows what's being worked on with its progress, then every milestone in order:
+// done ones checked, the current one flagged, the rest numbered. Reads only.
 
-import { ProgressBar, Sheet, Stepper } from "iro-ui";
+import { Badge, Icon, ListItem, Panel, ProgressBar, SectionTitle, Sheet, Tabs } from "iro-ui";
+import { CheckCircleIcon, FlagIcon } from "iro-ui/icons";
+import { useState } from "react";
 import type { Project } from "../../lib/types";
+import { type Track, tracksOf } from "../projects/milestones";
 
 interface Props {
   project: Project;
+  /** The track to show first (the row line that was clicked); otherwise the first still in progress. */
+  track: string | null;
   onClose: () => void;
 }
 
-/** Opens from the right; Escape, the close button or a click beside it closes it. */
-export function MilestonesPanel({ project, onClose }: Props) {
-  const { milestones } = project;
+// A tab value for a track; the unnamed plan of a single-plan project never has tabs.
+const keyOf = (track: Track) => track.name ?? "";
+
+// One plan: where it stands, then its milestones.
+function Plan({ track }: { track: Track }) {
+  const { milestones, progress } = track;
   const done = milestones.filter((m) => m.done).length;
-  // Stepper marks everything before `current` done; with every milestone done, that's past the end.
-  const current = milestones.findIndex((m) => !m.done);
+  return (
+    <div className="plan">
+      <Panel className="plan-now">
+        <span className="plan-label">{progress ? "Working on" : "Finished"}</span>
+        <span className="plan-current">{progress ? progress.current.name : "Every milestone is done"}</span>
+        <span className="plan-progress">
+          <ProgressBar
+            size="sm"
+            tone={progress ? "accent" : "success"}
+            value={done / milestones.length}
+            label={`${track.name ?? "Milestones"} done`}
+          />
+          <span className="plan-count">
+            {done} of {milestones.length} done
+          </span>
+        </span>
+      </Panel>
+      <section aria-labelledby="plan-steps">
+        <SectionTitle id="plan-steps">Milestones</SectionTitle>
+        <ol className="plan-steps">
+          {milestones.map((m, i) => {
+            const state = m.done ? "done" : i === progress?.index ? "current" : "waiting";
+            return (
+              <ListItem
+                // biome-ignore lint/suspicious/noArrayIndexKey: two milestones may share a name; their place is theirs
+                key={i}
+                as="li"
+                data-state={state}
+                start={
+                  state === "done" ? (
+                    <Icon icon={CheckCircleIcon} />
+                  ) : state === "current" ? (
+                    <Icon icon={FlagIcon} />
+                  ) : (
+                    <span className="plan-number">{i + 1}</span>
+                  )
+                }
+                title={m.name}
+                meta={state === "current" && <Badge tone="accent">now</Badge>}
+              />
+            );
+          })}
+        </ol>
+      </section>
+    </div>
+  );
+}
+
+/** Opens from the right; Escape, the close button or a click beside it closes it. */
+export function MilestonesPanel({ project, track, onClose }: Props) {
+  const tracks = tracksOf(project.milestones);
+  const first = tracks.find((t) => t.name === track) ?? tracks.find((t) => t.progress) ?? tracks[0];
+  const [tab, setTab] = useState(first ? keyOf(first) : "");
 
   return (
     <Sheet
@@ -25,17 +85,25 @@ export function MilestonesPanel({ project, onClose }: Props) {
       resizable
       className="milestones"
     >
-      <div className="milestones-head">
-        <ProgressBar value={milestones.length ? done / milestones.length : 0} label="Milestones done" />
-        <span className="muted small">
-          {done === milestones.length ? "Every milestone is done" : `${done} of ${milestones.length} done`}
-        </span>
-      </div>
-      <Stepper
-        orientation="vertical"
-        steps={milestones.map((m) => ({ label: m.name }))}
-        current={current < 0 ? milestones.length : current}
-      />
+      {tracks.length > 1 ? (
+        <Tabs
+          aria-label="Plans"
+          value={tab}
+          onValueChange={setTab}
+          tabs={tracks.map((t) => ({
+            value: keyOf(t),
+            label: t.name ?? "Other",
+            badge: (
+              <span className="plan-tab-count">
+                {t.milestones.filter((m) => m.done).length}/{t.milestones.length}
+              </span>
+            ),
+            content: <Plan track={t} />,
+          }))}
+        />
+      ) : (
+        first && <Plan track={first} />
+      )}
     </Sheet>
   );
 }

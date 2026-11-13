@@ -12,7 +12,7 @@ import { FolderRow } from "./FolderRow";
 import { statusColor } from "./fields";
 import { gitOf, registryFlag } from "./filter";
 import { GitBadges } from "./GitBadges";
-import { progressOf } from "./milestones";
+import { tracksOf } from "./milestones";
 import { RegisterForm } from "./RegisterForm";
 import { TagDialog } from "./TagDialog";
 
@@ -34,8 +34,8 @@ interface Props {
   onOpenPage: (path: string) => void;
   /** Opens the git overview of a repo (by path), with the name to show. */
   onHistory: (path: string, name: string) => void;
-  /** Opens a project's milestones. */
-  onMilestones: (project: Project) => void;
+  /** Opens a project's milestones, on a track's tab when one is named. */
+  onMilestones: (project: Project, track?: string | null) => void;
   onSaved: () => void;
 }
 
@@ -71,7 +71,8 @@ export function ProjectRow(props: Props) {
     onSaved,
   } = props;
   // The milestone being worked on; none once the last one is done, and then the row has no second line.
-  const progress = progressOf(p.milestones);
+  // One line per plan still in progress; none once every milestone is done.
+  const working = tracksOf(p.milestones).filter((t) => t.progress);
   const [editing, setEditing] = useState<"register" | null>(null);
   // The tag dialog is open.
   const [tagsOpen, setTagsOpen] = useState(false);
@@ -160,24 +161,34 @@ export function ProjectRow(props: Props) {
             </span>
           }
           description={
-            progress && (
-              // One button from the flag to the count, so a click anywhere on the line opens the milestones.
-              <Button
-                size="sm"
-                variant="ghost"
-                className="row-milestone"
-                aria-label={`Milestones: ${progress.current.name}, ${progress.done} of ${progress.total} done`}
-                onClick={() => onMilestones(p)}
-              >
-                <span className="row-milestone-name">
-                  <Icon icon={FlagIcon} />
-                  <span className="row-milestone-text">{progress.current.name}</span>
-                </span>
-                <ProgressBar size="sm" value={progress.done / progress.total} className="row-milestone-bar" />
-                <span className="row-milestone-count">
-                  {progress.done} of {progress.total} done
-                </span>
-              </Button>
+            working.length > 0 && (
+              <span className="row-milestones">
+                {working.map(({ name: track, progress }) =>
+                  progress ? (
+                    // One button from the flag to the count, so a click anywhere on the line opens that plan.
+                    <Button
+                      key={track ?? ""}
+                      size="sm"
+                      variant="ghost"
+                      className="row-milestone"
+                      aria-label={`${track ?? "Milestones"}: ${progress.current.name}, ${progress.done} of ${progress.total} done`}
+                      onClick={() => onMilestones(p, track)}
+                    >
+                      <span className="row-milestone-name">
+                        <Icon icon={FlagIcon} />
+                        <span className="row-milestone-text">
+                          {track && <span className="row-milestone-track">{track} · </span>}
+                          {progress.current.name}
+                        </span>
+                      </span>
+                      <ProgressBar size="sm" value={progress.done / progress.total} className="row-milestone-bar" />
+                      <span className="row-milestone-count">
+                        {progress.done} of {progress.total} done
+                      </span>
+                    </Button>
+                  ) : null,
+                )}
+              </span>
             )
           }
           actions={

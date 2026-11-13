@@ -12,7 +12,8 @@ const base = {
   folders: [],
   milestones: [],
 };
-const plan = (done: number, names: string[]) => names.map((name, i) => ({ name, done: i < done }));
+const plan = (done: number, names: string[], track: string | null = null) =>
+  names.map((name, i) => ({ name, done: i < done, track }));
 const folder = (path: string, repo = false) => ({ path, name: path.split("/").at(-2) ?? path, repo });
 
 /** A small made-up workstation. */
@@ -97,6 +98,11 @@ export const fakeProjects: Project[] = [
     tags: ["godot", "co-op", "survival"],
     notes: "Steam via Spacewar until its own AppID.",
     repo: false,
+    // Two plans, so the row shows two milestone lines and the panel has tabs.
+    milestones: [
+      ...plan(2, ["S1 Login server", "S2 World server", "S3 Combat", "S4 Raids"], "Server"),
+      ...plan(1, ["R1 Engine", "R2 Rendering", "R3 Networking", "R4 UI", "R5 Content", "R6 Launch"], "Rewrite"),
+    ],
     folders: [
       folder("games/godot/swamp/assets/"),
       folder("games/godot/swamp/docs/"),

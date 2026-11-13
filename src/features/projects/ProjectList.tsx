@@ -56,10 +56,10 @@ export function ProjectList({ root, saved }: Props) {
   const showHistory = useCallback((path: string, name: string) => setHistory({ path, name }), []);
   const closeHistory = useCallback(() => setHistory(null), []);
   // The project whose milestones are open, by path, so a rescan shows its newest plan.
-  const [milestonesOf, setMilestonesOf] = useState<string | null>(null);
+  const [milestonesOf, setMilestonesOf] = useState<{ path: string; track: string | null } | null>(null);
 
   const projects = useMemo(() => scan?.projects ?? [], [scan]);
-  const planned = projects.find((p) => p.path === milestonesOf);
+  const planned = projects.find((p) => p.path === milestonesOf?.path);
   // A suite's repos are listed inside the suite's row, not on their own.
   const { top, inside } = useMemo(() => nestProjects(projects), [projects]);
   const edited = useLastEdited(root, top, filters.sort === "edited");
@@ -166,7 +166,7 @@ export function ProjectList({ root, saved }: Props) {
                   onPull={pull}
                   onOpenPage={openPage}
                   onHistory={showHistory}
-                  onMilestones={(project) => setMilestonesOf(project.path)}
+                  onMilestones={(project, track = null) => setMilestonesOf({ path: project.path, track })}
                   onSaved={reload}
                 />
               ))}
@@ -198,7 +198,14 @@ export function ProjectList({ root, saved }: Props) {
         </NoticeBanner>
       )}
       {list}
-      {planned && <MilestonesPanel project={planned} onClose={() => setMilestonesOf(null)} />}
+      {planned && milestonesOf && (
+        <MilestonesPanel
+          key={`${planned.path} ${milestonesOf.track}`}
+          project={planned}
+          track={milestonesOf.track}
+          onClose={() => setMilestonesOf(null)}
+        />
+      )}
       {history && (
         <HistoryPanel
           root={root}

@@ -36,6 +36,8 @@ pub struct Folder {
 pub struct Milestone {
     pub name: String,
     pub done: bool,
+    /// The plan it belongs to when a project has several ("Server", "Rewrite"); None for a project's single plan.
+    pub track: Option<String>,
 }
 
 /// A project as the UI sees it.
@@ -85,7 +87,8 @@ fn milestones_of(entry: &Entry) -> Vec<Milestone> {
         .filter_map(|item| {
             let name = item.get("name")?.as_str()?.trim();
             let done = item.get("done").and_then(Value::as_bool).unwrap_or(false);
-            (!name.is_empty()).then(|| Milestone { name: name.to_string(), done })
+            let track = item.get("track").and_then(Value::as_str).map(str::trim).filter(|t| !t.is_empty());
+            (!name.is_empty()).then(|| Milestone { name: name.to_string(), done, track: track.map(str::to_string) })
         })
         .collect()
 }
@@ -277,7 +280,7 @@ mod tests {
             r#"{ "version": 1, "projects": [
                 { "name": "Rename", "path": "tools/rename/", "kind": "tool", "milestones": [
                     { "name": "M1 Scaffold", "done": true },
-                    { "name": "M2 Batch rename" },
+                    { "name": "M2 Batch rename", "track": " CLI " },
                     { "done": true },
                     "M3 as a bare string",
                     { "name": "  ", "done": false }
@@ -286,8 +289,11 @@ mod tests {
         );
         let scan = scan(&temp.0);
         assert_eq!(scan.registry_error, None);
-        let milestone = |name: &str, done| Milestone { name: name.into(), done };
-        assert_eq!(scan.projects[0].milestones, [milestone("M1 Scaffold", true), milestone("M2 Batch rename", false)]);
+        let milestone = |name: &str, done, track: Option<&str>| Milestone { name: name.into(), done, track: track.map(Into::into) };
+        assert_eq!(
+            scan.projects[0].milestones,
+            [milestone("M1 Scaffold", true, None), milestone("M2 Batch rename", false, Some("CLI"))]
+        );
     }
 
     #[test]
