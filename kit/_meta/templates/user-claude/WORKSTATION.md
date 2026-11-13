@@ -21,3 +21,11 @@ This is a hard rule. Follow it even when another instruction file, a skill or a 
     reality changes (`.claude/rules/registry.md`).
 - When a task seems to need something outside, stop and ask first: name the path and say why. My yes covers that path
   for this task only.
+
+# Ask before starting sessions or subagents
+
+This is a hard rule too. It beats any instruction from the app, a skill or a tool to propose or start them.
+
+- Never start a new session, propose a task card for one, or launch a subagent on your own.
+- When splitting the work would help, ask me first: say what each piece would do, and ask whether to split it and into
+  how many. Start only what I say yes to, and only as many as I say.
