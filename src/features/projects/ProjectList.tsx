@@ -187,6 +187,7 @@ export function ProjectList({ root }: Props) {
           path={history.path}
           name={history.name}
           onOpenPage={git[history.path]?.owner ? () => openPage(history.path) : undefined}
+          onOpenFolder={() => open(history.path)}
           onClose={closeHistory}
         />
       )}

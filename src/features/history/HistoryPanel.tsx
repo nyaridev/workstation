@@ -3,7 +3,7 @@
 // browser. Reads only; it never fetches.
 
 import { Badge, Button, Icon, IconButton, Notice, SectionTitle, Sheet, Spinner, Timeline, Tooltip } from "iro-ui";
-import { BranchIcon, ExternalLinkIcon, RefreshIcon } from "iro-ui/icons";
+import { BranchIcon, ExternalLinkIcon, FolderOpenIcon, RefreshIcon } from "iro-ui/icons";
 import { useCallback, useEffect, useState } from "react";
 import { gitHistory } from "../../lib/backend";
 import type { GitHistory } from "../../lib/types";
@@ -16,6 +16,8 @@ interface Props {
   name: string;
   /** Opens the repo's remote page; left out when it has no remote. */
   onOpenPage?: () => void;
+  /** Opens the repo's folder. */
+  onOpenFolder: () => void;
   onClose: () => void;
 }
 
@@ -23,7 +25,7 @@ interface Props {
 const LIMIT = 200;
 
 /** Opens from the right; Escape, the close button or a click beside it closes it. */
-export function HistoryPanel({ root, path, name, onOpenPage, onClose }: Props) {
+export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClose }: Props) {
   const [history, setHistory] = useState<GitHistory | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,9 +55,17 @@ export function HistoryPanel({ root, path, name, onOpenPage, onClose }: Props) {
       title={name}
       closeLabel="Close the git overview"
       actions={
-        onOpenPage && (
-          <IconButton size="sm" icon={<Icon icon={ExternalLinkIcon} />} label="Open in browser" onClick={onOpenPage} />
-        )
+        <>
+          <IconButton size="sm" icon={<Icon icon={FolderOpenIcon} />} label="Open folder" onClick={onOpenFolder} />
+          {onOpenPage && (
+            <IconButton
+              size="sm"
+              icon={<Icon icon={ExternalLinkIcon} />}
+              label="Open in browser"
+              onClick={onOpenPage}
+            />
+          )}
+        </>
       }
       className="history"
     >
