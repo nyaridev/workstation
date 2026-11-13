@@ -545,19 +545,18 @@ code {
   align-items: center;
 }
 
-.changes {
-  display: grid;
-  gap: var(--iro-space-1);
-  max-height: 12rem;
-  margin: 0;
-  padding: 0;
-  overflow-y: auto;
-  list-style: none;
+/* Each uncommitted file opens to its diff (ChangeDiff). */
+.changes .iro-accordion-trigger {
+  min-height: 0;
+  padding-block: var(--iro-space-2);
+  font-weight: 400;
 }
 
-.changes li {
+.change-title {
   display: flex;
   gap: var(--iro-space-3);
+  align-items: baseline;
+  min-width: 0;
 }
 
 .change-code {
@@ -565,4 +564,29 @@ code {
   width: 6rem;
   color: var(--iro-warning);
   font-size: var(--iro-text-xs);
+}
+
+.change-path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.change-count {
+  flex: none;
+  font-size: var(--iro-text-xs);
+}
+
+.diff-add {
+  color: var(--iro-success);
+}
+
+.diff-del {
+  color: var(--iro-danger);
+}
+
+.diff-hunk {
+  color: var(--iro-info);
 }

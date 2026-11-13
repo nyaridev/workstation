@@ -15,6 +15,8 @@ const PARALLEL: usize = 8;
 /// Windows `CREATE_NO_WINDOW`: no console flashes for each git call.
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+/// A file's diff past this many lines is cut, so a generated file can't flood the panel.
+const MAX_DIFF_LINES: usize = 400;
 
 // ── Types ─────────────────────────────────
 /// What git says about one repo.
@@ -53,6 +55,11 @@ pub struct Change {
     /// The two status letters: ` M` changed, `A ` added, `??` untracked…
     pub code: String,
     pub path: String,
+    /// Lines added and removed since the last commit; None for untracked and binary files.
+    pub added: Option<usize>,
+    pub removed: Option<usize>,
+    /// The file's hunks (`@@ … @@` and their lines), cut at `MAX_DIFF_LINES`; None when git has no text diff.
+    pub diff: Option<String>,
 }
 
 /// A repo's overview: where it stands against its upstream, what isn't committed, and its latest commits.
@@ -95,6 +102,37 @@ fn git_raw(dir: &Path, args: &[&str]) -> Option<String> {
 // The same, trimmed.
 fn git(dir: &Path, args: &[&str]) -> Option<String> {
     git_raw(dir, args).map(|out| out.trim().to_string())
+}
+
+// `git diff --numstat` as path → (added, removed); "-" (a binary file) reads as None.
+fn numstat(out: &str) -> HashMap<String, (Option<usize>, Option<usize>)> {
+    out.lines()
+        .filter_map(|line| {
+            let [added, removed, path] = line.splitn(3, '\t').collect::<Vec<_>>()[..] else {
+                return None;
+            };
+            Some((path.to_string(), (added.parse().ok(), removed.parse().ok())))
+        })
+        .collect()
+}
+
+// `git diff` output as path → that file's hunks, its header lines dropped and long ones cut.
+fn split_patch(patch: &str) -> HashMap<String, String> {
+    let mut files = HashMap::new();
+    for part in patch.split("\ndiff --git ") {
+        let lines: Vec<&str> = part.lines().collect();
+        // git ends a path holding spaces with a tab on these lines.
+        let named = |prefix: &str| lines.iter().find_map(|l| l.strip_prefix(prefix)).map(|p| p.trim_end_matches('\t'));
+        let Some(path) = named("+++ b/").or_else(|| named("--- a/")) else { continue };
+        let Some(start) = lines.iter().position(|l| l.starts_with("@@")) else { continue };
+        let hunks = &lines[start..];
+        let mut text = hunks.iter().take(MAX_DIFF_LINES).copied().collect::<Vec<_>>().join("\n");
+        if hunks.len() > MAX_DIFF_LINES {
+            text.push_str(&format!("\n… {} more lines", hunks.len() - MAX_DIFF_LINES));
+        }
+        files.insert(path.to_string(), text);
+    }
+    files
 }
 
 // ── Public API ────────────────────────────
@@ -187,11 +225,19 @@ pub fn history(repo: &Path, limit: usize) -> Option<History> {
     let unpushed: HashSet<String> = git(repo, unpushed_args).unwrap_or_default().lines().map(str::to_string).collect();
     let behind = upstream.as_ref().and_then(|_| git(repo, &["rev-list", "--count", "HEAD..@{u}"])?.parse().ok());
 
-    let status = git_raw(repo, &["status", "--porcelain"]).unwrap_or_default();
+    // Paths unquoted everywhere, so the status and the diff name a file the same way.
+    let status = git_raw(repo, &["-c", "core.quotepath=false", "status", "--porcelain"]).unwrap_or_default();
+    let diff_args = ["-c", "core.quotepath=false", "diff", "HEAD", "--no-renames", "--no-color", "--no-ext-diff"];
+    let counts = numstat(&git_raw(repo, &[&diff_args[..], &["--numstat"]].concat()).unwrap_or_default());
+    let mut patches = split_patch(&git_raw(repo, &diff_args).unwrap_or_default());
     let changes = status
         .lines()
         .filter(|line| line.len() > 3)
-        .map(|line| Change { code: line[..2].to_string(), path: line[3..].trim_matches('"').to_string() })
+        .map(|line| {
+            let path = line[3..].trim_matches('"').to_string();
+            let (added, removed) = counts.get(&path).copied().unwrap_or_default();
+            Change { code: line[..2].to_string(), added, removed, diff: patches.remove(&path), path }
+        })
         .collect();
 
     // One commit per line, fields split by the unit separator (subjects can't hold it).
@@ -294,6 +340,23 @@ mod tests {
     }
 
     #[test]
+    fn splits_a_patch_by_file_and_cuts_long_ones() {
+        let long: String = (0..MAX_DIFF_LINES + 5).map(|i| format!("+line {i}\n")).collect();
+        let patch = format!(
+            "diff --git a/a b c.txt b/a b c.txt\nindex 1..2 100644\n--- a/a b c.txt\t\n+++ b/a b c.txt\t\n@@ -1 +1 @@\n-old\n+new\n\
+             diff --git a/gone.txt b/gone.txt\ndeleted file mode 100644\n--- a/gone.txt\n+++ /dev/null\n@@ -1 +0,0 @@\n-bye\n\
+             diff --git a/big.txt b/big.txt\n--- /dev/null\n+++ b/big.txt\n@@ -0,0 +1,405 @@\n{long}\
+             diff --git a/pic.png b/pic.png\nBinary files a/pic.png and b/pic.png differ\n"
+        );
+        let files = split_patch(&patch);
+        assert_eq!(files["a b c.txt"], "@@ -1 +1 @@\n-old\n+new");
+        assert_eq!(files["gone.txt"], "@@ -1 +0,0 @@\n-bye");
+        assert!(files["big.txt"].ends_with("… 6 more lines"), "the @@ line and 405 lines, cut at the limit");
+        assert!(!files.contains_key("pic.png"), "a binary file has no text diff");
+        assert_eq!(numstat("2\t1\ta b.txt\n-\t-\tpic.png")["pic.png"], (None, None));
+    }
+
+    #[test]
     fn reads_history_and_marks_unpushed_commits() {
         let temp = Temp::new();
         if git(&temp.0, &["--version"]).is_none() {
@@ -315,13 +378,19 @@ mod tests {
         git(&repo, &["remote", "add", "origin", &remote.to_string_lossy()]).unwrap();
         git(&repo, &["push", "-q", "-u", "origin", "main"]).unwrap();
         commit("b.txt", "Second | with a pipe");
+        temp.file("tool/a.txt", "Changed\nAnd added");
         temp.file("tool/new.txt", "x");
 
         let history = history(&repo, 50).unwrap();
         assert_eq!(history.branch, "main");
         assert_eq!(history.upstream.as_deref(), Some("origin/main"));
         assert_eq!(history.behind, Some(0));
-        assert_eq!(history.changes, [Change { code: "??".into(), path: "new.txt".into() }]);
+        let [changed, new] = &history.changes[..] else { panic!("{:?}", history.changes) };
+        assert_eq!((changed.code.as_str(), changed.path.as_str()), (" M", "a.txt"));
+        assert_eq!((changed.added, changed.removed), (Some(2), Some(1)));
+        let diff = changed.diff.as_deref().unwrap();
+        assert!(diff.starts_with("@@") && diff.contains("-First") && diff.contains("+And added"), "{diff}");
+        assert_eq!(*new, Change { code: "??".into(), path: "new.txt".into(), added: None, removed: None, diff: None });
         let commits: Vec<(&str, &str, bool)> =
             history.commits.iter().map(|c| (c.subject.as_str(), c.author.as_str(), c.unpushed)).collect();
         assert_eq!(commits, [("Second | with a pipe", "Tester", true), ("First", "Tester", false)]);

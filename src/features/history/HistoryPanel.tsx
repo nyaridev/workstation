@@ -2,11 +2,24 @@
 // uncommitted files, and the latest commits with the unpushed ones marked; its header opens the repo's page in the
 // browser. Reads only; it never fetches.
 
-import { Badge, Button, Icon, IconButton, Notice, SectionTitle, Sheet, Spinner, Timeline, Tooltip } from "iro-ui";
+import {
+  Accordion,
+  Badge,
+  Button,
+  Icon,
+  IconButton,
+  Notice,
+  SectionTitle,
+  Sheet,
+  Spinner,
+  Timeline,
+  Tooltip,
+} from "iro-ui";
 import { BranchIcon, ExternalLinkIcon, FolderOpenIcon, RefreshIcon } from "iro-ui/icons";
 import { useCallback, useEffect, useState } from "react";
 import { gitHistory } from "../../lib/backend";
 import type { GitHistory } from "../../lib/types";
+import { ChangeDiff } from "./ChangeDiff";
 import { ago, changeLabel } from "./format";
 
 interface Props {
@@ -100,14 +113,26 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
             {history.changes.length === 0 ? (
               <p className="muted small">Nothing to commit.</p>
             ) : (
-              <ul className="changes">
-                {history.changes.map((change) => (
-                  <li key={change.path}>
-                    <span className="change-code">{changeLabel(change.code)}</span>
-                    <code>{change.path}</code>
-                  </li>
-                ))}
-              </ul>
+              <Accordion
+                multiple
+                className="changes"
+                items={history.changes.map((change) => ({
+                  value: change.path,
+                  title: (
+                    <span className="change-title">
+                      <span className="change-code">{changeLabel(change.code)}</span>
+                      <code className="change-path">{change.path}</code>
+                      {change.added !== null && (
+                        <span className="change-count">
+                          <span className="diff-add">+{change.added}</span>{" "}
+                          <span className="diff-del">−{change.removed}</span>
+                        </span>
+                      )}
+                    </span>
+                  ),
+                  content: <ChangeDiff change={change} />,
+                }))}
+              />
             )}
           </section>
 

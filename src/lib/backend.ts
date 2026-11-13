@@ -206,8 +206,14 @@ export async function gitHistory(root: string, path: string): Promise<GitHistory
     upstream: "origin/main",
     behind: 1,
     changes: [
-      { code: " M", path: "src/app/App.tsx" },
-      { code: "??", path: "docs/notes.md" },
+      {
+        code: " M",
+        path: "src/app/App.tsx",
+        added: 2,
+        removed: 1,
+        diff: '@@ -12,4 +12,5 @@ export function App() {\n   const [view, setView] = useState("home");\n-  const drag = frame === "custom";\n+  const drag = frame !== "native";\n+  const mac = frame === "overlay";\n   return (',
+      },
+      { code: "??", path: "docs/notes.md", added: null, removed: null, diff: null },
     ],
     commits: [
       commit(0, "Open a git overview from a repo's row", true),

@@ -127,7 +127,8 @@ export interface GitHistory {
   /** Commits behind the upstream as of the last fetch; null without an upstream. */
   behind: number | null;
   /** Uncommitted files: `code` is git's two status letters (` M`, `??`…). */
-  changes: { code: string; path: string }[];
+  /** `added`/`removed` and `diff` are null for untracked and binary files. */
+  changes: { code: string; path: string; added: number | null; removed: number | null; diff: string | null }[];
   /** Newest first. */
   commits: Commit[];
 }
