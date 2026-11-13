@@ -38,6 +38,8 @@ The window shows what Rust sends and passes clicks on. It doesn't read files, de
 - The browser's right-click menu is off (`App.tsx`), except in text fields and `selectable` text. A row the user acts
   on gets an iro-ui `ContextMenu` with the same actions as its buttons.
 - Accessibility: every control has a label, the keyboard works, and color is never the only signal.
+- The CSP (`tauri.conf.json`) allows only the app's own files, plus `data:` images: Vite inlines small images as
+  `data:` URLs and iro-ui's backdrop grain is one. Only the built app enforces it, so check images in an installed build.
 
 - A view or screen that scrolls keeps its scrollbar in its right padding: `scrollbar-gutter: stable` and a right
   padding less `--iro-scrollbar-size`, so content keeps its width when the scrollbar shows (`styles.css`). iro-ui's
