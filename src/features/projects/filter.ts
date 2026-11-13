@@ -38,7 +38,7 @@ export interface Filters {
   stack: string;
   /** Only repos with uncommitted changes or unpushed commits. */
   changed: boolean;
-  /** Only projects that don't match projects.json (`registryFlag`). */
+  /** Only projects missing their `.workstation` (`registryFlag`). */
   flagged: boolean;
   /** Only projects with a milestone not done yet (`progressOf`). */
   planned: boolean;
@@ -123,11 +123,10 @@ export function gitOf(p: Project, git: GitStatuses, inside: Map<string, Project[
   };
 }
 
-/** Why a project doesn't match projects.json, or null when it does. Archived folders must have no entry. */
+/** Why a project needs attention, or null when it doesn't: a project folder with no `.workstation`. Archived
+ * folders are never flagged. */
 export function registryFlag(p: Project): string | null {
-  if (p.archived) return p.registered ? "archived: remove from projects.json" : null;
-  if (!p.registered) return "not in projects.json";
-  return p.onDisk ? null : "folder missing";
+  return p.registered || p.archived ? null : "no .workstation";
 }
 
 /** Splits the list into top-level projects and, by parent path, the projects inside them (a suite's repos). */

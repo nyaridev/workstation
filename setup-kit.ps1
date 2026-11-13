@@ -4,7 +4,7 @@
 	  pwsh -NoProfile -File setup-kit.ps1 -Destination D:/WORKSTATION
 
 	Copies every file from kit/ under its real name (dot-claude/ -> .claude/, CLAUDE.kit.md -> CLAUDE.md,
-	AGENTS.kit.md -> AGENTS.md) plus docs/projects-json.md as _meta/docs/projects-json.md. Never overwrites a file that's
+	AGENTS.kit.md -> AGENTS.md) plus docs/workstation-file.md as _meta/docs/workstation-file.md. Never overwrites a file that's
 	already there, so it's safe to run on a folder that has content. Needs nothing installed beyond PowerShell.
 #>
 param(
@@ -30,7 +30,7 @@ function Get-RealName([string]$stored) {
 $files = @(Get-ChildItem -LiteralPath $kit -Recurse -File | ForEach-Object {
 	[pscustomobject]@{ Source = $_.FullName; Rel = Get-RealName ($_.FullName.Substring($kit.Length + 1) -replace "\\", "/") }
 })
-$files += [pscustomobject]@{ Source = Join-Path $PSScriptRoot "docs/projects-json.md"; Rel = "_meta/docs/projects-json.md" }
+$files += [pscustomobject]@{ Source = Join-Path $PSScriptRoot "docs/workstation-file.md"; Rel = "_meta/docs/workstation-file.md" }
 
 $written = 0; $skipped = @()
 foreach ($file in $files) {

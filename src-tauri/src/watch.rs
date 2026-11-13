@@ -85,7 +85,7 @@ mod tests {
         temp.dir("games/roblox/sky-race");
         assert!(changes.recv_timeout(WAIT).is_ok(), "a new game didn't trigger a rescan");
 
-        temp.file("projects.json", "{}");
-        assert!(changes.recv_timeout(WAIT).is_ok(), "editing projects.json didn't trigger a rescan");
+        temp.file("games/roblox/fish-dive/.workstation", "{}");
+        assert!(changes.recv_timeout(WAIT).is_ok(), "editing a .workstation didn't trigger a rescan");
     }
 }

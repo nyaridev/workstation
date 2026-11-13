@@ -12,7 +12,7 @@ export function useLastEdited(root: string, projects: Project[], wanted: boolean
   useEffect(() => {
     if (!wanted) return;
     let current = true;
-    const paths = projects.filter((p) => p.onDisk).map((p) => p.path);
+    const paths = projects.map((p) => p.path);
     const load = () =>
       lastEdited(root, paths).then(
         (result) => current && setEdited(result),

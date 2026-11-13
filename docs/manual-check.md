@@ -11,9 +11,9 @@ delete that file to see the first run again.
 ## 1. First run and workstations
 
 - [ ] With no `workstations.json`, the app opens on "Add a workstation" / "Set up a new one".
-- [ ] **Add** a folder without `projects.json`: an error, with "Set it up as a new workstation".
+- [ ] **Add** a folder without a `.workstation`: an error, with "Set it up as a new workstation".
 - [ ] **Set up a new one** in the empty test folder: it asks first, then says how many files it wrote, and opens the
-      new workstation. The folder now has `projects.json`, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `_meta/` and the
+      new workstation. The folder now has `.workstation`, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `_meta/` and the
       category folders.
 - [ ] Set up the same folder again: it writes nothing ("… already there and kept").
 - [ ] Settings → Workstations → **Add…** your real workstation: it opens and lists your projects.
@@ -45,7 +45,7 @@ delete that file to see the first run again.
 ## 3. The project list (real workstation, read-only)
 
 - [ ] Groups appear in order (Games, Apps, Tools, Frameworks, Research, Ideas, Archive…) with counts.
-- [ ] Every project in `projects.json` is there, one line each (ADR-0018): name, status, git badges and the
+- [ ] Every project with a `.workstation` is there, one line each (ADR-0018): name, status, git badges and the
       remote's `owner/name` line up in the same columns in every row. Hovering the name shows the description and
       path.
 - [ ] Search finds by name, description, path, stack and notes; several words must all match.
@@ -98,27 +98,27 @@ delete that file to see the first run again.
 
 ## 5. Live updates (test workstation)
 
-- [ ] Create `tools/hello/` in Explorer: within a second it appears, flagged "not in projects.json".
+- [ ] Create `tools/hello/` in Explorer: within a second it appears, flagged "no .workstation".
 - [ ] Rename it: the old row goes, the new one appears. Delete it: it goes.
-- [ ] Edit a description in `projects.json` by hand and save: the list shows it.
-- [ ] Break `projects.json` (delete a comma): a red banner names the line; folders are still listed; Register and Edit
-      tags disappear. Fix it: everything comes back.
+- [ ] Edit a description in a project's `.workstation` by hand and save: the list shows it.
+- [ ] Break that `.workstation` (delete a comma): a red banner names the file and line; the project is still listed and
+      not flagged. Fix it: the banner goes.
 - [ ] Save files inside a project, or run `pnpm install` in one: the list doesn't flicker or rescan.
-- [ ] Create `archive/tools/old/`: it shows in the Archive group with no flag and no Register button. Add an entry for
-      it to `projects.json` by hand: it's flagged "archived: remove from projects.json".
+- [ ] Create `archive/tools/old/`: it shows in the Archive group with no flag and no Add .workstation button. Move a
+      project with a `.workstation` into `archive/`: it shows there with its name and tags, unflagged.
 
 ## 6. Registering and tags (test workstation)
 
-- [ ] On `tools/hello/` (create it again), **Register in projects.json…** (the file-plus icon) opens a prefilled
+- [ ] On `tools/hello/` (create it again), **Add .workstation…** (the file-plus icon) opens a prefilled
       form: name, kind `tool`, status, owner, and a stack guessed from its files (add a `Cargo.toml` or `package.json`
       to see the guess).
 - [ ] Empty description: the form refuses.
 - [ ] Type "CLI Tool" in tags and press Enter: it becomes `cli-tool`. Suggestions come from tags in use.
-- [ ] **Add to projects.json**: the flag goes, the row shows the description and tags. In `projects.json` the entry
-      sits at its place by path, in the documented key order, and the rest of the file is unchanged.
+- [ ] **Create .workstation**: the flag goes, the row shows the description and tags. `tools/hello/.workstation` has
+      the documented keys in order and no `path`.
 - [ ] **Edit tags** (the tag icon, or the right-click menu) on a registered project opens a dialog: every tag in use as
       a chip, the project's own first and on. Ticking or unticking one never moves the chips; a typed tag (Enter)
-      joins at the end. Remove one, add one, Save tags: only that entry's `tags` changed. Cancel or Escape changes
+      joins at the end. Remove one, add one, Save tags: only that file's `tags` changed. Cancel or Escape changes
       nothing.
 - [ ] A repo with a GitHub remote prefills Owner with the remote's owner; a repo without one says `local`.
 

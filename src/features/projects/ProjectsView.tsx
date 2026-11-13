@@ -11,7 +11,7 @@ export function ProjectsView({ workstation }: ViewProps) {
   if (!workstation.available) {
     return (
       <div className="center">
-        <EmptyState tone="warning" title={`${workstation.root} wasn't found, or it has no projects.json any more.`}>
+        <EmptyState tone="warning" title={`${workstation.root} wasn't found, or it has no .workstation file any more.`}>
           Plug the drive back in, or remove it from the list.
         </EmptyState>
       </div>

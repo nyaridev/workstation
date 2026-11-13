@@ -28,8 +28,8 @@ export function FirstRun({ banner, onAdd, onSetup }: Props) {
             </>
           }
         >
-          Add the folder that holds your projects: the one with <code>projects.json</code> at its top. No such folder
-          yet? Set one up: the app writes the starter folders, agent rules and an empty <code>projects.json</code>.
+          Add the folder that holds your projects: the one with a <code>.workstation</code> file at its top. No such
+          folder yet? Set one up: the app writes the starter folders, agent rules and its <code>.workstation</code>.
         </EmptyState>
         {banner}
       </div>

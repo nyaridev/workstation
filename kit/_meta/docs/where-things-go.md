@@ -31,7 +31,7 @@ Routing tables for creating, cloning, moving and filing projects and assets in t
 
 - A repo the user or a partner studio owns goes by what it is, never to `external/`.
 - When two rows fit, pick one and say why. Ask only when it's truly 50/50.
-- **One idea = one folder.** Before creating anything, search `projects.json` and the
+- **One idea = one folder.** Before creating anything, search the project files (`scan-projects.ps1 -Json`: each project's name, description and tags) and the
   target folder for the same thing under another name. If it exists, offer to continue, promote or move it in instead.
 
 ## Project shapes

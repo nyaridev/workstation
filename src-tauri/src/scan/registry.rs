@@ -1,8 +1,9 @@
-//! Registry: reads and writes the workstation's projects.json (format: `docs/projects-json.md`).
-//! Reading needs only `path` per entry, so one sloppy entry never hides the rest. Writing works on the raw JSON, so
-//! keys, order and anything the app doesn't know survive; it never removes an entry.
+//! Registry: each project's `.workstation` file (format: `docs/workstation-file.md`), found by walking the workstation
+//! a few levels deep. A project's path is where its file is, so the file has none. Reading is lenient, so one sloppy
+//! file never hides the rest. Writing works on the raw JSON, so keys, order and anything the app doesn't know survive.
 
 // ── Imports ───────────────────────────────
+use super::layout::SKIP;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::fs;
@@ -10,11 +11,15 @@ use std::io::ErrorKind;
 use std::path::{Component, Path};
 
 // ── Constants ─────────────────────────────
-pub const FILE_NAME: &str = "projects.json";
+/// A project's own file, in its main folder; at the workstation root it marks the workstation.
+pub const FILE_NAME: &str = ".workstation";
+/// How many folder levels below the root a project can sit. The deepest place is a suite repo in a group,
+/// `frameworks/<suite>/<group>/<repo>/`; most are 2 or 3 (`games/<engine>/<game>/`). Under `archive/`, one more.
+pub const MAX_DEPTH: usize = 4;
 /// The allowed `kind` values, as `scan-projects.ps1` checks them.
 const KINDS: [&str; 11] =
     ["game", "mod", "emulator", "app", "tool", "framework", "suite", "asset-pack", "research", "idea", "external"];
-/// The allowed `status` values. Archived projects have no entry, so no `archived` status.
+/// The allowed `status` values.
 const STATUSES: [&str; 9] = [
     "concept",
     "planning",
@@ -28,12 +33,14 @@ const STATUSES: [&str; 9] = [
 ];
 
 // ── Types ─────────────────────────────────
-/// One `projects.json` entry, in the documented key order. Keys the app doesn't know are kept in `extra`.
+/// One project's `.workstation`, in the documented key order. Keys the app doesn't know are kept in `extra`.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Entry {
     #[serde(default)]
     pub name: String,
+    /// Where the file is, from the workstation root (`tools/rename/`); never written into the file.
+    #[serde(default, skip_serializing)]
     pub path: String,
     #[serde(default)]
     pub kind: String,
@@ -53,43 +60,60 @@ pub struct Entry {
     pub extra: Map<String, Value>,
 }
 
-#[derive(Deserialize)]
-struct File {
-    #[serde(default)]
-    projects: Vec<Entry>,
+/// Every `.workstation` of a workstation: the ones read, and why the others couldn't be.
+pub struct Files {
+    pub entries: Vec<Entry>,
+    /// (project path, reason) for each file that can't be read.
+    pub broken: Vec<(String, String)>,
 }
 
 // ── Private helpers ───────────────────────
-fn load_text(root: &Path) -> Result<String, String> {
-    match fs::read_to_string(root.join(FILE_NAME)) {
-        Ok(text) => Ok(text),
-        Err(e) if e.kind() == ErrorKind::NotFound => Err(format!("This workstation has no {FILE_NAME}.")),
-        Err(e) => Err(format!("Can't read {FILE_NAME}: {e}")),
+// The project folders below `rel` holding a `.workstation`, `depth` levels down at most. Support (`_meta/`) and
+// skipped folders aren't looked into, nor are repos (a project's repo holds no other project) or links.
+fn walk(root: &Path, rel: &str, depth: usize, out: &mut Vec<String>) {
+    let Ok(read) = fs::read_dir(root.join(rel)) else { return };
+    for entry in read.flatten() {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if !entry.file_type().is_ok_and(|t| t.is_dir()) || name.starts_with('_') || SKIP.contains(&name.as_str()) {
+            continue;
+        }
+        let path = format!("{rel}{name}/");
+        let dir = entry.path();
+        if dir.join(FILE_NAME).is_file() {
+            out.push(path.clone());
+        }
+        let below = if rel.is_empty() && name == "archive" { depth } else { depth - 1 };
+        if below > 0 && !dir.join(".git").exists() {
+            walk(root, &path, below, out);
+        }
     }
 }
 
-// Reads the file as raw JSON, applies `change` to its `projects` array, and writes it back.
-fn edit(root: &Path, change: impl FnOnce(&mut Vec<Value>) -> Result<(), String>) -> Result<(), String> {
-    let mut file: Value =
-        serde_json::from_str(&load_text(root)?).map_err(|e| format!("{FILE_NAME} can't be read: {e}"))?;
-    let projects = file
-        .get_mut("projects")
-        .and_then(Value::as_array_mut)
-        .ok_or_else(|| format!("{FILE_NAME} has no \"projects\" list."))?;
-    change(projects)?;
-
-    let mut text = String::new();
-    print(&mut text, &file, 0);
-    text.push('\n');
-    // A temp file and a rename, so a crash never leaves half a registry.
-    let path = root.join(FILE_NAME);
-    let temp = path.with_extension("json.tmp");
-    fs::write(&temp, text)
-        .and_then(|()| fs::rename(&temp, &path))
-        .map_err(|e| format!("Can't save {FILE_NAME}: {e}"))
+fn file_of(root: &Path, path: &str) -> std::path::PathBuf {
+    root.join(path).join(FILE_NAME)
 }
 
-// Pretty-prints like the hand-written file: two-space indent, lists of plain values on one line.
+// One project's file as an entry, its path set from where it is.
+fn read_one(root: &Path, path: &str) -> Result<Entry, String> {
+    let text = fs::read_to_string(file_of(root, path)).map_err(|e| format!("can't be read: {e}"))?;
+    let mut entry: Entry = serde_json::from_str(&text).map_err(|e| format!("can't be read: {e}"))?;
+    entry.path = path.to_string();
+    Ok(entry)
+}
+
+// Writes `value` as a project's file: through a temp file and a rename, so a crash never leaves half of one.
+fn write(root: &Path, path: &str, value: &Value) -> Result<(), String> {
+    let mut text = String::new();
+    print(&mut text, value, 0);
+    text.push('\n');
+    let file = file_of(root, path);
+    let temp = file.with_extension("tmp");
+    fs::write(&temp, text)
+        .and_then(|()| fs::rename(&temp, &file))
+        .map_err(|e| format!("Can't save {path}{FILE_NAME}: {e}"))
+}
+
+// Pretty-prints like a hand-written file: two-space indent, lists of plain values on one line.
 fn print(out: &mut String, value: &Value, indent: usize) {
     let pad = |out: &mut String, n: usize| out.push_str(&" ".repeat(n));
     match value {
@@ -123,10 +147,6 @@ fn print(out: &mut String, value: &Value, indent: usize) {
     }
 }
 
-fn path_of(entry: &Value) -> &str {
-    entry.get("path").and_then(Value::as_str).unwrap_or("")
-}
-
 fn is_tag(tag: &str) -> bool {
     !tag.is_empty()
         && tag.split('-').all(|part| !part.is_empty() && part.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit()))
@@ -157,18 +177,24 @@ pub fn same_path(a: &str, b: &str) -> bool {
     norm(a) == norm(b)
 }
 
-/// The entries of `<root>/projects.json`. The error names the line and column of a syntax error.
-pub fn read(root: &Path) -> Result<Vec<Entry>, String> {
-    let file: File = serde_json::from_str(&load_text(root)?).map_err(|e| format!("{FILE_NAME} can't be read: {e}"))?;
-    Ok(file.projects)
+/// Every project's `.workstation` under `root`, sorted by path.
+pub fn read(root: &Path) -> Files {
+    let mut paths = Vec::new();
+    walk(root, "", MAX_DEPTH, &mut paths);
+    paths.sort();
+    let mut files = Files { entries: Vec::new(), broken: Vec::new() };
+    for path in paths {
+        match read_one(root, &path) {
+            Ok(entry) => files.entries.push(entry),
+            Err(reason) => files.broken.push((path, reason)),
+        }
+    }
+    files
 }
 
-/// Adds an entry for a project folder that has none, at its place by path.
+/// Writes a `.workstation` into a project folder that has none.
 pub fn add(root: &Path, mut entry: Entry) -> Result<(), String> {
     entry.path = normalize_path(&entry.path)?;
-    if same_path(entry.path.split('/').next().unwrap_or(""), "archive") {
-        return Err("Archived projects aren't registered in projects.json.".to_string());
-    }
     entry.name = entry.name.trim().to_string();
     entry.description = entry.description.trim().to_string();
     if entry.name.is_empty() || entry.description.is_empty() {
@@ -181,29 +207,26 @@ pub fn add(root: &Path, mut entry: Entry) -> Result<(), String> {
     if !root.join(&entry.path).is_dir() {
         return Err(format!("{} isn't a folder in this workstation.", entry.path));
     }
+    if file_of(root, &entry.path).exists() {
+        return Err(format!("{} already has a {FILE_NAME}.", entry.path));
+    }
     let value = serde_json::to_value(&entry).map_err(|e| e.to_string())?;
-    edit(root, |projects| {
-        if projects.iter().any(|p| same_path(path_of(p), &entry.path)) {
-            return Err(format!("{} is already in {FILE_NAME}.", entry.path));
-        }
-        let at = projects.iter().position(|p| path_of(p) > entry.path.as_str()).unwrap_or(projects.len());
-        projects.insert(at, value);
-        Ok(())
-    })
+    write(root, &entry.path, &value)
 }
 
-/// Replaces the tags of the entry at `path`.
+/// Replaces the tags in the `.workstation` of the project at `path`.
 pub fn set_tags(root: &Path, path: &str, tags: Vec<String>) -> Result<(), String> {
     check_tags(&tags)?;
-    edit(root, |projects| {
-        let entry = projects
-            .iter_mut()
-            .find(|p| same_path(path_of(p), path))
-            .and_then(Value::as_object_mut)
-            .ok_or_else(|| format!("{path} isn't in {FILE_NAME}."))?;
-        entry.insert("tags".to_string(), Value::from(tags));
-        Ok(())
-    })
+    let path = normalize_path(path)?;
+    let text = match fs::read_to_string(file_of(root, &path)) {
+        Ok(text) => text,
+        Err(e) if e.kind() == ErrorKind::NotFound => return Err(format!("{path} has no {FILE_NAME}.")),
+        Err(e) => return Err(format!("Can't read {path}{FILE_NAME}: {e}")),
+    };
+    let mut value: Value = serde_json::from_str(&text).map_err(|e| format!("{path}{FILE_NAME} can't be read: {e}"))?;
+    let file = value.as_object_mut().ok_or_else(|| format!("{path}{FILE_NAME} isn't a JSON object."))?;
+    file.insert("tags".to_string(), Value::from(tags));
+    write(root, &path, &value)
 }
 
 #[cfg(test)]
@@ -211,33 +234,16 @@ mod tests {
     use super::*;
     use crate::test_support::Temp;
 
-    /// A registry in the hand-written style, with keys the app doesn't know.
+    /// A file in the hand-written style, with a key the app doesn't know.
     const SAMPLE: &str = r#"{
-  "version": 1,
-  "projects": [
-    {
-      "name": "Fish Dive",
-      "path": "games/roblox/fish-dive/",
-      "kind": "game",
-      "stack": ["Roblox", "ume"],
-      "owner": null,
-      "status": "planning",
-      "description": "Dive deeper, catch rarer fish.",
-      "tags": ["roblox"],
-      "color": "teal"
-    },
-    {
-      "name": "Świat",
-      "path": "tools/zeta/",
-      "kind": "tool",
-      "stack": [],
-      "owner": "local",
-      "status": "prototyping",
-      "description": "Last one.",
-      "tags": []
-    }
-  ],
-  "comment": "kept"
+  "name": "Fish Dive",
+  "kind": "game",
+  "stack": ["Roblox", "ume"],
+  "owner": null,
+  "status": "planning",
+  "description": "Dive deeper, catch rarer fish.",
+  "tags": ["roblox"],
+  "color": "teal"
 }
 "#;
 
@@ -256,80 +262,73 @@ mod tests {
     }
 
     #[test]
-    fn reads_entries_and_keeps_unknown_keys() {
+    fn finds_files_a_few_levels_deep_and_reads_them() {
         let temp = Temp::new();
-        temp.file(FILE_NAME, SAMPLE);
-        let entries = read(&temp.0).unwrap();
-        assert_eq!(entries.len(), 2);
-        assert_eq!(entries[0].name, "Fish Dive");
-        assert_eq!(entries[0].owner, None);
-        assert_eq!(entries[0].extra.get("color"), Some(&Value::from("teal")));
-    }
+        temp.file("games/roblox/fish-dive/.workstation", SAMPLE);
+        temp.file("frameworks/ume/group/inner/.workstation", "{}");
+        temp.file("archive/frameworks/ume/group/old/.workstation", "{}");
+        temp.file("frameworks/ume/group/inner/deeper/.workstation", "{}");
+        temp.file("tools/rename/.git/HEAD", "");
+        temp.file("tools/rename/docs/.workstation", "{}");
+        temp.file("_meta/templates/x/.workstation", "{}");
+        temp.file("apps/web/site/node_modules/x/.workstation", "{}");
+        temp.file("ideas/broken/.workstation", "{ nope");
+        temp.file(".workstation", "{}");
 
-    #[test]
-    fn a_syntax_error_names_its_line() {
-        let temp = Temp::new();
-        temp.file(FILE_NAME, "{\n  \"projects\": [\n    { \"path\": \"a/\" },,\n  ]\n}");
-        let error = read(&temp.0).unwrap_err();
-        assert!(error.contains("line 3"), "{error}");
-    }
-
-    #[test]
-    fn a_missing_file_says_so() {
-        let temp = Temp::new();
-        assert!(read(&temp.0).unwrap_err().contains("no projects.json"));
+        let files = read(&temp.0);
+        let paths: Vec<&str> = files.entries.iter().map(|e| e.path.as_str()).collect();
+        assert_eq!(paths, ["archive/frameworks/ume/group/old/", "frameworks/ume/group/inner/", "games/roblox/fish-dive/"]);
+        assert_eq!(files.entries[2].name, "Fish Dive");
+        assert_eq!(files.entries[2].owner, None);
+        assert_eq!(files.entries[2].extra.get("color"), Some(&Value::from("teal")));
+        assert_eq!(files.broken.len(), 1);
+        assert_eq!(files.broken[0].0, "ideas/broken/");
+        assert!(files.broken[0].1.contains("line 1"), "{}", files.broken[0].1);
     }
 
     #[test]
     fn a_write_keeps_the_file_byte_for_byte() {
         let temp = Temp::new();
-        temp.file(FILE_NAME, SAMPLE);
+        temp.file("games/roblox/fish-dive/.workstation", SAMPLE);
         set_tags(&temp.0, "games/roblox/fish-dive/", vec!["roblox".into()]).unwrap();
-        assert_eq!(fs::read_to_string(temp.0.join(FILE_NAME)).unwrap(), SAMPLE);
+        assert_eq!(fs::read_to_string(temp.0.join("games/roblox/fish-dive/.workstation")).unwrap(), SAMPLE);
     }
 
     #[test]
-    fn add_inserts_by_path_in_key_order() {
+    fn add_writes_the_file_in_key_order_without_a_path() {
         let temp = Temp::new();
-        temp.file(FILE_NAME, SAMPLE);
         temp.dir("tools/rename");
         add(&temp.0, entry("tools\\rename")).unwrap();
-
-        let text = fs::read_to_string(temp.0.join(FILE_NAME)).unwrap();
-        let paths: Vec<String> = read(&temp.0).unwrap().into_iter().map(|e| e.path).collect();
-        assert_eq!(paths, ["games/roblox/fish-dive/", "tools/rename/", "tools/zeta/"]);
-        assert!(text.contains(
-            "      \"name\": \"Rename\",\n      \"path\": \"tools/rename/\",\n      \"kind\": \"tool\",\n      \"stack\": [\"Rust\"],"
-        ));
-        assert!(!text.contains("\"notes\""), "an empty note isn't written");
-        assert!(text.ends_with("  \"comment\": \"kept\"\n}\n"));
+        let text = fs::read_to_string(temp.0.join("tools/rename/.workstation")).unwrap();
+        assert_eq!(
+            text,
+            "{\n  \"name\": \"Rename\",\n  \"kind\": \"tool\",\n  \"stack\": [\"Rust\"],\n  \"owner\": \"local\",\n  \
+             \"status\": \"prototyping\",\n  \"description\": \"Renames files.\",\n  \"tags\": [\"cli\"]\n}\n"
+        );
+        assert_eq!(read(&temp.0).entries[0].path, "tools/rename/");
     }
 
     #[test]
     fn add_refuses_bad_entries() {
         let temp = Temp::new();
-        temp.file(FILE_NAME, SAMPLE);
         temp.dir("tools/rename");
-        temp.dir("archive/tools/old");
+        temp.file("tools/zeta/.workstation", SAMPLE);
         assert!(add(&temp.0, entry("tools/missing/")).is_err(), "no folder");
-        assert!(add(&temp.0, entry("Archive/tools/old/")).is_err(), "archived");
-        assert!(add(&temp.0, Entry { status: "archived".into(), ..entry("tools/rename/") }).is_err(), "archived status");
         assert!(add(&temp.0, entry("../outside/")).is_err(), "outside the workstation");
-        assert!(add(&temp.0, entry("Tools/Zeta/")).is_err(), "already listed");
+        assert!(add(&temp.0, entry("Tools/Zeta/")).is_err(), "already has one");
         assert!(add(&temp.0, Entry { kind: "thing".into(), ..entry("tools/rename/") }).is_err(), "unknown kind");
         assert!(add(&temp.0, Entry { description: " ".into(), ..entry("tools/rename/") }).is_err(), "no description");
         assert!(add(&temp.0, Entry { tags: vec!["Co Op".into()], ..entry("tools/rename/") }).is_err(), "bad tag");
-        assert_eq!(fs::read_to_string(temp.0.join(FILE_NAME)).unwrap(), SAMPLE, "nothing was written");
+        assert!(!temp.0.join("tools/rename/.workstation").exists(), "nothing was written");
+        assert_eq!(fs::read_to_string(temp.0.join("tools/zeta/.workstation")).unwrap(), SAMPLE);
     }
 
     #[test]
-    fn set_tags_changes_only_that_entry() {
+    fn set_tags_needs_a_file() {
         let temp = Temp::new();
-        temp.file(FILE_NAME, SAMPLE);
+        temp.file("tools/zeta/.workstation", SAMPLE);
         set_tags(&temp.0, "TOOLS/ZETA", vec!["co-op".into(), "web".into()]).unwrap();
-        let entries = read(&temp.0).unwrap();
-        assert_eq!(entries[1].tags, vec!["co-op", "web"]);
-        assert_eq!(entries[0].tags, vec!["roblox"]);
+        assert_eq!(read(&temp.0).entries[0].tags, vec!["co-op", "web"]);
         assert!(set_tags(&temp.0, "tools/none/", vec![]).is_err());
     }
 }

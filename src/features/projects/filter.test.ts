@@ -42,7 +42,7 @@ describe("filterProjects", () => {
     expect(names(filterProjects(fakeProjects, { ...all, group: "Archive" }))).toEqual(["obby"]);
     expect(names(filterProjects(fakeProjects, { ...all, owner: "nari-games" }))).toEqual(["Fish Dive"]);
     expect(names(filterProjects(fakeProjects, { ...all, stack: "Tauri" }))).toEqual(["Workstation"]);
-    expect(names(filterProjects(fakeProjects, { ...all, flagged: true }))).toEqual(["Old Site", "rename"]);
+    expect(names(filterProjects(fakeProjects, { ...all, flagged: true }))).toEqual(["rename"]);
     expect(names(filterProjects(fakeProjects, { ...all, planned: true }))).toEqual(["Workstation", "Swamp"]);
   });
 
@@ -65,14 +65,11 @@ describe("groupProjects", () => {
 });
 
 describe("registryFlag", () => {
-  it("flags drift, but never an archived folder without an entry", () => {
+  it("flags a missing .workstation, but never in an archived folder", () => {
     const flags = Object.fromEntries(fakeProjects.map((p) => [p.path, registryFlag(p)]));
     expect(flags["archive/games/roblox/obby/"]).toBeNull();
-    expect(flags["apps/web/old-site/"]).toBe("folder missing");
-    expect(flags["tools/rename/"]).toBe("not in projects.json");
+    expect(flags["tools/rename/"]).toBe("no .workstation");
     expect(flags["games/godot/swamp/"]).toBeNull();
-    const listed = fakeProjects.find((p) => p.archived);
-    expect(listed && registryFlag({ ...listed, registered: true })).toBe("archived: remove from projects.json");
   });
 });
 

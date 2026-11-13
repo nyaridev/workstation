@@ -35,7 +35,7 @@ starting point, not a standard to keep:
 4. Tell Claude Code about this folder everywhere, not only in sessions opened here:
    - Copy `_meta/templates/user-claude/WORKSTATION.md` to `~/.claude/WORKSTATION.md` and replace every
      `<workstation>` in it with this folder's path. It says where projects live, keeps sessions inside their own
-     folder, and lets any session update `projects.json`.
+     folder, and lets any session update a project's `.workstation`.
    - Add the line `@WORKSTATION.md` to `~/.claude/CLAUDE.md` (create the file if it doesn't exist).
 
 5. Open the Workstation app and add this folder, or keep using it with Claude Code alone.
@@ -84,4 +84,5 @@ games/roblox/fish-dive/        a plain folder (not git), backed up as a whole
 - `CLAUDE.md`: Claude Code notes. It imports `AGENTS.md`.
 - `<category>/CLAUDE.md`: the rules for each kind of project. They load in every session inside that category.
 - `.claude/`: workspace settings, admin rules and skills.
-- `projects.json`: the registry, with tags (`_meta/docs/projects-json.md`); the Workstation app shows it.
+- `.workstation`: marks the workstation; each project has its own, with its tags (`_meta/docs/workstation-file.md`);
+  the Workstation app shows them.

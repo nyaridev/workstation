@@ -10,7 +10,8 @@ use std::path::{Path, PathBuf};
 // ── Constants ─────────────────────────────
 const FILE_NAME: &str = "workstations.json";
 /// The file that makes a folder a workstation root.
-const MARKER: &str = "projects.json";
+/// A workstation root holds a `.workstation`, the same file projects have (`scan::FILE_NAME`).
+const MARKER: &str = ".workstation";
 
 // ── Types ─────────────────────────────────
 /// One saved workstation.
@@ -113,7 +114,7 @@ fn insert(saved: &mut Saved, root: &Path) -> PathBuf {
 }
 
 // ── Public API ────────────────────────────
-/// True when `root` holds a `projects.json`.
+/// True when `root` holds a `.workstation`.
 pub fn is_workstation(root: &Path) -> bool {
     root.join(MARKER).is_file()
 }
@@ -126,7 +127,7 @@ pub fn list(config_dir: &Path) -> Result<Listing, String> {
 /// Adds a workstation (if it isn't listed yet) and opens it.
 pub fn add(config_dir: &Path, root: &Path) -> Result<Listing, String> {
     if !is_workstation(root) {
-        return Err(format!("{} isn't a workstation: it has no projects.json.", root.display()));
+        return Err(format!("{} isn't a workstation: it has no .workstation file.", root.display()));
     }
     let mut saved = load(config_dir)?;
     saved.open = Some(insert(&mut saved, root));
@@ -244,7 +245,7 @@ mod tests {
         let config = temp.0.join("config");
         let home = temp.workstation("home");
         add(&config, &home).unwrap();
-        fs::remove_file(home.join("projects.json")).unwrap();
+        fs::remove_file(home.join(MARKER)).unwrap();
         assert!(!list(&config).unwrap().workstations[0].available);
     }
 

@@ -29,5 +29,5 @@ For several repos released together:
 
 - Create it as a single repo at `frameworks/<suite>/<repo>/`.
 - Its owner is the suite's org.
-- Add a row for it in the suite's `AGENTS.md`, in the suite's `CLAUDE.md` "Rules below this folder" table, and in
-  `projects.json`.
+- Add a row for it in the suite's `AGENTS.md`, in the suite's `CLAUDE.md` "Rules below this folder" table, and give it
+  its own `.workstation`.

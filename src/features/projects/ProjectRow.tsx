@@ -1,6 +1,6 @@
 // ProjectRow: one project on one line (ADR-0018), in the same columns as every row: the name (its description and
 // path as a tooltip, its flags and what's inside), the status, the git badges and the remote's owner/name; then its
-// actions (register it in projects.json, edit its tags in a dialog, pull it, open the folder) as icon buttons. A suite or home
+// actions (give it a .workstation, edit its tags in a dialog, pull it, open the folder) as icon buttons. A suite or home
 // opens to show the projects and important folders inside it; a repo opens its git overview. A right click offers the
 // same actions.
 
@@ -25,8 +25,6 @@ interface Props {
   git: GitStatuses;
   /** Tags already in use, suggested while editing. */
   suggestions: string[];
-  /** False while projects.json can't be read, so nothing is offered that would write it. */
-  canWrite: boolean;
   onOpen: (path: string) => void;
   /** Pulls the repo at a path by fast-forward (ADR-0018); the row shows it working until it settles. */
   onPull: (path: string, name: string) => Promise<void>;
@@ -62,7 +60,6 @@ export function ProjectRow(props: Props) {
     inside,
     git,
     suggestions,
-    canWrite,
     onOpen,
     onPull,
     onOpenPage,
@@ -105,7 +102,7 @@ export function ProjectRow(props: Props) {
   // Its own repo (a game home's `game/`), not the totals of the repos inside a suite.
   const own = p.repo ? git[p.path] : undefined;
   // Only when the remote has commits this copy lacks (as of the last fetch).
-  const canPull = p.onDisk && (own?.behind ?? 0) > 0;
+  const canPull = (own?.behind ?? 0) > 0;
   const pull = async () => {
     setPulling(true);
     await onPull(p.path, p.name);
@@ -116,12 +113,10 @@ export function ProjectRow(props: Props) {
     ...(hasHistory ? [{ label: "Git overview", onSelect: history }] : []),
     ...(p.milestones.length > 0 ? [{ label: "Milestones", onSelect: () => onMilestones(p) }] : []),
     ...(canPull ? [{ label: "Pull from the remote", onSelect: () => void pull(), disabled: pulling }] : []),
-    { label: "Open folder", onSelect: () => onOpen(p.path), disabled: !p.onDisk },
+    { label: "Open folder", onSelect: () => onOpen(p.path) },
     ...(own?.owner ? [{ label: "Open in browser", onSelect: () => onOpenPage(p.path) }] : []),
-    ...(canWrite && !p.registered && !p.archived
-      ? [{ label: "Register…", onSelect: () => setEditing("register") }]
-      : []),
-    ...(canWrite && p.registered ? [{ label: "Edit tags", onSelect: () => setTagsOpen(true) }] : []),
+    ...(!p.registered && !p.archived ? [{ label: "Add .workstation…", onSelect: () => setEditing("register") }] : []),
+    ...(p.registered ? [{ label: "Edit tags", onSelect: () => setTagsOpen(true) }] : []),
   ];
 
   const remote = own && (own.owner ? `${own.owner}/${own.repo ?? "?"}` : "no remote");
@@ -148,7 +143,7 @@ export function ProjectRow(props: Props) {
                     <span ref={name}>{p.name}</span>
                   </span>
                 </Tooltip>
-                {flag && <Badge tone={p.onDisk ? "warning" : "danger"}>{flag}</Badge>}
+                {flag && <Badge tone="warning">{flag}</Badge>}
                 {openable && <span className="muted small">{summary.join(" · ")}</span>}
               </span>
               <span className="row-cell">{p.status && <StatusBadge status={p.status} />}</span>
@@ -166,16 +161,16 @@ export function ProjectRow(props: Props) {
           }
           actions={
             <>
-              {canWrite && !p.registered && !p.archived && (
+              {!p.registered && !p.archived && (
                 <IconButton
                   size="sm"
                   icon={<Icon icon={FilePlusIcon} />}
-                  label="Register in projects.json…"
+                  label="Add .workstation…"
                   onClick={() => setEditing("register")}
                   disabled={editing !== null}
                 />
               )}
-              {canWrite && p.registered && (
+              {p.registered && (
                 <IconButton
                   size="sm"
                   icon={<Icon icon={TagIcon} />}
@@ -196,7 +191,6 @@ export function ProjectRow(props: Props) {
                 size="sm"
                 icon={<Icon icon={FolderOpenIcon} />}
                 label="Open folder"
-                disabled={!p.onDisk}
                 onClick={() => onOpen(p.path)}
               />
             </>
@@ -206,7 +200,7 @@ export function ProjectRow(props: Props) {
       {editing === "register" && (
         <RegisterForm root={root} project={p} git={git[p.path]} suggestions={suggestions} onDone={done} />
       )}
-      {canWrite && p.registered && (
+      {p.registered && (
         <TagDialog
           root={root}
           project={p}

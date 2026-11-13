@@ -28,4 +28,4 @@ The kit's starting choice, not a requirement: replace it with your own stack, an
 - A `.claude/launch.json` entry for the dev server, so Claude can preview it.
 - Secrets live in `.env` (git-ignored), with a committed `.env.example`.
 - One `check` script (typecheck + lint + tests) that must pass before a task is done.
-- For client work, the client's org owns the repo. Note it in the project's `projects.json` entry (`client` tag, client in `notes`).
+- For client work, the client's org owns the repo. Note it in the project's `.workstation` (`client` tag, client in `notes`).

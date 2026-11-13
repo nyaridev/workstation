@@ -2,7 +2,8 @@
 
 Workstation is a desktop app that oversees WORKSTATION folders. Rust does every disk read and write; React only shows
 what Rust sends it, in an iro-ui window that works like Scrappy's; a workstation is just a root folder the app
-remembers, and its `projects.json` is the registry (format: [`docs/projects-json.md`](../projects-json.md)).
+remembers, and each project in it describes itself in a `.workstation` file (format:
+[`docs/workstation-file.md`](../workstation-file.md), ADR-0019).
 
 ## Shape
 
@@ -11,7 +12,7 @@ src-tauri/src/
 ├─ lib.rs              Tauri setup: plugins, commands, startup
 ├─ commands.rs         thin commands the UI calls
 ├─ workstations.rs     the user's list of workstations (add, remove, switch)
-├─ scan/               layout.rs (place rules, change filter), registry.rs (read/write projects.json),
+├─ scan/               layout.rs (place rules, change filter), registry.rs (find, read, write .workstation files),
 │                      stack.rs (stack guess), mod.rs (merge)
 ├─ watch.rs            debounced watcher → `projects-changed`
 ├─ git.rs              branch, uncommitted, unpushed, remote owner/name (the `git` command, 8 repos at a time); one
@@ -52,7 +53,7 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | Module | Owns | May depend on |
 | --- | --- | --- |
 | `workstations.rs` | the list file in the app config folder | nothing in the app |
-| `scan/` | finding projects, reading and writing `projects.json` | nothing in the app |
+| `scan/` | finding projects, reading and writing their `.workstation` files | nothing in the app |
 | `git.rs` | running `git` for status | nothing in the app |
 | `kit.rs` | copying the embedded kit | nothing in the app |
 | `update.rs` | the app's own updates from GitHub releases | nothing in the app |
@@ -71,9 +72,9 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | [0001](0001-tauri-app-with-rust-core.md) | Tauri app with the logic in Rust | Accepted (UI styling replaced by 0008; the portable exe by 0016) |
 | [0002](0002-projects-from-disk-and-registry.md) | Projects come from the disk, PROJECTS.md stays the registry | Superseded by 0004 |
 | [0003](0003-workstations-and-starter-kit.md) | Several workstations per user, and a starter kit in the exe | Accepted (partly replaced by 0004, 0005) |
-| [0004](0004-projects-json-registry.md) | projects.json is the registry | Accepted (marker replaced by 0005, archiving by 0006) |
-| [0005](0005-workstations-added-by-hand.md) | Workstations are added by hand and recognized by projects.json | Accepted |
-| [0006](0006-archived-projects-leave-the-registry.md) | Archived projects leave projects.json | Accepted |
+| [0004](0004-projects-json-registry.md) | projects.json is the registry | Superseded by 0019 |
+| [0005](0005-workstations-added-by-hand.md) | Workstations are added by hand and recognized by projects.json | Accepted (marker replaced by 0019) |
+| [0006](0006-archived-projects-leave-the-registry.md) | Archived projects leave projects.json | Superseded by 0019 |
 | [0007](0007-self-update-from-github-releases.md) | Self-update from GitHub releases | Superseded by 0014 |
 | [0008](0008-ui-from-iro-ui.md) | The UI is built from iro-ui | Accepted (extended by 0010) |
 | [0009](0009-window-built-in-rust-with-a-frame-setting.md) | Rust builds the window, and a setting picks its frame | Accepted |
@@ -86,6 +87,7 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | [0016](0016-installers-for-three-systems.md) | Installers for Windows, macOS and Linux, built by GitHub Actions | Accepted |
 | [0017](0017-workstations-switched-in-settings.md) | Workstations are switched in Settings only | Accepted |
 | [0018](0018-compact-rows-and-pull-by-hand.md) | Compact project rows, and pulling a repo by hand | Accepted |
+| [0019](0019-a-workstation-file-per-project.md) | Each project has its own .workstation file | Accepted |
 
 ## Milestones
 

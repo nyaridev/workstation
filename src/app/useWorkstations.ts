@@ -13,7 +13,7 @@ import {
 import type { Listing } from "../lib/types";
 
 // shortcut: recognizes Rust's "isn't a workstation" error by its text; give the command a typed error if it grows more.
-const NOT_A_WORKSTATION = "has no projects.json";
+const NOT_A_WORKSTATION = "has no .workstation file";
 
 /** Loads the workstation list once and exposes add, set up (pick, then confirm), open and remove. Only `App` calls it. */
 export function useWorkstationState() {

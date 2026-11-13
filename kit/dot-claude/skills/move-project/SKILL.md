@@ -34,6 +34,7 @@ argument-hint: "<source path or project name> [target path]"
      `.claude/skills/` in the home's `CLAUDE.md` (`.claude/rules/instructions.md`). `scan-projects.ps1` must print no
      `not listed` line for it.
 7. **Rebuild** what was skipped, if the user wants: `pnpm install`, `uv sync`, `rokit install`, a Godot import.
-8. **Register** the project in `projects.json`, with where it came from in `notes`.
+8. **Its `.workstation`** (`.claude/rules/registry.md`): write one in the project's main folder if it has none, with
+   where it came from in `notes` (by name, never a path).
 9. **The original stays.** Tell the user it's safe to remove it themselves once they've opened the new copy. Never
    delete it.

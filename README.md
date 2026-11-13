@@ -8,19 +8,20 @@
 <p align="center">
   <a href="#run"><b>Run</b></a> ·
   <a href="docs/layout.md">Layout</a> ·
-  <a href="docs/projects-json.md">projects.json</a> ·
+  <a href="docs/workstation-file.md">.workstation</a> ·
   <a href="AGENTS.md">Agents</a> ·
   <a href="docs/adr">Decisions</a>
 </p>
 
 A Windows app for people who keep every project in one folder: games, apps, tools, mods, ideas, research. Open your
 WORKSTATION folder and see everything in it, sorted by kind and tagged, with what each repo has left to commit or
-push. It only reads your projects; its only writes are to `projects.json` and to a new workstation's starter files.
+push. It only reads your projects; its only writes are to their `.workstation` files and to a new workstation's starter
+files.
 
 - **Every project at a glance.** Grouped by kind, with search, tags, status and a "has changes" filter.
 - **Git in every row.** Each repo's branch, uncommitted changes and unpushed commits.
-- **A registry that stays honest.** Folders missing from `projects.json` are flagged; register them or edit their tags
-  from the list.
+- **Projects that describe themselves.** Each one keeps its name, status, tags and milestones in a `.workstation` file
+  that moves with it. Folders without one are flagged; add one or edit tags from the list.
 - **Live.** Add, move or remove a project folder and the list follows.
 - **Several workstations.** Work and personal, or one per person. Set up a new one in an empty folder and it gets the
   layout, agent rules and templates.
@@ -56,7 +57,7 @@ it). Never use `nyaridev`, this repo's owner: that's the kit's author, not the u
 Download the installer for your system from the [latest release](https://github.com/nyaridev/workstation/releases/latest):
 `Workstation_<version>_x64-setup.exe` on Windows 10 or 11, the `.dmg` on macOS (the first time, right-click the app
 and choose Open: it isn't signed by Apple), the `.AppImage` or `.deb` on Linux. **Add a workstation** (a folder with
-`projects.json` at its top) or **Set up a new one** in an empty folder, then fill in the GitHub owners table in its
+a `.workstation` file at its top) or **Set up a new one** in an empty folder, then fill in the GitHub owners table in its
 `AGENTS.md`. When a new version is out, a banner under the header installs it.
 
 ## Develop

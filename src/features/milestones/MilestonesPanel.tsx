@@ -1,4 +1,4 @@
-// MilestonesPanel: a project's plans in a side sheet, from its `milestones` in projects.json. A project with several
+// MilestonesPanel: a project's plans in a side sheet, from the `milestones` in its .workstation. A project with several
 // tracks gets a tab for each. A plan shows what's being worked on with its progress, then every milestone in order:
 // done ones checked, the current one flagged, the rest numbered. Reads only.
 

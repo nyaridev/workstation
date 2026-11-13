@@ -130,7 +130,7 @@ pub fn open_workstation(app: AppHandle, root: String) -> Result<Listing, String>
 }
 
 // ── Projects ──────────────────────────────
-/// Every project of the workstation at `root`, merged from the disk and `projects.json`.
+/// Every project of the workstation at `root`: its `.workstation` files and the folders where projects belong.
 #[tauri::command]
 pub fn scan_workstation(root: String) -> Scan {
     scan::scan(Path::new(&root))
@@ -207,13 +207,13 @@ pub fn guess_stack(root: String, path: String) -> Result<Vec<String>, String> {
     scan::guess_stack(Path::new(&root), &path)
 }
 
-/// Adds a `projects.json` entry for an unregistered project; the watcher's rescan shows it.
+/// Writes a `.workstation` for a project folder that has none; the watcher's rescan shows it.
 #[tauri::command]
 pub fn register_project(root: String, entry: Entry) -> Result<(), String> {
     scan::register(Path::new(&root), entry)
 }
 
-/// Replaces a project's tags in `projects.json`.
+/// Replaces the tags in a project's `.workstation`.
 #[tauri::command]
 pub fn set_tags(root: String, path: String, tags: Vec<String>) -> Result<(), String> {
     scan::set_tags(Path::new(&root), &path, tags)

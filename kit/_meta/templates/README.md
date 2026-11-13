@@ -28,6 +28,7 @@ order (a later template overwrites an earlier one) and fills placeholders in fil
 | `suite/` | A framework suite's `AGENTS.md`, `CLAUDE.md`, `README.md` | alone |
 | `asset-set/` | A library set's card, plus `source/` and `export/` | alone |
 | `research/` | `report.md`, `sources.md`, `data/` | alone |
+| `workstation-file/` | A project's `.workstation`, with its name and owner filled in | last, for every project (`-Merge`) |
 | `idea/` | An idea's `README.md`: pitch, audience, open questions | alone |
 | `user-claude/` | Your `~/.claude/WORKSTATION.md`: where projects live, and the stay-inside rule | by hand, once per PC (`README.md`) |
 

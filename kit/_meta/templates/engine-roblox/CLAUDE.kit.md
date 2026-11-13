@@ -27,5 +27,5 @@ came from the `engine-roblox` template with the first Roblox game; it's yours to
   using it in code. Images from AI tools start in `assets/_inbox/`.
 - **Prep assets before uploading:** fix transparent edges on exported PNGs (never on sources), and normalize sounds.
   **Roblox sounds are uploaded only as `.ogg`**, never `.mp3` or `.wav`. Keep raw files untouched in `source/`.
-- **Owners:** your own games use the games owner in `AGENTS.md`. Partner studios own their repos; `projects.json` says
+- **Owners:** your own games use the games owner in `AGENTS.md`. Partner studios own their repos; the home's `.workstation` says
   which.

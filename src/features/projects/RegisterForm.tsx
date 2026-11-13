@@ -1,4 +1,4 @@
-// RegisterForm: adds a projects.json entry for a project folder that has none, prefilled from what's on disk.
+// RegisterForm: writes a .workstation into a project folder that has none, prefilled from what's on disk.
 
 import { Button, Field, Notice, Panel, Select, TextField } from "iro-ui";
 import { type FormEvent, useEffect, useState } from "react";
@@ -25,7 +25,7 @@ export function RegisterForm({ root, project, git, suggestions, onDone }: Props)
     path: project.path,
     kind: project.kind,
     stack: [],
-    // As projects-json.md says: the remote's owner, "local" for a repo without one, empty for a plain folder.
+    // As workstation-file.md says: the remote's owner, "local" for a repo without one, empty for a plain folder.
     owner: git ? (git.owner ?? "local") : "",
     status: startingStatus(project.kind),
     description: "",
@@ -96,7 +96,7 @@ export function RegisterForm({ root, project, git, suggestions, onDone }: Props)
         )}
         <div className="wide buttons">
           <Button type="submit" variant="primary" loading={saving}>
-            Add to projects.json
+            Create .workstation
           </Button>
           <Button variant="ghost" onClick={() => onDone(false)}>
             Cancel

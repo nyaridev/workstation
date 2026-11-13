@@ -4,5 +4,5 @@ Finished or abandoned projects, at the same sub-path they had before (`archive/g
 here through `/archive-project`.
 
 - Archived projects are read-only. To work on one again, `/promote` it back to its category first.
-- Nothing here is in `projects.json`: archiving removes the entry, and promoting a project back adds a new one.
+- An archived project keeps its `.workstation`: it moves in with the folder, and back out when it's promoted.
 - Its GitHub repo may have moved to the archive org (`AGENTS.md` → Names and owners).

@@ -1,16 +1,19 @@
 <#
-	Lists the projects in the workstation and checks them against projects.json (and checks its entries).
+	Lists the projects in the workstation and checks each one's .workstation file.
 
-	  (no options)          Scan the workspace and compare it with projects.json
+	  (no options)          Scan the workspace and check each project's .workstation
 	  -Category games       Only one top-level folder (games, mods, emulators, apps, tools, frameworks, assets, ideas, research,
 	                        external, sandbox, archive)
 	  -Root D:/Old         Inventory of another tree instead: every git repo with its remote and last commit, no
-	                        registry check (to see a folder before moving it in)
+	                        .workstation check (to see a folder before moving it in)
 	  -Json                 Print the result as JSON
 
 	A project is found by its place: games/<engine>/<game>/, mods/<game>/, emulators/<game>/, apps/<type>/<name>/, tools/<name>/,
 	frameworks/<name>/ (a suite when it isn't a repo itself), assets/packs/<name>/, ideas/<name>/,
 	research/<name>/, external/<owner>/<repo>/, sandbox/<name>/, and the same shapes under archive/.
+
+	Each project's .workstation (in its main folder) is read and checked; sandbox experiments get none, and archived
+	folders aren't flagged for having none.
 
 	It also checks that each game home, mod home, emulator home and suite lists, in its CLAUDE.md, every folder below it that has its
 	own CLAUDE.md, .claude/rules/ or .claude/skills/ (.claude/rules/instructions.md), since those don't load from there.
@@ -88,7 +91,11 @@ function Add-Project([string]$path, [string]$kind, [string]$shape) {
 	$changed = if ($kind -eq "sandbox") { (Get-LastChange $path).ToString("yyyy-MM-dd") } else { "" }
 	$results.Add([pscustomobject]@{
 		Path       = Get-Relative $path
+		Name        = ""
 		Kind       = $kind
+		Status      = ""
+		Description = ""
+		Tags        = ""
 		Shape      = $shape
 		Branch     = $branch
 		Dirty      = $dirty
@@ -159,44 +166,41 @@ else {
 	}
 }
 
-#%%%%%%%%%%%%%%%%%%%% Registry
+#%%%%%%%%%%%%%%%%%%%% .workstation files
 
-# projects.json: format in _meta/docs/projects-json.md
+# Each project's .workstation: format in _meta/docs/workstation-file.md
 $kinds = @("game", "mod", "emulator", "app", "tool", "framework", "suite", "asset-pack", "research", "idea", "external")
 $statuses = @("concept", "planning", "researching", "prototyping", "in-development", "released", "maintained", "complete", "on-hold")
-$required = @("name", "path", "kind", "stack", "owner", "status", "description", "tags")
+$required = @("name", "kind", "stack", "owner", "status", "description", "tags")
 
-$registry = @()
+$files = 0
 $invalid = @()
 $unregistered = @()
-$missing = @()
 $stale = @()
 if (-not $inventory) {
-	$registryFile = Join-Path $workspace "projects.json"
-	if (-not (Test-Path -LiteralPath $registryFile)) { $invalid += "projects.json: not found" }
-	else {
-		$entries = @()
-		try { $entries = @((Get-Content -LiteralPath $registryFile -Raw -Encoding utf8 | ConvertFrom-Json -ErrorAction Stop).projects) }
-		catch { $invalid += "projects.json: $($_.Exception.Message)" }
-		foreach ($entry in $entries) {
-			$names = @($entry.PSObject.Properties.Name)
-			$label = if ($entry.path) { $entry.path } else { "entry '$($entry.name)'" }
-			foreach ($field in $required | Where-Object { $names -notcontains $_ }) { $invalid += "${label}: no '$field'" }
-			if (-not $entry.path) { continue }
-			if (-not $entry.path.EndsWith("/") -or $entry.path.Contains("\")) { $invalid += "${label}: path needs forward slashes and a trailing slash" }
-			if ($entry.kind -and $kinds -notcontains $entry.kind) { $invalid += "${label}: unknown kind '$($entry.kind)'" }
-			if ($entry.status -and $statuses -notcontains $entry.status) { $invalid += "${label}: unknown status '$($entry.status)'" }
-			if ($entry.path -like "archive/*") { $invalid += "${label}: archived projects aren't registered; remove the entry" }
-			foreach ($tag in @($entry.tags) | Where-Object { $_ -cnotmatch '^[a-z0-9]+(-[a-z0-9]+)*$' }) { $invalid += "${label}: tag '$tag' isn't kebab-case" }
-			if ($registry -contains $entry.path) { $invalid += "${label}: listed twice" }
-			$registry += $entry.path
+	if (-not (Test-Path -LiteralPath (Join-Path $Root ".workstation"))) { $invalid += ".workstation: none at the root, which marks the workstation" }
+	foreach ($project in $results | Where-Object { $_.Kind -ne "sandbox" }) {
+		$label = "$($project.Path).workstation"
+		$file = Join-Path $Root $label
+		if (-not (Test-Path -LiteralPath $file)) {
+			# Archived folders are never flagged: archive/ also holds leftovers that were never projects
+			if ($project.Kind -notlike "archived *") { $unregistered += $project.Path }
+			continue
 		}
-		$sorted = [string[]]$registry.Clone(); [Array]::Sort($sorted, [StringComparer]::Ordinal)
-		if (($sorted -join "|") -cne ($registry -join "|")) { $invalid += "projects.json: entries aren't sorted by path" }
+		$files++
+		try { $entry = Get-Content -LiteralPath $file -Raw -Encoding utf8 | ConvertFrom-Json -ErrorAction Stop }
+		catch { $invalid += "${label}: $($_.Exception.Message)"; continue }
+		$names = @($entry.PSObject.Properties.Name)
+		foreach ($field in $required | Where-Object { $names -notcontains $_ }) { $invalid += "${label}: no '$field'" }
+		if ($names -contains "path") { $invalid += "${label}: has a 'path'; a project's path is where its file is" }
+		if ($entry.kind -and $kinds -notcontains $entry.kind) { $invalid += "${label}: unknown kind '$($entry.kind)'" }
+		if ($entry.status -and $statuses -notcontains $entry.status) { $invalid += "${label}: unknown status '$($entry.status)'" }
+		foreach ($tag in @($entry.tags) | Where-Object { $_ -cnotmatch '^[a-z0-9]+(-[a-z0-9]+)*$' }) { $invalid += "${label}: tag '$tag' isn't kebab-case" }
+		$project.Name = "$($entry.name)"
+		$project.Status = "$($entry.status)"
+		$project.Description = "$($entry.description)"
+		$project.Tags = @($entry.tags) -join ", "
 	}
-	$found = @($results | Where-Object { $_.Kind -ne "sandbox" -and $_.Kind -notlike "archived *" } | ForEach-Object { $_.Path })
-	$unregistered = @($found | Where-Object { $registry -notcontains $_ })
-	$missing = @($registry | Where-Object { -not (Test-Path -LiteralPath (Join-Path $Root $_)) })
 	$stale = @($results | Where-Object { $_.Kind -eq "sandbox" -and ((Get-Date) - [datetime]$_.Changed).Days -ge 60 })
 }
 
@@ -224,8 +228,7 @@ if ($Json) {
 		Root         = $Root
 		Projects     = $results
 		Invalid      = $invalid
-		Unregistered = $unregistered
-		Missing      = $missing
+		NoFile       = $unregistered
 		Stale        = @($stale | ForEach-Object { $_.Path })
 		Unlisted     = $unlisted
 	} | ConvertTo-Json -Depth 4
@@ -234,19 +237,18 @@ if ($Json) {
 
 if ($results.Count -eq 0) { Write-Host "No projects found under $Root." }
 else {
-	$results | Format-Table Path, Kind, Shape, Branch, Dirty, Unpushed, LastCommit, Changed, Remote, Repos -AutoSize |
+	$results | Format-Table Path, Name, Kind, Status, Shape, Branch, Dirty, Unpushed, LastCommit, Changed, Remote, Repos -AutoSize |
 		Out-String -Width 400 | Write-Host
 }
 
 if (-not $inventory) {
-	Write-Host "Registry: $($registry.Count) entr$(if ($registry.Count -eq 1) { 'y' } else { 'ies' }) in projects.json"
-	foreach ($problem in $invalid) { Write-Host "  invalid        $problem" }
-	foreach ($path in $unregistered) { Write-Host "  unregistered   $path" }
-	foreach ($path in $missing) { Write-Host "  missing        $path" }
+	Write-Host "Registry: $files .workstation file$(if ($files -ne 1) { 's' })"
+	foreach ($problem in $invalid) { Write-Host "  invalid          $problem" }
+	foreach ($path in $unregistered) { Write-Host "  no .workstation  $path" }
 	foreach ($project in $stale) { Write-Host "  stale sandbox  $($project.Path) (last change $($project.Changed))" }
 	foreach ($project in $results | Where-Object { $_.Dirty -gt 0 }) { Write-Host "  uncommitted    $($project.Path) ($($project.Dirty) change(s))" }
 	foreach ($project in $results | Where-Object { $_.Unpushed -gt 0 }) { Write-Host "  unpushed       $($project.Path) ($($project.Unpushed) commit(s))" }
-	if (-not ($invalid -or $unregistered -or $missing -or $stale)) { Write-Host "  registry matches the disk" }
+	if (-not ($invalid -or $unregistered -or $stale)) { Write-Host "  every project has a valid .workstation" }
 	Write-Host "Instructions: rules below each home or suite, listed in its CLAUDE.md"
 	foreach ($path in $unlisted) { Write-Host "  not listed     $path" }
 	if (-not $unlisted) { Write-Host "  every home lists its rules" }

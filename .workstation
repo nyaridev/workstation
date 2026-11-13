@@ -1,0 +1,144 @@
+{
+  "name": "Workstation",
+  "kind": "app",
+  "stack": ["Tauri", "Rust", "React", "iro-ui"],
+  "owner": "nyaridev",
+  "status": "prototyping",
+  "description": "Overseer for WORKSTATION folders: lists and tags projects, watches for changes, switches workstations, ships a starter kit.",
+  "tags": ["public", "workstation", "desktop", "tooling"],
+  "notes": "The .workstation format: `docs/workstation-file.md`.",
+  "milestones": [
+    {
+      "track": "App",
+      "name": "M0 Scaffold, ADRs and rules",
+      "done": true,
+      "description": "Repo, ADRs, agent rules and the size check."
+    },
+    {
+      "track": "App",
+      "name": "M1 Workstations",
+      "done": true,
+      "description": "Save, add, switch and remove workstations."
+    },
+    {
+      "track": "App",
+      "name": "M2 Project list",
+      "done": true,
+      "description": "Scan plus projects.json: groups, filters, flags."
+    },
+    {
+      "track": "App",
+      "name": "M3 Live updates",
+      "done": true,
+      "description": "A watcher rescans when projects change."
+    },
+    {
+      "track": "App",
+      "name": "M4 Registry writes",
+      "done": true,
+      "description": "Register projects and edit their tags."
+    },
+    {
+      "track": "App",
+      "name": "M5 Git status",
+      "done": true,
+      "description": "Branch, changes and unpushed commits per repo."
+    },
+    {
+      "track": "App",
+      "name": "M6 Starter kit",
+      "done": true,
+      "description": "Set up a new workstation from the built-in kit."
+    },
+    {
+      "track": "App",
+      "name": "M7 Release prep",
+      "done": true,
+      "description": "App icon, README, manual checks, release build."
+    },
+    {
+      "track": "App",
+      "name": "M8 Custom title bar",
+      "done": true,
+      "description": "The app draws its own title bar."
+    },
+    {
+      "track": "App",
+      "name": "M9 Self-update",
+      "done": true,
+      "description": "Updates itself from GitHub releases."
+    },
+    {
+      "track": "App",
+      "name": "M10 Window and settings in Rust",
+      "done": true,
+      "description": "Rust builds the window; the liquid backdrop."
+    },
+    {
+      "track": "App",
+      "name": "M11 Scrappy's header and views",
+      "done": true,
+      "description": "Header, views and Settings like Scrappy's."
+    },
+    {
+      "track": "App",
+      "name": "M12 Every control from iro-ui",
+      "done": true,
+      "description": "Rows, tooltips and menus all from iro-ui."
+    },
+    {
+      "track": "App",
+      "name": "M13 Header and banners",
+      "done": true,
+      "description": "Header and banners like Scrappy's."
+    },
+    {
+      "track": "App",
+      "name": "M14 Settings in tabs",
+      "done": true,
+      "description": "Settings split into Workstations and App."
+    },
+    {
+      "track": "App",
+      "name": "M15 Signed updates",
+      "done": true,
+      "description": "Tauri's signed updater and the update banner."
+    },
+    {
+      "track": "App",
+      "name": "M16 Tray and start with the system",
+      "done": true,
+      "description": "Start with the system, close to the tray, one copy."
+    },
+    {
+      "track": "App",
+      "name": "M17 Installers for every system",
+      "done": true,
+      "description": "Windows, macOS and Linux installers from CI."
+    },
+    {
+      "track": "App",
+      "name": "M18 Verify, polish and release",
+      "done": false,
+      "description": "Check everything by hand, then release v1.0.0."
+    },
+    {
+      "track": "Registry",
+      "name": "K1 Milestones in the app",
+      "done": true,
+      "description": "Rows and the side panel show milestones, tracks and descriptions."
+    },
+    {
+      "track": "Registry",
+      "name": "K2 Format and agent rules",
+      "done": false,
+      "description": "projects-json.md and the rules for keeping milestones current."
+    },
+    {
+      "track": "Registry",
+      "name": "K3 Kit and scan check",
+      "done": false,
+      "description": "The kit ships it; scan-projects.ps1 checks it."
+    }
+  ]
+}

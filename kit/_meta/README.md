@@ -6,7 +6,7 @@ The workspace's machinery. Never a place for projects.
 |---|---|
 | `templates/` | Project templates (`templates/README.md` lists them and their placeholders) |
 | `scripts/new-from-template.ps1` | Applies templates to a new folder; used by `/new-project` |
-| `scripts/scan-projects.ps1` | Lists projects and checks them against `projects.json`; used by `/projects` |
+| `scripts/scan-projects.ps1` | Lists projects and checks each one's `.workstation`; used by `/projects` |
 | `docs/adr/` | Decisions about the workspace, one ADR per decision |
 | `docs/where-things-go.md` | Where each kind of project and asset goes |
-| `docs/projects-json.md` | The registry's format, entry template and tag list |
+| `docs/workstation-file.md` | The `.workstation` format, template and tag list |

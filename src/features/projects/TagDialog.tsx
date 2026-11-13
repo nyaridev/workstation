@@ -1,5 +1,5 @@
 // TagDialog: edits a registered project's tags: every tag in use as a toggle chip, the project's own first and on,
-// and a field for a new one; Save writes them to projects.json, Cancel leaves them.
+// and a field for a new one; Save writes them to its .workstation, Cancel leaves them.
 
 import { Button, Chip, Dialog, Notice, TextField } from "iro-ui";
 import { useState } from "react";

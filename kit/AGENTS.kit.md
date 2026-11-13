@@ -24,7 +24,7 @@ and `_meta/docs/adr/` holds the decisions behind them.
 | `_meta/` | Templates, scripts, docs and ADRs. Never projects | — |
 | `_toolchains/` | Shared engines and SDKs (`godot/<version>/`), `bin/` shims | — |
 | `_cache/` | Shared caches (`pnpm-store/`). Safe to empty any time to free space (`_cache/README.md`) | — |
-| `projects.json` | The registry: every project with its path, owner, status, description and tags (`.claude/rules/registry.md`) | — |
+| `.workstation` | Marks the workspace. Each project has its own `.workstation`: name, kind, owner, status, description and tags (`.claude/rules/registry.md`) | — |
 
 ## Where things go
 
@@ -78,7 +78,8 @@ Committed repos get shared, so they never reveal this PC's setup and must work w
 1. **Never delete** projects, assets, saves or originals. Move or archive instead; deleting is the user's job.
 2. **Moves copy first.** Verify (same git HEAD, same status, same file count), then register. The original stays
    until the user removes it.
-3. **Keep `projects.json` current** in the same task: new, cloned, moved, promoted, archived (archiving removes the entry).
+3. **Every project has a current `.workstation`** in its main folder, written or updated in the same task: new,
+   cloned, moved in, promoted (`.claude/rules/registry.md`).
 4. **Nothing personal goes in someone else's repo.** For partner games, the user's files stay in the game home, beside `game/`.
 5. **Never commit** secrets (`.env`), game files the user doesn't own, or heavy sources that belong in `assets/`.
 6. **Temporary files** (test scaffolds, scratch scripts) go in the session scratchpad, not in the workspace.

@@ -1,4 +1,4 @@
-// useSaveTags: saves a registered project's tags to projects.json, with the saving state and Rust's error.
+// useSaveTags: saves a registered project's tags to its .workstation, with the saving state and Rust's error.
 
 import { useState } from "react";
 import { setTags } from "../../lib/backend";

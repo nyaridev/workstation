@@ -1,0 +1,9 @@
+{
+  "name": "{{Title}}",
+  "kind": "",
+  "stack": [],
+  "owner": "{{Owner}}",
+  "status": "prototyping",
+  "description": "",
+  "tags": []
+}

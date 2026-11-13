@@ -118,7 +118,7 @@ export function App() {
             open={pendingSetup !== null}
             onOpenChange={(isOpen) => !isOpen && cancelSetup()}
             title={`Set up a workstation in ${pendingSetup ?? "this folder"}?`}
-            description="This adds the starter folders, rules and projects.json. Files already there are kept as they are."
+            description="This adds the starter folders, rules and the .workstation file that marks it. Files already there are kept as they are."
             confirmLabel="Set it up"
             tone="accent"
             onConfirm={confirmSetup}

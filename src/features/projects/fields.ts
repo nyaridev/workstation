@@ -1,4 +1,4 @@
-// Fields: the allowed kinds and statuses of a projects.json entry, and turning typed text into a tag.
+// Fields: the allowed kinds and statuses of a .workstation file, and turning typed text into a tag.
 // Rust checks the same rules when it writes (`scan/registry.rs`).
 
 /** Every allowed `kind`, in the order the list groups them. */
@@ -16,7 +16,7 @@ export const KINDS = [
   "external",
 ] as const;
 
-/** Every allowed `status`, from first idea to done (meanings: `docs/projects-json.md` → Statuses). */
+/** Every allowed `status`, from first idea to done (meanings: `docs/workstation-file.md` → Statuses). */
 export const STATUSES = [
   "concept",
   "planning",
@@ -41,7 +41,7 @@ const STATUS_COLORS: Record<string, string> = {
   complete: "accent",
 };
 
-/** A status's color, or null for on-hold and unknown ones (a hand-edited projects.json): a neutral badge. */
+/** A status's color, or null for on-hold and unknown ones (a hand-edited .workstation): a neutral badge. */
 export function statusColor(status: string): string | null {
   return STATUS_COLORS[status] ?? null;
 }

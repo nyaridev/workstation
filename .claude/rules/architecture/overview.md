@@ -1,15 +1,15 @@
 # Architecture overview
 
 Rust does every disk read and write; React only shows what Rust sends it and calls commands. A workstation is a root
-folder the app remembers; `projects.json` in it is the only project registry (`docs/projects-json.md`). Reasons:
-`docs/adr/`.
+folder the app remembers, marked by its `.workstation`; each project in it has its own `.workstation` file
+(`docs/workstation-file.md`, ADR-0019). Reasons: `docs/adr/`.
 
 ## Modules
 
 | Module                                | Owns                                                  | May depend on              |
 | ------------------------------------- | ----------------------------------------------------- | -------------------------- |
 | `src-tauri/src/workstations.rs`       | the user's list of workstations                       | nothing in the app         |
-| `src-tauri/src/scan/`                 | finding projects, reading and writing `projects.json`, when each was last edited | nothing in the app |
+| `src-tauri/src/scan/`                 | finding projects, reading and writing their `.workstation`, when each was last edited | nothing in the app |
 | `src-tauri/src/git.rs`                | running `git` for status                              | nothing in the app         |
 | `src-tauri/src/kit.rs`                | copying the embedded starter kit                      | nothing in the app         |
 | `src-tauri/src/update.rs`             | the app's own updates from GitHub releases (ADR-0014) | `settings.rs`, `tauri`     |
@@ -44,12 +44,13 @@ folder the app remembers; `projects.json` in it is the only project registry (`d
   `AGENTS.md` become `CLAUDE.kit.md` / `AGENTS.kit.md`. Never read kit files as rules for this repo.
 - Nothing personal in the kit: no drive letters, user folders, real GitHub owners or private projects. Owners stay
   `<placeholders>`. `kit.rs`'s `the_kit_is_safe_to_ship` test checks the common cases.
-- The registry format ships from `docs/projects-json.md` (as `_meta/docs/projects-json.md`); don't copy it into `kit/`.
+- The `.workstation` format ships from `docs/workstation-file.md` (as `_meta/docs/workstation-file.md`); don't copy
+  it into `kit/`.
 
 ## Rules
 
-- Never delete, move or rename anything inside a workstation. The only writes are adding or editing `projects.json`
-  entries, copying kit files that don't exist yet, and `git pull --ff-only` in a repo when the user clicks Pull
+- Never delete, move or rename anything inside a workstation. The only writes are adding or editing a project's
+  `.workstation`, copying kit files that don't exist yet, and `git pull --ff-only` in a repo when the user clicks Pull
   (ADR-0018).
 - The only network calls are the updater's, to this app's own GitHub releases (ADR-0014), and git's own during a pull
   the user asked for. No other HTTP client, no telemetry, nothing fetched on a timer.

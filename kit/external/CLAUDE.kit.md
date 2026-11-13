@@ -10,5 +10,6 @@ there too.
   theirs stays as `upstream`.
 - **Ask before running install or build scripts** (`npm install`, `pip install`, `.bat` or `.ps1` setups), because
   they run someone else's code.
-- Note why the repo was cloned in the `notes` of its `projects.json` entry.
+- Note why the repo was cloned in the `notes` of its `.workstation`, and keep that file out of git with the repo's
+  `.git/info/exclude`.
 - If it becomes the user's own product (a real fork under active development), `/promote` moves it to its category.

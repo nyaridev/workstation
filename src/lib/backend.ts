@@ -1,5 +1,5 @@
 // Backend: every call to Rust (invoke and listen), with fake data when running in a plain browser.
-// In `pnpm dev`, add `?empty` to the URL to see the first-run screen, `?broken` for an unreadable projects.json,
+// In `pnpm dev`, add `?empty` to the URL to see the first-run screen, `?broken` for an unreadable .workstation,
 // `?update` for a newer release (`?update=downloading` while it downloads, `?update=error` for a failed check),
 // `?native` for the system title bar, `?mac` for macOS (its overlay frame and words).
 
@@ -126,7 +126,7 @@ export async function listWorkstations(): Promise<Listing> {
 export async function addWorkstation(root: string): Promise<Listing> {
   if (inTauri) return invoke("add_workstation", { root });
   // The fake treats only folders named like a workstation as one, so the setup offer can be tried.
-  if (!/workstation/i.test(root)) throw `${root} isn't a workstation: it has no projects.json.`;
+  if (!/workstation/i.test(root)) throw `${root} isn't a workstation: it has no .workstation file.`;
   return fakeAdd(root);
 }
 
@@ -154,8 +154,8 @@ export async function scanWorkstation(root: string): Promise<Scan> {
   if (inTauri) return invoke("scan_workstation", { root });
   const broken = new URLSearchParams(location.search).has("broken");
   return broken
-    ? { projects: fakeList.filter((p) => !p.registered), registryError: "projects.json can't be read: line 3" }
-    : { projects: fakeList, registryError: null };
+    ? { projects: fakeList, errors: ["games/godot/swamp/.workstation can't be read: expected `,` or `}` at line 3"] }
+    : { projects: fakeList, errors: [] };
 }
 
 /** Saves the list filters of the workstation at `root`, so they come back at the next start. */
@@ -305,14 +305,14 @@ export async function guessStack(root: string, path: string): Promise<string[]> 
   return inTauri ? invoke("guess_stack", { root, path }) : ["Rust"];
 }
 
-/** Adds a `projects.json` entry for an unregistered project. Rejects with a message when Rust refuses it. */
+/** Writes a `.workstation` for an unregistered project. Rejects with a message when Rust refuses it. */
 export async function registerProject(root: string, entry: NewEntry): Promise<void> {
   if (inTauri) return invoke("register_project", { root, entry });
   if (!entry.description.trim()) throw "A project needs a name and a one-sentence description.";
   fakeRegister(entry);
 }
 
-/** Replaces a project's tags in `projects.json`. */
+/** Replaces the tags in a project's `.workstation`. */
 export async function setTags(root: string, path: string, tags: string[]): Promise<void> {
   if (inTauri) return invoke("set_tags", { root, path, tags });
   fakeList = fakeList.map((p) => (p.path === path ? { ...p, tags } : p));

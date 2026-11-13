@@ -2,7 +2,7 @@
 //! A change to `PLACES` goes into that script and the kit too (`.claude/rules/architecture/backend.md`).
 
 // ── Imports ───────────────────────────────
-use super::registry::FILE_NAME as REGISTRY_FILE;
+use super::registry::FILE_NAME as PROJECT_FILE;
 use std::fs;
 use std::path::Path;
 
@@ -10,7 +10,7 @@ use std::path::Path;
 /// How far below a suite folder its repos can sit (`frameworks/ume/<group>/<repo>/`).
 const SUITE_DEPTH: usize = 2;
 /// Folders never looked into: dependencies, build output and caches.
-const SKIP: [&str; 10] = ["node_modules", ".venv", "venv", "__pycache__", ".godot", "target", ".git", "Library", "Temp", "obj"];
+pub(super) const SKIP: [&str; 10] = ["node_modules", ".venv", "venv", "__pycache__", ".godot", "target", ".git", "Library", "Temp", "obj"];
 
 /// Where projects live: `depth` folder levels below `base` (`games/<engine>/<game>/` is depth 2).
 const PLACES: [Place; 10] = [
@@ -117,21 +117,21 @@ pub fn find_projects(root: &Path) -> Vec<Found> {
     found
 }
 
-/// True when a change at `changed` (anywhere under `root`) can add, remove or reshape a project, or touches
-/// `projects.json`. `structural` is true for a create, delete or rename; plain edits only count for `projects.json`
-/// (Windows also reports a folder as edited when something inside it changes). Changes inside project folders
-/// (code, assets) and in skipped folders are ignored.
+/// True when a change at `changed` (anywhere under `root`) can add, remove or reshape a project, or touches a
+/// project's `.workstation`. `structural` is true for a create, delete or rename; plain edits only count for a
+/// `.workstation` (Windows also reports a folder as edited when something inside it changes). Changes inside project
+/// folders (code, assets), in support folders (`_meta/`) and in skipped folders are ignored.
 pub fn affects_projects(root: &Path, changed: &Path, structural: bool) -> bool {
     let Ok(rel) = changed.strip_prefix(root) else { return false };
     let mut parts: Vec<String> = rel.components().map(|c| c.as_os_str().to_string_lossy().into_owned()).collect();
-    if parts.len() == 1 && parts[0] == REGISTRY_FILE {
-        return true;
-    }
-    if !structural {
+    // A new or removed `.git` turns a folder into a repo or back (suites); anything inside skipped folders is noise.
+    if parts[..parts.len().saturating_sub(1)].iter().any(|p| SKIP.contains(&p.as_str()) || p.starts_with('_')) {
         return false;
     }
-    // A new or removed `.git` turns a folder into a repo or back (suites); anything inside skipped folders is noise.
-    if parts[..parts.len().saturating_sub(1)].iter().any(|p| SKIP.contains(&p.as_str())) {
+    if parts.last().is_some_and(|p| p == PROJECT_FILE) {
+        return parts.len() > 1;
+    }
+    if !structural {
         return false;
     }
     if parts.first().is_some_and(|p| p == "archive") {
@@ -157,10 +157,10 @@ mod tests {
     fn changes_that_can_alter_the_list() {
         let root = Path::new("/ws");
         let yes = |rel: &str| affects_projects(root, &root.join(rel), true);
-        assert!(affects_projects(root, &root.join("projects.json"), false), "an edit of projects.json counts");
+        assert!(affects_projects(root, &root.join("tools/rename/.workstation"), false), "an edit of a .workstation counts");
         assert!(!affects_projects(root, &root.join("games/roblox/fish-dive"), false), "a folder edit doesn't");
         for rel in [
-            "projects.json",
+            "sandbox/kept/.workstation",
             "games",
             "games/roblox/fish-dive",
             "assets",
@@ -181,7 +181,9 @@ mod tests {
             "sandbox/test",
             "_meta/scripts/scan.ps1",
             "assets/library/sfx",
-            "archive/projects.json",
+            ".workstation",
+            "_meta/templates/workstation-file/.workstation",
+            "apps/web/site/node_modules/x/.workstation",
         ] {
             assert!(!yes(rel), "{rel} should be ignored");
         }

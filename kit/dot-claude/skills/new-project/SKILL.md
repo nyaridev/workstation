@@ -6,8 +6,8 @@ argument-hint: "[what it is] [name]"
 
 # New project
 
-Creates the folder, scaffolds it from `_meta/templates/`, sets up git, and registers it in
-`projects.json`. The rules are in `AGENTS.md`.
+Creates the folder, scaffolds it from `_meta/templates/`, writes its `.workstation`, and sets
+up git. The rules are in `AGENTS.md`.
 
 ## 1. Work out what it is
 
@@ -22,7 +22,7 @@ From `$ARGUMENTS` and the conversation, settle these:
 
 ## 2. Check it doesn't exist already
 
-Search `projects.json` and the target category for the same thing under any name
+Search the project files (`scan-projects.ps1 -Json`: each project's name, description and tags) and the target category for the same thing under any name
 (`mining`, `mine`, `miner`…). If something matches, show it and offer to continue it, `/promote` it or
 `/move-project` it in instead of making a second copy.
 
@@ -71,15 +71,18 @@ Then fill in the HTML-comment prompts in the new `AGENTS.md`/`README.md` with wh
   map. Setup scripts (a template's own `setup.ps1`) add such folders after the templates are applied, so check after them.
 - `scan-projects.ps1` must print no `not listed` line for the new project.
 
-## 5. Git (repos only)
+## 5. Its .workstation
 
-Run `git init` in the repo folder (`game/` for a game home). Commit everything as
+Apply the `workstation-file` template to the project's main folder (the repo's root; the home's for a game, mod or
+emulator home; the folder itself otherwise), with `-Merge`, `-Title` and `-Owner`. Then fill in `kind`, `stack`, a
+one-sentence `description` and `tags` (`.claude/rules/registry.md`). Status is `concept` for ideas, `researching` for
+research and `prototyping` for everything else. If the recipe already made the repo's first commit, commit the
+`.workstation` on its own as `Add .workstation`.
+
+## 6. Git (repos only)
+
+Run `git init` in the repo folder (`game/` for a game home). Commit everything (the repo's `.workstation` too) as
 `Initial scaffold from WORKSTATION templates`, with no AI co-author lines. Don't add a remote here.
-
-## 6. Register
-
-Add the `projects.json` entry (`.claude/rules/registry.md`), with a one-sentence description and tags. Status is `concept` for ideas, `researching` for research and `prototyping` for
-everything else.
 
 ## 7. Offer the next steps
 

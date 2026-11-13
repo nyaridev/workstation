@@ -23,7 +23,7 @@ export interface SetupResult {
   skipped: number;
 }
 
-/** A project, merged from the disk and `projects.json` (`scan::Project`). */
+/** A project: a folder with a `.workstation`, or where the place rules say one belongs (`scan::Project`). */
 export interface Project {
   /** From the workstation root, forward slashes, trailing slash. */
   path: string;
@@ -37,15 +37,13 @@ export interface Project {
   description: string;
   tags: string[];
   notes: string | null;
-  /** False when `projects.json` lists it but the folder doesn't exist. */
-  onDisk: boolean;
-  /** False when the folder exists but `projects.json` has no entry for it. */
+  /** False when the folder has no `.workstation`. */
   registered: boolean;
   /** True when the folder is a git repo itself; a game home isn't (its repo is `game/`), nor is a suite. */
   repo: boolean;
   /** Important folders inside a project that isn't a repo itself; projects of their own aren't repeated here. */
   folders: Folder[];
-  /** Its plan in order (`milestones` in projects.json); the first not done is the one being worked on. */
+  /** Its plan in order (`milestones` in its `.workstation`); the first not done is the one being worked on. */
   milestones: Milestone[];
 }
 
@@ -83,7 +81,7 @@ export interface GitStatus {
 /** Git status by project path; projects that aren't repos have no key. */
 export type GitStatuses = Record<string, GitStatus>;
 
-/** A new `projects.json` entry (`scan::Entry`), in the documented key order. */
+/** A new `.workstation` (`scan::Entry`), in the documented key order; `path` says which folder gets it. */
 export interface NewEntry {
   name: string;
   path: string;
@@ -98,8 +96,8 @@ export interface NewEntry {
 /** Every project of a workstation (`scan::Scan`). */
 export interface Scan {
   projects: Project[];
-  /** Why `projects.json` couldn't be read; the folders on disk are still listed. */
-  registryError: string | null;
+  /** One line per `.workstation` that couldn't be read; its project is still listed. */
+  errors: string[];
 }
 
 /** What the updater is doing (`update::UpdateStep`). */

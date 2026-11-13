@@ -28,16 +28,16 @@ paths:
   (ADR-0018). Never merge, rebase, reset or check out. The git overview reads in pages (`overview`, then `diffs` and
   `commits` for what's shown), so it never waits on every diff and commit.
 - Paths that cross to the UI are relative to the workstation root, with forward slashes and a trailing slash
-  (`games/roblox/fish-dive/`), the same form as `projects.json`.
+  (`games/roblox/fish-dive/`).
 - Tests build fake workstations in a temp folder (`std::env::temp_dir()` plus a unique name) and clean them up.
-- `projects.json` follows `docs/projects-json.md`. Writes go through `scan/registry.rs` only: sorted by `path`,
-  two-space indent, documented key order, unknown keys kept (`#[serde(flatten)]` map), written to a temp file and
-  renamed over the original. Never remove an entry.
-- A `projects.json` that doesn't parse is reported with its line and column; never overwrite it.
+- `.workstation` files follow `docs/workstation-file.md` (ADR-0019). `scan/registry.rs` finds them (`MAX_DEPTH`
+  levels below the root) and is the only writer: two-space indent, documented key order, no `path`, unknown keys kept
+  (`#[serde(flatten)]` map), written to a temp file and renamed over the original. Never delete one.
+- A `.workstation` that doesn't parse is reported with its path, line and column; never overwrite it.
 
-## How to add a registry field
+## How to add a .workstation field
 
-1. Add the key to `docs/projects-json.md` (Fields table and both templates).
+1. Add the key to `docs/workstation-file.md` (Fields table and both examples) and `kit/_meta/templates/workstation-file/`.
 2. Add the field to the entry struct in `scan/registry.rs`, in the documented key order, with a test.
 3. Add it to `src/lib/types.ts` and show it in `src/features/projects/`.
 4. If agents must fill it, update the workstation's `.claude/rules/registry.md` and `kit/`.

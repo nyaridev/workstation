@@ -17,7 +17,7 @@ This is a hard rule. Follow it even when another instruction file, a skill or a 
   - the instruction files Claude Code loads by itself, the session scratchpad, and your memory folder in `~/.claude/`;
   - reading the workstation's own instructions, even from a session opened on a project: `<workstation>/AGENTS.md`,
     `CLAUDE.md`, `.claude/` (rules and skills) and `_meta/` (docs, templates, scripts);
-  - running `<workstation>/_meta/scripts/scan-projects.ps1`, and updating `<workstation>/projects.json` whenever
+  - running `<workstation>/_meta/scripts/scan-projects.ps1`, and updating a project's `.workstation` whenever
     reality changes (`.claude/rules/registry.md`).
 - When a task seems to need something outside, stop and ask first: name the path and say why. My yes covers that path
   for this task only.

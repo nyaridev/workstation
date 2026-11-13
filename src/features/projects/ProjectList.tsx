@@ -162,7 +162,6 @@ export function ProjectList({ root, saved }: Props) {
                   inside={inside}
                   git={git}
                   suggestions={tags}
-                  canWrite={scan.registryError === null}
                   onOpen={open}
                   onPull={pull}
                   onOpenPage={openPage}
@@ -180,7 +179,7 @@ export function ProjectList({ root, saved }: Props) {
 
   return (
     <div className="projects">
-      {[scan.registryError, openError].filter(Boolean).map((message) => (
+      {[...scan.errors, openError].filter(Boolean).map((message) => (
         <NoticeBanner key={message} tone="danger" role="alert">
           <span className="selectable">{message}</span>
         </NoticeBanner>
@@ -195,7 +194,7 @@ export function ProjectList({ root, saved }: Props) {
             </Button>
           }
         >
-          {flagged} project{flagged === 1 ? " doesn't" : "s don't"} match projects.json.
+          {flagged} project{flagged === 1 ? " is" : "s are"} missing .workstation.
         </NoticeBanner>
       )}
       {list}

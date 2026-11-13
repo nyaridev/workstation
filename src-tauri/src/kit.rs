@@ -10,8 +10,8 @@ use std::path::Path;
 
 // ── Constants ─────────────────────────────
 static KIT: Dir = include_dir!("$CARGO_MANIFEST_DIR/../kit");
-/// The registry format lives once, in this repo's docs, and ships inside the kit.
-const REGISTRY_DOC: (&str, &str) = ("_meta/docs/projects-json.md", include_str!("../../docs/projects-json.md"));
+/// The `.workstation` format lives once, in this repo's docs, and ships inside the kit.
+const REGISTRY_DOC: (&str, &str) = ("_meta/docs/workstation-file.md", include_str!("../../docs/workstation-file.md"));
 
 // ── Types ─────────────────────────────────
 /// What a setup wrote and what it left alone, as paths from the workstation root.
@@ -87,7 +87,7 @@ mod tests {
         assert_eq!(real_name("dot-claude/rules/safety.md"), ".claude/rules/safety.md");
         assert_eq!(real_name("games/roblox/CLAUDE.kit.md"), "games/roblox/CLAUDE.md");
         assert_eq!(real_name("_meta/templates/mod/dot-gitignore"), "_meta/templates/mod/.gitignore");
-        assert_eq!(real_name("projects.json"), "projects.json");
+        assert_eq!(real_name("dot-workstation"), ".workstation");
     }
 
     #[test]
@@ -108,7 +108,7 @@ mod tests {
         temp.file("AGENTS.md", "mine");
         let first = setup(&temp.0).unwrap();
         assert!(first.skipped == ["AGENTS.md"], "{:?}", first.skipped);
-        for rel in ["projects.json", "CLAUDE.md", ".claude/rules/registry.md", "_meta/docs/projects-json.md", "games/CLAUDE.md"] {
+        for rel in [".workstation", "CLAUDE.md", ".claude/rules/registry.md", "_meta/docs/workstation-file.md", "games/CLAUDE.md"] {
             assert!(temp.0.join(rel).is_file(), "{rel} wasn't written");
         }
         assert_eq!(fs::read_to_string(temp.0.join("AGENTS.md")).unwrap(), "mine");

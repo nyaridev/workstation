@@ -7,7 +7,8 @@ argument-hint: "<url or owner/repo>"
 # Clone a repo
 
 1. **Parse** `$ARGUMENTS` into `<owner>/<repo>` (HTTPS, SSH or `owner/repo`).
-   - Check whether it's already on disk: `projects.json`, or a folder with that remote.
+   - Check whether it's already on disk: a project's `.workstation` (`scan-projects.ps1`), or a folder with that
+     remote.
    - If it is, say where and stop. Offer to `git pull` there instead.
 2. **Look before cloning.** Run
    `gh repo view <owner>/<repo> --json name,description,primaryLanguage,repositoryTopics,isPrivate,defaultBranchRef`.
@@ -45,5 +46,8 @@ argument-hint: "<url or owner/repo>"
 6. **Don't install yet.**
    - For third-party repos, ask before `pnpm install`, `pip install`, `rokit install` or any setup script.
    - For the user's own repos, offer to run them.
-7. **Register** the repo in `projects.json`. Owner is the GitHub owner; for `external/`, `notes` says why it was cloned.
+7. **Its `.workstation`** (`.claude/rules/registry.md`): if the repo brought one, check it still matches. Otherwise
+   write one from `_meta/templates/workstation-file/`, in the repo's root (or the game home's, for a game). Owner is
+   the GitHub owner. For `external/`, `notes` says why it was cloned, and add `.workstation` to the repo's
+   `.git/info/exclude`; in Nari's own repo, commit it only if the user asks.
 8. Offer to switch the session into it (for a game, into the game home).

@@ -1,5 +1,5 @@
 // useProjects: scans the open workstation when it opens, again whenever its projects change on disk, and on request
-// (after the app itself wrote projects.json, so the list updates even if the watcher isn't running).
+// (after the app itself wrote a .workstation, so the list updates even if the watcher isn't running).
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { onProjectsChanged, scanWorkstation } from "../../lib/backend";

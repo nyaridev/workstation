@@ -11,7 +11,7 @@ Answer from `_meta/docs/where-things-go.md` and the target category's
 
 1. **Classify** `$ARGUMENTS`: its kind, then the full path with a suggested kebab-case name
    (`games/roblox/fish-dive/`).
-2. **Search** `projects.json` (names, descriptions, tags) and the target folder for the same thing under any name. If
+2. **Search** the project files (`scan-projects.ps1 -Json`: each project's name, description and tags) and the target folder for the same thing under any name. If
    something matches, lead with it ("You already have this at …").
 3. **Reply in 2–4 lines:**
    - the path;

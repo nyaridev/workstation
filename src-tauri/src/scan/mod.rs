@@ -1,5 +1,5 @@
-//! Scan: merges the projects found on disk with the entries of the workstation's projects.json.
-//! A folder with no entry is unregistered; an entry whose folder doesn't exist is missing.
+//! Scan: the workstation's projects: every folder with a `.workstation` file, and every folder where the place rules
+//! say a project lives. One of those without a file is unregistered.
 
 // ── Imports ───────────────────────────────
 mod edited;
@@ -9,7 +9,7 @@ mod stack;
 
 pub use edited::last_edited;
 pub use layout::affects_projects;
-pub use registry::{Entry, add as register, set_tags};
+pub use registry::{Entry, FILE_NAME, add as register, set_tags};
 use registry::same_path;
 use serde::Serialize;
 use serde_json::Value;
@@ -30,7 +30,7 @@ pub struct Folder {
     pub repo: bool,
 }
 
-/// One step of a project's plan, from its entry's `milestones`.
+/// One step of a project's plan, from its file's `milestones`.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Milestone {
@@ -58,9 +58,7 @@ pub struct Project {
     pub description: String,
     pub tags: Vec<String>,
     pub notes: Option<String>,
-    /// False when `projects.json` lists it but the folder doesn't exist.
-    pub on_disk: bool,
-    /// False when the folder exists but `projects.json` has no entry for it.
+    /// False when the folder has no `.workstation`.
     pub registered: bool,
     /// True when the project's folder is a git repo itself; a game home isn't (its repo is `game/`), nor is a suite.
     pub repo: bool,
@@ -71,17 +69,17 @@ pub struct Project {
     pub milestones: Vec<Milestone>,
 }
 
-/// Every project of a workstation, and why `projects.json` couldn't be read, if it couldn't.
+/// Every project of a workstation, and a line for each `.workstation` that couldn't be read.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Scan {
     pub projects: Vec<Project>,
-    pub registry_error: Option<String>,
+    pub errors: Vec<String>,
 }
 
 // ── Private helpers ───────────────────────
-// An entry's `milestones`, read leniently: an item without a name is skipped and a missing `done` is false, so one
-// badly written milestone never stops the registry from loading.
+// A file's `milestones`, read leniently: an item without a name is skipped and a missing `done` is false, so one
+// badly written milestone never stops the file from loading.
 fn milestones_of(entry: &Entry) -> Vec<Milestone> {
     let Some(Value::Array(items)) = entry.extra.get("milestones") else { return Vec::new() };
     items
@@ -102,19 +100,18 @@ fn milestones_of(entry: &Entry) -> Vec<Milestone> {
         .collect()
 }
 
-fn from_entry(entry: &Entry, on_disk: bool) -> Project {
+fn from_entry(entry: &Entry) -> Project {
     Project {
         path: entry.path.clone(),
         name: entry.name.clone(),
         kind: entry.kind.clone(),
-        archived: entry.path.starts_with("archive/") || entry.status == "archived",
+        archived: entry.path.starts_with("archive/"),
         stack: entry.stack.clone(),
         owner: entry.owner.clone(),
         status: entry.status.clone(),
         description: entry.description.clone(),
         tags: entry.tags.clone(),
         notes: entry.notes.clone(),
-        on_disk,
         registered: true,
         repo: false,
         folders: Vec::new(),
@@ -122,11 +119,14 @@ fn from_entry(entry: &Entry, on_disk: bool) -> Project {
     }
 }
 
+fn folder_name(path: &str) -> String {
+    path.trim_end_matches('/').rsplit('/').next().unwrap_or(path).to_string()
+}
+
 fn unregistered(found: &layout::Found) -> Project {
-    let name = found.path.trim_end_matches('/').rsplit('/').next().unwrap_or(&found.path).to_string();
     Project {
         path: found.path.clone(),
-        name,
+        name: folder_name(&found.path),
         kind: found.kind.to_string(),
         archived: found.archived,
         stack: Vec::new(),
@@ -135,7 +135,6 @@ fn unregistered(found: &layout::Found) -> Project {
         description: String::new(),
         tags: Vec::new(),
         notes: None,
-        on_disk: true,
         registered: false,
         repo: false,
         folders: Vec::new(),
@@ -169,30 +168,27 @@ fn folders(root: &Path, project: &str, projects: &[String]) -> Vec<Folder> {
 }
 
 // ── Public API ────────────────────────────
-/// Every project of the workstation at `root`, sorted by path. Never fails: a broken `projects.json` still lists the
-/// folders on disk, with the error in `registry_error`.
+/// Every project of the workstation at `root`, sorted by path. Never fails: a `.workstation` that can't be read
+/// still counts as its folder's file (so it isn't flagged as missing), with the reason in `errors`.
 pub fn scan(root: &Path) -> Scan {
     let found = layout::find_projects(root);
-    let (entries, registry_error) = match registry::read(root) {
-        Ok(entries) => (entries, None),
-        Err(error) => (Vec::new(), Some(error)),
-    };
-
-    let mut projects: Vec<Project> = found
-        .iter()
-        .map(|f| entries.iter().find(|e| same_path(&e.path, &f.path)).map_or_else(|| unregistered(f), |e| from_entry(e, true)))
-        .collect();
-    // Entries the place rules don't cover (or whose folder is gone): on disk only if the folder exists.
-    for entry in entries.iter().filter(|e| !found.iter().any(|f| same_path(&e.path, &f.path))) {
-        projects.push(from_entry(entry, root.join(&entry.path).is_dir()));
+    let files = registry::read(root);
+    let mut projects: Vec<Project> = files.entries.iter().map(from_entry).collect();
+    for (path, _) in &files.broken {
+        let kind = found.iter().find(|f| same_path(&f.path, path)).map(|f| f.kind.to_string()).unwrap_or_default();
+        projects.push(from_entry(&Entry { path: path.clone(), name: folder_name(path), kind, ..Entry::default() }));
     }
+    let missing: Vec<Project> =
+        found.iter().filter(|f| !projects.iter().any(|p| same_path(&p.path, &f.path))).map(unregistered).collect();
+    projects.extend(missing);
     projects.sort_by(|a, b| a.path.cmp(&b.path));
     let paths: Vec<String> = projects.iter().map(|p| p.path.clone()).collect();
-    for project in projects.iter_mut().filter(|p| p.on_disk) {
+    for project in &mut projects {
         project.repo = root.join(&project.path).join(".git").exists();
         project.folders = folders(root, &project.path, &paths);
     }
-    Scan { projects, registry_error }
+    let errors = files.broken.into_iter().map(|(path, reason)| format!("{path}{FILE_NAME} {reason}")).collect();
+    Scan { projects, errors }
 }
 
 /// The absolute folder of a project, refusing paths that leave the workstation or aren't folders.
@@ -215,37 +211,21 @@ mod tests {
     use super::*;
     use crate::test_support::Temp;
 
-    fn flags(scan: &Scan) -> Vec<(&str, bool, bool)> {
-        scan.projects.iter().map(|p| (p.path.as_str(), p.on_disk, p.registered)).collect()
+    fn flags(scan: &Scan) -> Vec<(&str, bool)> {
+        scan.projects.iter().map(|p| (p.path.as_str(), p.registered)).collect()
     }
 
     #[test]
-    fn merges_disk_and_registry_with_flags() {
+    fn merges_files_and_places_with_flags() {
         let temp = Temp::new();
-        temp.dir("games/roblox/fish-dive");
+        temp.file("games/roblox/fish-dive/.workstation", r#"{ "name": "Fish Dive", "kind": "game", "tags": ["roblox"] }"#);
         temp.dir("tools/rename");
-        temp.dir("sandbox/kept");
-        temp.file(
-            "projects.json",
-            r#"{ "version": 1, "projects": [
-                { "name": "Fish Dive", "path": "Games/Roblox/Fish-Dive/", "kind": "game", "tags": ["roblox"] },
-                { "name": "Gone", "path": "apps/web/gone/", "kind": "app" },
-                { "name": "Kept", "path": "sandbox/kept/", "kind": "tool" }
-            ] }"#,
-        );
+        temp.file("sandbox/kept/.workstation", r#"{ "name": "Kept", "kind": "tool" }"#);
         let scan = scan(&temp.0);
-        assert_eq!(scan.registry_error, None);
-        assert_eq!(
-            flags(&scan),
-            vec![
-                ("Games/Roblox/Fish-Dive/", true, true),
-                ("apps/web/gone/", false, true),
-                ("sandbox/kept/", true, true),
-                ("tools/rename/", true, false),
-            ]
-        );
+        assert!(scan.errors.is_empty());
+        assert_eq!(flags(&scan), vec![("games/roblox/fish-dive/", true), ("sandbox/kept/", true), ("tools/rename/", false)]);
         assert_eq!(scan.projects[0].tags, vec!["roblox"]);
-        assert_eq!(scan.projects[3].name, "rename");
+        assert_eq!(scan.projects[2].name, "rename");
     }
 
     #[test]
@@ -283,21 +263,18 @@ mod tests {
     #[test]
     fn reads_milestones_and_skips_bad_ones() {
         let temp = Temp::new();
-        temp.dir("tools/rename");
         temp.file(
-            "projects.json",
-            r#"{ "version": 1, "projects": [
-                { "name": "Rename", "path": "tools/rename/", "kind": "tool", "milestones": [
+            "tools/rename/.workstation",
+            r#"{ "name": "Rename", "kind": "tool", "milestones": [
                     { "name": "M1 Scaffold", "done": true, "description": " Repo, rules and CI. " },
                     { "name": "M2 Batch rename", "track": " CLI ", "description": "" },
                     { "done": true },
                     "M3 as a bare string",
                     { "name": "  ", "done": false }
-                ] }
-            ] }"#,
+                ] }"#,
         );
         let scan = scan(&temp.0);
-        assert_eq!(scan.registry_error, None);
+        assert!(scan.errors.is_empty());
         let milestone = |name: &str, done, track: Option<&str>, description: Option<&str>| Milestone {
             name: name.into(),
             done,
@@ -314,13 +291,15 @@ mod tests {
     }
 
     #[test]
-    fn a_broken_registry_still_lists_the_disk() {
+    fn a_broken_file_is_reported_and_still_counts() {
         let temp = Temp::new();
-        temp.dir("tools/rename");
-        temp.file("projects.json", "{ nope");
+        temp.file("tools/rename/.workstation", "{ nope");
+        temp.dir("tools/zeta");
         let scan = scan(&temp.0);
-        assert!(scan.registry_error.is_some());
-        assert_eq!(flags(&scan), vec![("tools/rename/", true, false)]);
+        assert_eq!(scan.errors.len(), 1);
+        assert!(scan.errors[0].starts_with("tools/rename/.workstation can't be read"), "{}", scan.errors[0]);
+        assert_eq!(flags(&scan), vec![("tools/rename/", true), ("tools/zeta/", false)]);
+        assert_eq!((scan.projects[0].name.as_str(), scan.projects[0].kind.as_str()), ("rename", "tool"));
     }
 
     #[test]

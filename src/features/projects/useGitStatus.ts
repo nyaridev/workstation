@@ -12,11 +12,10 @@ export function useGitStatus(root: string, projects: Project[] | undefined) {
   useEffect(() => {
     if (!projects) return;
     let current = true;
-    const onDisk = projects.filter((p) => p.onDisk);
     // Repo folders inside homes (a game home's `game/`) get badges too.
     const paths = [
-      ...onDisk.map((p) => p.path),
-      ...onDisk.flatMap((p) => p.folders.filter((f) => f.repo).map((f) => f.path)),
+      ...projects.map((p) => p.path),
+      ...projects.flatMap((p) => p.folders.filter((f) => f.repo).map((f) => f.path)),
     ];
     const load = () =>
       gitStatus(root, paths).then(
