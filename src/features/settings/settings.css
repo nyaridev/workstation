@@ -53,3 +53,24 @@
   padding: 0;
   list-style: none;
 }
+
+/* ── Updates ───────────────────────────── */
+/* Where updates stand, the download's bar while it runs, then Check now and Update and restart. */
+.settings-update {
+  display: grid;
+  gap: var(--iro-space-2);
+}
+
+.settings-update-line {
+  color: var(--iro-fg-2);
+  font-size: var(--iro-text-sm);
+}
+
+.settings-update-line[data-tone="danger"] {
+  color: var(--iro-danger);
+}
+
+.settings-update-actions {
+  display: flex;
+  gap: var(--iro-space-2);
+}

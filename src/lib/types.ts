@@ -86,18 +86,23 @@ export interface Scan {
   registryError: string | null;
 }
 
-/** A release of the app (`update::Release`). */
-export interface Release {
-  /** `0.2.0`, without the `v`. */
-  version: string;
-  /** The release's page on GitHub. */
-  page: string;
-}
+/** What the updater is doing (`update::UpdateStep`). */
+export type UpdateStep = "checking" | "downloading" | "installing";
 
-/** The running version, and the newest release when it's newer (`commands::UpdateCheck`). */
-export interface UpdateCheck {
+/** The running version and what GitHub has (`update::UpdateStatus`, ADR-0014). */
+export interface UpdateStatus {
   current: string;
-  latest: Release | null;
+  /** A newer version, once a check found one. */
+  latest: string | null;
+  step: UpdateStep | null;
+  /** How much of the update has downloaded, 0 to 1, while it does. */
+  progress: number | null;
+  /** Why the last check or install failed. */
+  error: string | null;
+  /** A release build; a debug build never checks. */
+  canUpdate: boolean;
+  /** When the last check finished, in Unix seconds. */
+  checkedAt: number | null;
 }
 
 /** One commit (`git::Commit`). */
@@ -142,7 +147,14 @@ export interface Look {
   liquidBackground: boolean;
 }
 
+/** How the app behaves (`settings::Preferences`). */
+export interface Preferences {
+  /** Look for a newer release at start and every 6 hours. */
+  checkForUpdates: boolean;
+}
+
 /** The app's settings (`settings::Settings`). */
 export interface Settings {
   look: Look;
+  preferences: Preferences;
 }

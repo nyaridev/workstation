@@ -5,8 +5,8 @@
 use crate::git;
 use crate::kit;
 use crate::scan::{self, Entry, Scan};
-use crate::settings::{self, Look, Settings};
-use crate::update::{self, Release};
+use crate::settings::{self, Look, Preferences, Settings};
+use crate::update::{self, UpdateStatus, Updates};
 use crate::watch;
 use crate::window::Frame;
 use crate::workstations::{self, Listing};
@@ -23,14 +23,6 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const HISTORY_LIMIT: usize = 200;
 
 // ── Types ─────────────────────────────────
-/// The running version, and the newest release when it's newer.
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateCheck {
-    current: &'static str,
-    latest: Option<Release>,
-}
-
 /// The running version, and the frame the window got at start.
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -52,11 +44,6 @@ pub struct SetupResult {
 /// The app config folder, where the workstation list and settings live.
 pub fn config_dir(app: &AppHandle) -> Result<PathBuf, String> {
     app.path().app_config_dir().map_err(|e| format!("No config folder: {e}"))
-}
-
-/// Where downloaded updates wait until the next start removes them.
-pub fn updates_dir(app: &AppHandle) -> Result<PathBuf, String> {
-    Ok(config_dir(app)?.join("updates"))
 }
 
 // Points the watcher at the open workstation (if it's reachable) after the list was read or changed.
@@ -84,6 +71,12 @@ pub fn get_settings(app: AppHandle) -> Result<Settings, String> {
 #[tauri::command]
 pub fn set_look(app: AppHandle, look: Look) -> Result<Settings, String> {
     settings::set_look(&config_dir(&app)?, look)
+}
+
+/// Saves how the app behaves and returns the settings.
+#[tauri::command]
+pub fn set_preferences(app: AppHandle, preferences: Preferences) -> Result<Settings, String> {
+    settings::set_preferences(&config_dir(&app)?, preferences)
 }
 
 // ── Workstations ──────────────────────────
@@ -174,33 +167,20 @@ pub fn open_folder(app: AppHandle, root: String, path: String) -> Result<(), Str
 }
 
 // ── Updates ───────────────────────────────
-/// The running version and the newest release when it's newer. Runs off the main thread: it asks GitHub.
+/// What the updater knows now (ADR-0014).
 #[tauri::command]
-pub async fn check_update() -> Result<UpdateCheck, String> {
-    let latest = tauri::async_runtime::spawn_blocking(|| update::check(VERSION)).await.map_err(|e| e.to_string())??;
-    Ok(UpdateCheck { current: VERSION, latest })
+pub fn update_status(updates: State<Updates>) -> UpdateStatus {
+    updates.status()
 }
 
-/// Installs `version` in place of the running exe, starts it and quits. A development build only says it can't.
+/// Looks for a newer release now.
 #[tauri::command]
-pub async fn install_update(app: AppHandle, version: String) -> Result<(), String> {
-    if cfg!(debug_assertions) {
-        return Err("This is a development build, so it doesn't replace itself.".to_string());
-    }
-    let exe = std::env::current_exe().map_err(|e| format!("Can't find the running exe: {e}"))?;
-    let dir = updates_dir(&app)?;
-    tauri::async_runtime::spawn_blocking(move || update::install(&version, VERSION, &exe, &dir))
-        .await
-        .map_err(|e| e.to_string())??;
-    app.exit(0);
-    Ok(())
+pub async fn check_for_update(app: AppHandle) -> UpdateStatus {
+    update::check(&app).await
 }
 
-/// Opens one of this app's release pages in the browser; any other address is refused.
+/// Installs the update a check found and restarts the app.
 #[tauri::command]
-pub fn open_release_page(app: AppHandle, url: String) -> Result<(), String> {
-    if !url.starts_with(update::RELEASE_PAGES) {
-        return Err(format!("{url} isn't a Workstation release page."));
-    }
-    app.opener().open_url(url, None::<&str>).map_err(|e| e.to_string())
+pub async fn install_update(app: AppHandle) -> Result<(), String> {
+    update::install(&app).await
 }

@@ -202,6 +202,27 @@ code {
   --notice: var(--iro-danger);
 }
 
+/* The update banner: the line, a note or error after it, then the download's bar. */
+.update-banner-text {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iro-space-1) var(--iro-space-3);
+  align-items: center;
+}
+
+.update-banner-note {
+  color: var(--iro-fg-2);
+  font-size: var(--iro-text-sm);
+}
+
+.update-banner-note[data-tone="danger"] {
+  color: var(--iro-danger);
+}
+
+.update-banner-progress {
+  inline-size: calc(var(--iro-space-6) * 6);
+}
+
 /* shortcut: reaches into iro-ui's Banner for its inner padding; an iro-ui `size="sm"` Banner would replace it. */
 .notice-banner .iro-banner-content {
   padding-block: 0;

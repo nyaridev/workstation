@@ -1,6 +1,7 @@
 // Backend: every call to Rust (invoke and listen), with fake data when running in a plain browser.
 // In `pnpm dev`, add `?empty` to the URL to see the first-run screen, `?broken` for an unreadable projects.json,
-// `?update` for a newer release, `?native` for the system title bar.
+// `?update` for a newer release (`?update=downloading` while it downloads, `?update=error` for a failed check),
+// `?native` for the system title bar.
 
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -14,10 +15,11 @@ import type {
   Listing,
   Look,
   NewEntry,
+  Preferences,
   Scan,
   Settings,
   SetupResult,
-  UpdateCheck,
+  UpdateStatus,
 } from "./types";
 
 // ── Fake backend ──────────────────────────
@@ -49,7 +51,29 @@ function fakeRegister(entry: NewEntry) {
 }
 
 const nativeFrame = new URLSearchParams(location.search).has("native");
-let fakeSettings: Settings = { look: { nativeFrame, liquidBackground: true } };
+let fakeSettings: Settings = {
+  look: { nativeFrame, liquidBackground: true },
+  preferences: { checkForUpdates: true },
+};
+
+const updateFlag = new URLSearchParams(location.search).get("update");
+let fakeUpdate: UpdateStatus = {
+  current: "0.1.0",
+  latest: updateFlag === null ? null : "0.2.0",
+  step: updateFlag === "downloading" ? "downloading" : null,
+  progress: updateFlag === "downloading" ? 0.4 : null,
+  error: updateFlag === "error" ? "Couldn't check for updates: GitHub didn't answer." : null,
+  canUpdate: true,
+  checkedAt: Math.floor(Date.now() / 1000) - 600,
+};
+const fakeUpdateHandlers = new Set<(status: UpdateStatus) => void>();
+
+function setFakeUpdate(change: Partial<UpdateStatus>) {
+  fakeUpdate = { ...fakeUpdate, ...change };
+  for (const handler of fakeUpdateHandlers) handler(fakeUpdate);
+}
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function fakeRemove(root: string): Listing {
   const workstations = fake.workstations.filter((w) => w.root !== root);
@@ -72,6 +96,13 @@ export async function getSettings(): Promise<Settings> {
 export async function setLook(look: Look): Promise<Settings> {
   if (inTauri) return invoke("set_look", { look });
   fakeSettings = { ...fakeSettings, look };
+  return fakeSettings;
+}
+
+/** Saves how the app behaves and returns the settings. */
+export async function setPreferences(preferences: Preferences): Promise<Settings> {
+  if (inTauri) return invoke("set_preferences", { preferences });
+  fakeSettings = { ...fakeSettings, preferences };
   return fakeSettings;
 }
 
@@ -195,26 +226,40 @@ export async function openFolder(root: string, path: string): Promise<void> {
 }
 
 // ── Updates ───────────────────────────────
-/** The running version, and the newest release on GitHub when it's newer. */
-export async function checkUpdate(): Promise<UpdateCheck> {
-  if (inTauri) return invoke("check_update");
-  const page = "https://github.com/nyaridev/workstation/releases/tag/v0.2.0";
-  return {
-    current: "0.1.0",
-    latest: new URLSearchParams(location.search).has("update") ? { version: "0.2.0", page } : null,
-  };
+/** What the updater knows now (ADR-0014). */
+export async function updateStatus(): Promise<UpdateStatus> {
+  return inTauri ? invoke("update_status") : fakeUpdate;
 }
 
-/** Downloads and checks `version`, swaps it in for the running app and restarts. Rejects with why it can't. */
-export async function installUpdate(version: string): Promise<void> {
-  if (inTauri) return invoke("install_update", { version });
-  throw "This is the browser preview, so it can't install anything.";
+/** Looks for a newer release now. */
+export async function checkForUpdate(): Promise<UpdateStatus> {
+  if (inTauri) return invoke("check_for_update");
+  setFakeUpdate({ step: "checking", error: null });
+  await wait(800);
+  setFakeUpdate({ step: null, checkedAt: Math.floor(Date.now() / 1000) });
+  return fakeUpdate;
 }
 
-/** Opens a release page of this app in the browser. */
-export async function openReleasePage(url: string): Promise<void> {
-  if (inTauri) return invoke("open_release_page", { url });
-  window.open(url, "_blank", "noopener");
+/** Installs the update a check found; the app restarts into it. */
+export async function installUpdate(): Promise<void> {
+  if (inTauri) return invoke("install_update");
+  for (let percent = 0; percent <= 100; percent += 10) {
+    setFakeUpdate({ step: "downloading", progress: percent / 100 });
+    await wait(200);
+  }
+  setFakeUpdate({ step: "installing", progress: null });
+  await wait(800);
+  setFakeUpdate({ current: fakeUpdate.latest ?? fakeUpdate.current, latest: null, step: null });
+}
+
+/** Calls `handler` whenever the updater's status changes; returns a function that stops. */
+export function onUpdateChanged(handler: (status: UpdateStatus) => void): () => void {
+  if (!inTauri) {
+    fakeUpdateHandlers.add(handler);
+    return () => void fakeUpdateHandlers.delete(handler);
+  }
+  const unlisten = listen<UpdateStatus>("update-changed", (event) => handler(event.payload));
+  return () => void unlisten.then((stop) => stop());
 }
 
 // ── Window ────────────────────────────────

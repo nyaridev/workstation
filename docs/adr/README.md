@@ -17,15 +17,14 @@ src-tauri/src/
 ├─ git.rs              branch, uncommitted, unpushed, remote owner (the `git` command, 8 repos at a time); one
 │                      repo's history (commits, unpushed, uncommitted files). Reads only, never fetches
 ├─ kit.rs              the embedded starter kit and "set up here" (never overwrites)
-├─ update.rs           the app's own updates: check, download, SHA-256, swap the exe (gh or curl.exe); Tauri's
-│                      signed updater from M15 (ADR-0014)
-├─ settings.rs         the app's settings in settings.json: the look (native title bar, liquid background)
+├─ update.rs           the app's own updates through Tauri's signed updater: status, checks, install (ADR-0014)
+├─ settings.rs         the app's settings in settings.json: the look, the preferences (check for updates)
 ├─ window.rs           builds the main window with the frame the settings pick
 ├─ tray.rs, start.rs   the tray and close-to-tray; the start entry and the installer's choice (M16, ADR-0015)
 └─ test_support.rs     temp folders for tests (test builds only)
 src/
 ├─ app/                the window: header (the title bar), views.ts, window controls, backdrop, settings context,
-│                      workstation state and context, first-run screen, update chip,
+│                      workstation state and context, first-run screen, update banner and useUpdate,
 │                      NoticeBanner and the status banner
 ├─ features/projects/  ProjectsView and the project list: filter.ts (filters, nesting, grouping), fields.ts (kinds,
 │                      statuses, tags), the list, row (opens to inner projects and FolderRows), filters and
@@ -100,26 +99,28 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | M12 | Every control from iro-ui: rows, tooltips, context menus (ADR-0010, ADR-0011; iro-ui v1.3.0) | done |
 | M13 | Header and banners like Scrappy's (ADR-0012) | done |
 | M14 | Settings in tabs: Workstations, App (ADR-0013) | done |
-| M15 | Updates through Tauri's signed updater, the update banner (ADR-0014) | next |
-| M16 | Start with the system, close to the tray, one copy (ADR-0015) | planned |
+| M15 | Updates through Tauri's signed updater, the update banner (ADR-0014) | done (real update: `docs/manual-check.md` → 8, after the first release) |
+| M16 | Start with the system, close to the tray, one copy (ADR-0015) | next |
 | M17 | Windows, macOS and Linux: cross-platform fixes, installers, GitHub Actions (ADR-0016) | planned |
 | M18 | Verify and polish, then release | planned |
 
-### M15: Updates through Tauri's signed updater
+### M16: Start with the system, close to the tray, one copy
 
-1. The signing key, with the owner's yes: `pnpm tauri signer generate` without a password, the private key saved
-   where the owner says (outside the repo) and set as the `TAURI_SIGNING_PRIVATE_KEY` secret; the public key, the
-   endpoint, `requireSignedVersion` and passive Windows installs in `tauri.conf.json`.
-2. Rust: `tauri-plugin-updater`; `update.rs` rewritten around it (the gh/curl download and exe swap go): an
-   `UpdateStatus` (current, latest, can update, step, progress, error), checks at start and every 6 hours while
-   `checkForUpdates` is on (a new `settings.rs` field, on by default), none in debug builds; commands for the status,
-   Check now and install; the `update-changed` event. Tests for what doesn't need the network.
-3. The window: `useUpdate`, `UpdateBanner` (an accent `NoticeBanner` under the header: both versions, progress or
-   error, Update and restart, Later) in place of `UpdateChip`; Settings → App → About gets "Check for updates", the
-   status line, Check now and Update and restart. Fake states in `pnpm dev`: `?update`, `?update=downloading`,
-   `?update=error`.
-4. Check: `pnpm check`, then the fake states in the browser pane. A real update can only be tried after the first
-   release (M18).
+1. `tauri-plugin-single-instance` (registered first: a second start shows the window), `tauri-plugin-autostart`, and
+   Tauri's `tray-icon` feature.
+2. `settings.rs`: `startWithSystem` (off) and `closeToTray` (on) in the preferences, with tests.
+3. `start.rs`: turns the start entry on or off when the preference is saved; at start, a release build takes the
+   installer's choice once (`HKCU\Software\com.nyaridev.workstation\StartWithSystem`, then deleted) and turns a lost
+   entry back on. The choice-taking logic is a plain function with tests. Started with `--minimized`: hidden in the
+   tray, or minimized when close-to-tray is off.
+4. `tray.rs`: the tray icon (click shows the window; menu Open Workstation, Quit Workstation) and closing the window
+   hides it while close-to-tray is on, read at each close.
+5. `src-tauri/windows/hooks.nsh`: "Start Workstation with Windows" on the installer's Welcome page, checked; it writes
+   the choice for the app; uninstalling removes the start entry. Wired in `tauri.release.conf.json` (M17 builds it).
+6. Settings → App: a Start card with "Start with Windows" ("Open at login" elsewhere) and "Close to tray", and the
+   hint on what each does. `setPreferences` answers with the reason when the system refuses the start entry.
+7. Check: `pnpm check`, the fake Settings in the browser pane, then one run of the real app (`start-dev.bat`): the
+   tray icon, close to tray, Quit, a second start. The start entry and the installer page wait for an installer (M17).
 
 ### M18: Verify and polish, then release
 

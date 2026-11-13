@@ -100,17 +100,14 @@ delete that file to see the first run again.
 - [ ] Copy it somewhere else (Desktop) and run it: it still opens, and "Set up a new one" still works (the kit is
       inside the exe).
 
-## 8. Updates
+## 8. Updates (ADR-0014)
 
-Needs a published release newer than the exe you run: build the older version from its tag, or run a copy of the
-previous release.
+Needs a published release newer than the installed one: install the older version's installer, then publish the newer
+release. A development build (`start-dev.bat`) never checks.
 
-- [ ] Within a few seconds of starting, the title bar shows `v<newer>`. Without a network connection it shows nothing
-      and says nothing.
-- [ ] Clicking it asks first; Cancel changes nothing.
-- [ ] Install: the window closes and the new version opens from the same place, with the same workstations. Beside the
-      exe, `Workstation.old.exe` is gone after the new one has started (or on its next start).
-- [ ] With `gh` logged in, and again with `gh` logged out (it uses `curl.exe`): both find and install it.
-- [ ] Run from a folder you can't write to (`C:/Program Files/…`): it says it can't replace the exe and offers the
-      release page.
-- [ ] In `start-dev.bat`, clicking it says it's a development build and offers the release page.
+- [ ] About 10 seconds after start, a banner under the header says `Workstation <newer> is out. You have <older>.`
+      Without a network connection there's no banner; Settings → App → About shows the error in one line.
+- [ ] Later hides the banner until the next start.
+- [ ] Update and restart: the banner shows the download's progress, the installer runs on its own, and the new
+      version opens with the same workstations and settings.
+- [ ] Settings → App → About: Check now finds it too; "Check for updates" off means no banner at the next start.

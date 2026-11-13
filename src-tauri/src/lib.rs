@@ -19,21 +19,21 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(watch::Watcher::default())
         .setup(|app| {
-            // Whatever the last update left behind: the old exe and the download.
-            if let (Ok(exe), Ok(dir)) = (std::env::current_exe(), commands::updates_dir(app.handle())) {
-                update::clean_up(&exe, &dir);
-            }
             let look = commands::config_dir(app.handle()).map(|dir| settings::load(&dir).look).unwrap_or_default();
             let frame = window::open(app, &look)?;
             app.manage(frame);
+            app.manage(update::Updates::default());
+            update::start_checks(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             commands::app_info,
             commands::get_settings,
             commands::set_look,
+            commands::set_preferences,
             commands::list_workstations,
             commands::add_workstation,
             commands::remove_workstation,
@@ -46,9 +46,9 @@ pub fn run() {
             commands::guess_stack,
             commands::register_project,
             commands::set_tags,
-            commands::check_update,
+            commands::update_status,
+            commands::check_for_update,
             commands::install_update,
-            commands::open_release_page,
         ])
         .run(tauri::generate_context!())
         .expect("error while running the Workstation app");

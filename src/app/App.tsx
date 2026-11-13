@@ -13,7 +13,8 @@ import { AppBackdrop } from "./AppBackdrop";
 import { FirstRun } from "./FirstRun";
 import { SettingsProvider } from "./SettingsProvider";
 import { StatusBanner } from "./StatusBanner";
-import { UpdateChip } from "./UpdateChip";
+import { UpdateBanner } from "./UpdateBanner";
+import { useUpdate } from "./useUpdate";
 import { useWorkstationState, WorkstationsContext } from "./useWorkstations";
 import { HEADER_VIEWS, MAIN_VIEWS } from "./views";
 import { WindowControls } from "./WindowControls";
@@ -35,6 +36,7 @@ export function App() {
   const workstations = useWorkstationState();
   const { listing, error, notice, offerSetup, pendingSetup, add, setup, confirmSetup, cancelSetup } = workstations;
   const [info, setInfo] = useState<AppInfo | null>(null);
+  const update = useUpdate();
   const [view, setView] = useState(MAIN_VIEWS[0].id);
   const [opened, setOpened] = useState<string[]>([]);
   useEffect(() => void appInfo().then(setInfo), []);
@@ -71,7 +73,6 @@ export function App() {
               <Tabs variant="nav" aria-label="Views" tabs={TABS} value={view} onValueChange={setView} />
             )}
             <div className="header-end">
-              <UpdateChip />
               {current &&
                 HEADER_VIEWS.map(({ id, label, icon }) => (
                   <IconButton
@@ -102,6 +103,7 @@ export function App() {
           ) : (
             <>
               {banner}
+              <UpdateBanner status={update} />
               <div className="views">
                 {ALL_VIEWS.filter(({ id }) => id === view || opened.includes(id)).map(({ id, label, Page }) => (
                   <main key={id} className="view" aria-label={label} hidden={id !== view}>

@@ -1,4 +1,5 @@
-//! Settings: the app's own settings (the look) as `settings.json` in the app config folder (ADR-0009).
+//! Settings: the app's own settings (the look, and how the app behaves: updates) as `settings.json` in the app config
+//! folder (ADR-0009, ADR-0014).
 //! Missing fields take their defaults, so older files still load; an unreadable file gives the defaults.
 
 // ── Imports ───────────────────────────────
@@ -16,6 +17,7 @@ const TEMP_NAME: &str = "settings.json.tmp";
 #[serde(rename_all = "camelCase", default)]
 pub struct Settings {
     pub look: Look,
+    pub preferences: Preferences,
 }
 
 /// How the window looks.
@@ -31,6 +33,20 @@ pub struct Look {
 impl Default for Look {
     fn default() -> Self {
         Self { native_frame: false, liquid_background: true }
+    }
+}
+
+/// How the app behaves.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Preferences {
+    /// Look for a newer release at start and every 6 hours (ADR-0014).
+    pub check_for_updates: bool,
+}
+
+impl Default for Preferences {
+    fn default() -> Self {
+        Self { check_for_updates: true }
     }
 }
 
@@ -61,6 +77,13 @@ pub fn set_look(config_dir: &Path, look: Look) -> Result<Settings, String> {
     Ok(settings)
 }
 
+/// Saves new preferences and returns the settings.
+pub fn set_preferences(config_dir: &Path, preferences: Preferences) -> Result<Settings, String> {
+    let settings = Settings { preferences, ..load(config_dir) };
+    save(config_dir, &settings)?;
+    Ok(settings)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -71,6 +94,7 @@ mod tests {
         let temp = Temp::new();
         assert_eq!(load(&temp.0), Settings::default());
         assert!(load(&temp.0).look.liquid_background);
+        assert!(load(&temp.0).preferences.check_for_updates, "updates are checked unless turned off");
         temp.file(FILE_NAME, "{ not json");
         assert_eq!(load(&temp.0), Settings::default());
     }
@@ -90,5 +114,16 @@ mod tests {
         assert_eq!(set_look(&dir, look.clone()).unwrap().look, look);
         assert_eq!(load(&dir).look, look);
         assert!(!dir.join(TEMP_NAME).exists());
+    }
+
+    #[test]
+    fn set_preferences_keeps_the_look() {
+        let temp = Temp::new();
+        let look = Look { native_frame: true, liquid_background: false };
+        set_look(&temp.0, look.clone()).unwrap();
+        let saved = set_preferences(&temp.0, Preferences { check_for_updates: false }).unwrap();
+        assert_eq!(saved, load(&temp.0));
+        assert_eq!(saved.look, look);
+        assert!(!saved.preferences.check_for_updates);
     }
 }
