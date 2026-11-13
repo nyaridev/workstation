@@ -6,7 +6,7 @@
 
 import { Badge, ContextMenu, Icon, IconButton, ListItem, type MenuEntry, Tooltip } from "iro-ui";
 import { ArrowDownIcon, FilePlusIcon, FolderOpenIcon, TagIcon } from "iro-ui/icons";
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useRef, useState } from "react";
 import type { GitStatuses, Project } from "../../lib/types";
 import { FolderRow } from "./FolderRow";
 import { statusColor } from "./fields";
@@ -71,6 +71,15 @@ export function ProjectRow(props: Props) {
   const [tagsOpen, setTagsOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [pulling, setPulling] = useState(false);
+  const name = useRef<HTMLSpanElement>(null);
+  // How far a long name pans while its row is hovered, and how long that takes (`.row-name` in styles.css).
+  const measureName = () => {
+    const box = name.current?.parentElement;
+    if (!box) return;
+    const hidden = Math.max(0, box.scrollWidth - box.clientWidth);
+    box.style.setProperty("--name-pan", `${hidden}px`);
+    box.style.setProperty("--name-time", `${2 + hidden / 30}s`);
+  };
   const done = (saved: boolean) => {
     setEditing(null);
     if (saved) onSaved();
@@ -112,7 +121,7 @@ export function ProjectRow(props: Props) {
   const remote = own && (own.owner ? `${own.owner}/${own.repo ?? "?"}` : "no remote");
 
   return (
-    <li className="project">
+    <li className="project" onMouseEnter={measureName}>
       <ContextMenu items={menu}>
         <ListItem
           stretched
@@ -129,7 +138,9 @@ export function ProjectRow(props: Props) {
                     </span>
                   }
                 >
-                  <span className="row-name">{p.name}</span>
+                  <span className="row-name">
+                    <span ref={name}>{p.name}</span>
+                  </span>
                 </Tooltip>
                 {flag && <Badge tone={p.onDisk ? "warning" : "danger"}>{flag}</Badge>}
                 {openable && <span className="muted small">{summary.join(" · ")}</span>}

@@ -388,7 +388,34 @@ code {
 }
 
 .row-name {
+  min-width: 0;
+  overflow: hidden;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A long name ends in an ellipsis; while its row is hovered it pans to its end, waits, and starts over (ProjectRow
+   sets how far, --name-pan, and how long, --name-time). It stays still when motion is reduced (--iro-move is 0). */
+.project > .iro-list-item:hover .row-name {
+  text-overflow: clip;
+}
+
+.project > .iro-list-item:hover .row-name > span {
+  display: inline-block;
+  animation: name-pan var(--name-time) linear infinite;
+}
+
+@keyframes name-pan {
+  0%,
+  20% {
+    transform: translateX(0);
+  }
+
+  80%,
+  100% {
+    transform: translateX(calc(var(--name-pan) * -1 * var(--iro-move)));
+  }
 }
 
 .status-colored {
