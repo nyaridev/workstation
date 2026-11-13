@@ -5,7 +5,6 @@ import { useCallback, useMemo, useState } from "react";
 import { NoticeBanner } from "../../app/NoticeBanner";
 import { openFolder } from "../../lib/backend";
 import { HistoryPanel } from "../history/HistoryPanel";
-import { FilterLayoutPicker } from "./FilterLayoutPicker";
 import { STATUSES } from "./fields";
 import {
   ANY,
@@ -18,9 +17,7 @@ import {
   tagCounts,
   valuesInUse,
 } from "./filter";
-import { useFilterLayout } from "./filterLayout";
 import { groupIcon } from "./groupIcons";
-import { KindRail } from "./KindRail";
 import { ProjectFilters } from "./ProjectFilters";
 import { ProjectRow } from "./ProjectRow";
 import { useGitStatus } from "./useGitStatus";
@@ -41,7 +38,6 @@ export function ProjectList({ root }: Props) {
   const { scan, error, reload } = useProjects(root);
   const git = useGitStatus(root, scan?.projects);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
-  const layout = useFilterLayout();
   const [openError, setOpenError] = useState<string | null>(null);
   // The repo whose git overview is open.
   const [history, setHistory] = useState<{ path: string; name: string } | null>(null);
@@ -92,7 +88,6 @@ export function ProjectList({ root }: Props) {
   const list = (
     <>
       <ProjectFilters
-        layout={layout}
         filters={filters}
         groups={kinds}
         tags={counts}
@@ -172,15 +167,7 @@ export function ProjectList({ root }: Props) {
           {flagged} project{flagged === 1 ? " doesn't" : "s don't"} match projects.json.
         </NoticeBanner>
       )}
-      {layout === "rail" ? (
-        <div className="projects-body">
-          <KindRail groups={kinds} value={filters.group} onChange={(group) => setFilters({ ...filters, group })} />
-          <div className="projects-column">{list}</div>
-        </div>
-      ) : (
-        list
-      )}
-      {import.meta.env.DEV && <FilterLayoutPicker />}
+      {list}
       {history && <HistoryPanel root={root} path={history.path} name={history.name} onClose={closeHistory} />}
     </div>
   );

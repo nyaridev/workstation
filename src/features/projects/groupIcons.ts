@@ -1,11 +1,10 @@
-// Group icons: the icon for each kind group (Games, Apps…), shared by the group headings and the kind filters.
+// Group icons: the icon for each kind group (Games, Apps…) in its heading.
 
 import {
   AppWindowIcon,
   ArchiveIcon,
   FlaskIcon,
   FolderIcon,
-  FoldersIcon,
   GamepadIcon,
   GlobeIcon,
   ImagesIcon,
@@ -32,7 +31,7 @@ const GROUP_ICONS: Record<string, typeof FolderIcon> = {
 };
 
 // ── Public API ────────────────────────────
-/** The icon for a group's label; `""` (every kind) gets the folders icon, an unknown group a folder. */
+/** The icon for a group's label; a group not listed gets a folder. */
 export function groupIcon(label: string): typeof FolderIcon {
-  return label === "" ? FoldersIcon : (GROUP_ICONS[label] ?? FolderIcon);
+  return GROUP_ICONS[label] ?? FolderIcon;
 }

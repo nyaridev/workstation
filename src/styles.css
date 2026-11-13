@@ -303,16 +303,7 @@ code {
   border: 0;
 }
 
-.filters-end {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--iro-space-4);
-  align-items: center;
-  margin-left: auto;
-}
-
-/* ── Filter layouts on trial (filterLayout.ts) ─ shortcut: remove the losers' rules once one is picked. */
-/* 1 · The Filters menu: each filter on its own line, full width. */
+/* The Filters menu: each filter on its own line, full width. */
 .filters-menu {
   display: grid;
   gap: var(--iro-space-3);
@@ -327,58 +318,6 @@ code {
   display: flex;
   flex-wrap: wrap;
   gap: var(--iro-space-4);
-}
-
-/* 3 · Kinds in a column beside the filters and cards. */
-.projects-body {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-}
-
-.projects-column {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-}
-
-.kind-rail {
-  flex: none;
-  width: calc(var(--iro-space-6) * 8);
-  padding: var(--iro-space-3) var(--iro-space-2) var(--iro-space-3) var(--iro-space-4);
-  overflow-y: auto;
-  border-right: 1px solid var(--iro-line);
-}
-
-.kind-rail-list {
-  display: grid;
-  gap: var(--iro-space-1);
-  margin: 0;
-  padding: 0;
-}
-
-/* shortcut: reaches into iro-ui's ListItem to drop the line between rows; the rail's rows are buttons, not a list. */
-.kind-rail-list .iro-list-item + .iro-list-item {
-  border-top: 0;
-}
-
-/* The dev-only layout picker, floating in the bottom-right corner. */
-.dev-layout-picker {
-  position: fixed;
-  right: var(--iro-space-4);
-  bottom: var(--iro-space-4);
-  z-index: 10;
-  display: flex;
-  gap: var(--iro-space-3);
-  align-items: center;
-  padding: var(--iro-space-2) var(--iro-space-3);
-}
-
-.dev-layout-label {
-  color: var(--iro-fg-3);
-  font-size: var(--iro-text-xs);
 }
 
 /* Each group is a card, like Settings' sections, inset like the filters; the scrollbar sits in the right inset. */
