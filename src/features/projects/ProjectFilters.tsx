@@ -1,8 +1,8 @@
-// ProjectFilters: the bar above the list. One line holds the search, a Filters menu (tags, status, owner, stack, "has
-// changes", "needs attention") with a count of what's set in it, and the project count; the kind chips go under it,
-// then the filters in use as removable chips, only when there are any.
+// ProjectFilters: the bar above the list. One line holds the search and a square Filters button whose menu has tags,
+// status, owner, stack, "has changes" and "needs attention" (lit while any is set); the kind chips go under it, then
+// the filters in use as removable chips, only when there are any.
 
-import { Button, Checkbox, Chip, CountBubble, Field, Icon, Popover, Select, TextField } from "iro-ui";
+import { Button, Checkbox, Chip, Field, Icon, IconButton, Popover, Select, TextField } from "iro-ui";
 import { SearchIcon, SlidersIcon } from "iro-ui/icons";
 import { ANY, type Filters, NO_FILTERS } from "./filter";
 import { TagPicker } from "./TagPicker";
@@ -15,14 +15,12 @@ interface Props {
   statuses: string[];
   owners: string[];
   stacks: string[];
-  shown: number;
-  total: number;
   onChange: (filters: Filters) => void;
 }
 
 /** Every filter control; a project must pass all of them. */
 export function ProjectFilters(props: Props) {
-  const { filters, groups, tags, statuses, owners, stacks, shown, total, onChange } = props;
+  const { filters, groups, tags, statuses, owners, stacks, onChange } = props;
   const set = (change: Partial<Filters>) => onChange({ ...filters, ...change });
   const toggleTag = (tag: string) =>
     set({ tags: filters.tags.includes(tag) ? filters.tags.filter((t) => t !== tag) : [...filters.tags, tag] });
@@ -60,10 +58,13 @@ export function ProjectFilters(props: Props) {
           className="filters-menu"
           title="Filters"
           trigger={
-            <Button size="sm" icon={<Icon icon={SlidersIcon} />}>
-              Filters
-              <CountBubble count={inMenu} tone="accent" />
-            </Button>
+            <IconButton
+              size="sm"
+              className="filters-button"
+              icon={<Icon icon={SlidersIcon} />}
+              label={inMenu > 0 ? `Filters (${inMenu} set)` : "Filters"}
+              active={inMenu > 0}
+            />
           }
         >
           <Field label="Tags">
@@ -89,9 +90,6 @@ export function ProjectFilters(props: Props) {
             />
           </div>
         </Popover>
-        <span className="muted small" aria-live="polite">
-          {shown === total ? `${total} projects` : `${shown} of ${total}`}
-        </span>
       </div>
       <fieldset className="kinds">
         <legend className="sr-only">Kind</legend>

@@ -303,6 +303,24 @@ code {
   border: 0;
 }
 
+/* The Filters button wears the search field's outline, and lights up like a dropdown while its menu is open. */
+.filters-button {
+  /* The search field's border sits outside its height; matching that keeps them the same size. */
+  box-sizing: content-box;
+  background: var(--iro-field);
+  border-color: var(--iro-edge);
+}
+
+.filters-button:hover {
+  background: var(--iro-field-hover);
+  border-color: var(--iro-fg-4);
+}
+
+.filters-button[data-popup-open] {
+  border-color: var(--iro-focus);
+  box-shadow: 0 0 0 1px var(--iro-focus);
+}
+
 /* The Filters menu: each filter on its own line, full width. */
 .filters-menu {
   display: grid;

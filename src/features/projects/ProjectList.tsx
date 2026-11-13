@@ -94,8 +94,6 @@ export function ProjectList({ root }: Props) {
         statuses={valuesInUse(projects, (p) => [p.status]).sort((a, b) => statusOrder(a) - statusOrder(b))}
         owners={valuesInUse(projects, (p) => [p.owner])}
         stacks={valuesInUse(projects, (p) => p.stack)}
-        shown={shown.length}
-        total={top.length}
         onChange={setFilters}
       />
       <div className="project-scroll">
