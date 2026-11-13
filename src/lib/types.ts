@@ -45,6 +45,14 @@ export interface Project {
   repo: boolean;
   /** Important folders inside a project that isn't a repo itself; projects of their own aren't repeated here. */
   folders: Folder[];
+  /** Its plan in order (`milestones` in projects.json); the first not done is the one being worked on. */
+  milestones: Milestone[];
+}
+
+/** One step of a project's plan (`scan::Milestone`). */
+export interface Milestone {
+  name: string;
+  done: boolean;
 }
 
 /** A folder inside a project worth showing: a repo, or one with its own docs or rules (`scan::Folder`). */

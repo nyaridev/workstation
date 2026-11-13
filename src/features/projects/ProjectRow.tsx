@@ -4,14 +4,15 @@
 // opens to show the projects and important folders inside it; a repo opens its git overview. A right click offers the
 // same actions.
 
-import { Badge, ContextMenu, Icon, IconButton, ListItem, type MenuEntry, Tooltip } from "iro-ui";
-import { ArrowDownIcon, FilePlusIcon, FolderOpenIcon, TagIcon } from "iro-ui/icons";
+import { Badge, Button, ContextMenu, Icon, IconButton, ListItem, type MenuEntry, ProgressBar, Tooltip } from "iro-ui";
+import { ArrowDownIcon, FilePlusIcon, FlagIcon, FolderOpenIcon, TagIcon } from "iro-ui/icons";
 import { type CSSProperties, useRef, useState } from "react";
 import type { GitStatuses, Project } from "../../lib/types";
 import { FolderRow } from "./FolderRow";
 import { statusColor } from "./fields";
 import { gitOf, registryFlag } from "./filter";
 import { GitBadges } from "./GitBadges";
+import { progressOf } from "./milestones";
 import { RegisterForm } from "./RegisterForm";
 import { TagDialog } from "./TagDialog";
 
@@ -33,6 +34,8 @@ interface Props {
   onOpenPage: (path: string) => void;
   /** Opens the git overview of a repo (by path), with the name to show. */
   onHistory: (path: string, name: string) => void;
+  /** Opens a project's milestones. */
+  onMilestones: (project: Project) => void;
   onSaved: () => void;
 }
 
@@ -64,8 +67,11 @@ export function ProjectRow(props: Props) {
     onPull,
     onOpenPage,
     onHistory,
+    onMilestones,
     onSaved,
   } = props;
+  // The milestone being worked on; none once the last one is done, and then the row has no second line.
+  const progress = progressOf(p.milestones);
   const [editing, setEditing] = useState<"register" | null>(null);
   // The tag dialog is open.
   const [tagsOpen, setTagsOpen] = useState(false);
@@ -109,6 +115,7 @@ export function ProjectRow(props: Props) {
   const menu: MenuEntry[] = [
     ...(openable ? [{ label: expanded ? "Hide what's inside" : "Show what's inside", onSelect: toggle }] : []),
     ...(hasHistory ? [{ label: "Git overview", onSelect: history }] : []),
+    ...(p.milestones.length > 0 ? [{ label: "Milestones", onSelect: () => onMilestones(p) }] : []),
     ...(canPull ? [{ label: "Pull from the remote", onSelect: () => void pull(), disabled: pulling }] : []),
     { label: "Open folder", onSelect: () => onOpen(p.path), disabled: !p.onDisk },
     ...(own?.owner ? [{ label: "Open in browser", onSelect: () => onOpenPage(p.path) }] : []),
@@ -151,6 +158,31 @@ export function ProjectRow(props: Props) {
               </span>
               <span className="row-cell row-remote">{remote}</span>
             </span>
+          }
+          description={
+            progress && (
+              <span className="row-milestone">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={<Icon icon={FlagIcon} />}
+                  className="row-milestone-name"
+                  onClick={() => onMilestones(p)}
+                >
+                  {progress.current.name}
+                </Button>
+                <ProgressBar
+                  size="sm"
+                  value={progress.done / progress.total}
+                  segments={progress.total}
+                  label={`${p.name}'s milestones done`}
+                  className="row-milestone-bar"
+                />
+                <span className="muted small">
+                  {progress.done} of {progress.total} done
+                </span>
+              </span>
+            )
           }
           actions={
             <>

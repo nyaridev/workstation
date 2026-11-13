@@ -463,6 +463,32 @@ code {
 }
 
 /* The name's tooltip: the description, then the path. */
+/* The milestone being worked on, as a second line under the row's cells (ProjectRow). */
+.row-milestone {
+  display: flex;
+  gap: var(--iro-space-3);
+  align-items: center;
+  min-width: 0;
+}
+
+/* Pulled back by its padding and border, so the flag lines up with the project's name. */
+.row-milestone-name {
+  min-width: 0;
+  max-width: 24rem;
+  margin-inline-start: calc((var(--iro-space-2) + 1px) * -1);
+}
+
+.row-milestone-bar {
+  flex: none;
+  width: calc(var(--iro-space-6) * 4);
+}
+
+.milestones-head {
+  display: grid;
+  gap: var(--iro-space-2);
+  margin-bottom: var(--iro-space-5);
+}
+
 .row-tip {
   display: grid;
   gap: var(--iro-space-1);

@@ -2,7 +2,17 @@
 
 import type { Project } from "./types";
 
-const base = { archived: false, owner: "local", notes: null, onDisk: true, registered: true, repo: true, folders: [] };
+const base = {
+  archived: false,
+  owner: "local",
+  notes: null,
+  onDisk: true,
+  registered: true,
+  repo: true,
+  folders: [],
+  milestones: [],
+};
+const plan = (done: number, names: string[]) => names.map((name, i) => ({ name, done: i < done }));
 const folder = (path: string, repo = false) => ({ path, name: path.split("/").at(-2) ?? path, repo });
 
 /** A small made-up workstation. */
@@ -17,6 +27,7 @@ export const fakeProjects: Project[] = [
     status: "prototyping",
     description: "Overseer for WORKSTATION folders.",
     tags: ["desktop", "workstation"],
+    milestones: plan(3, ["M15 Settings tabs", "M16 Tray and autostart", "M17 Installers", "M18 Release v0.1.0"]),
   },
   {
     ...base,

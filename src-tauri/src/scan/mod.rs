@@ -12,6 +12,7 @@ pub use layout::affects_projects;
 pub use registry::{Entry, add as register, set_tags};
 use registry::same_path;
 use serde::Serialize;
+use serde_json::Value;
 use std::path::{Component, Path, PathBuf};
 
 // ── Constants ─────────────────────────────
@@ -27,6 +28,14 @@ pub struct Folder {
     pub path: String,
     pub name: String,
     pub repo: bool,
+}
+
+/// One step of a project's plan, from its entry's `milestones`.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Milestone {
+    pub name: String,
+    pub done: bool,
 }
 
 /// A project as the UI sees it.
@@ -54,6 +63,8 @@ pub struct Project {
     /// Important folders inside a project that isn't a repo itself (a game home's `game/` and `docs/`); folders that
     /// are projects of their own (a suite's repos) aren't repeated here.
     pub folders: Vec<Folder>,
+    /// Its plan in order; the first not done is the one being worked on. Empty when it has none.
+    pub milestones: Vec<Milestone>,
 }
 
 /// Every project of a workstation, and why `projects.json` couldn't be read, if it couldn't.
@@ -65,6 +76,20 @@ pub struct Scan {
 }
 
 // ── Private helpers ───────────────────────
+// An entry's `milestones`, read leniently: an item without a name is skipped and a missing `done` is false, so one
+// badly written milestone never stops the registry from loading.
+fn milestones_of(entry: &Entry) -> Vec<Milestone> {
+    let Some(Value::Array(items)) = entry.extra.get("milestones") else { return Vec::new() };
+    items
+        .iter()
+        .filter_map(|item| {
+            let name = item.get("name")?.as_str()?.trim();
+            let done = item.get("done").and_then(Value::as_bool).unwrap_or(false);
+            (!name.is_empty()).then(|| Milestone { name: name.to_string(), done })
+        })
+        .collect()
+}
+
 fn from_entry(entry: &Entry, on_disk: bool) -> Project {
     Project {
         path: entry.path.clone(),
@@ -81,6 +106,7 @@ fn from_entry(entry: &Entry, on_disk: bool) -> Project {
         registered: true,
         repo: false,
         folders: Vec::new(),
+        milestones: milestones_of(entry),
     }
 }
 
@@ -101,6 +127,7 @@ fn unregistered(found: &layout::Found) -> Project {
         registered: false,
         repo: false,
         folders: Vec::new(),
+        milestones: Vec::new(),
     }
 }
 
@@ -239,6 +266,28 @@ mod tests {
         let repo = |path: &str| scan.projects.iter().find(|p| p.path == path).unwrap().repo;
         assert!(repo("tools/rename/"));
         assert!(!repo("games/godot/swamp/"), "a game home's repo is game/, not the home");
+    }
+
+    #[test]
+    fn reads_milestones_and_skips_bad_ones() {
+        let temp = Temp::new();
+        temp.dir("tools/rename");
+        temp.file(
+            "projects.json",
+            r#"{ "version": 1, "projects": [
+                { "name": "Rename", "path": "tools/rename/", "kind": "tool", "milestones": [
+                    { "name": "M1 Scaffold", "done": true },
+                    { "name": "M2 Batch rename" },
+                    { "done": true },
+                    "M3 as a bare string",
+                    { "name": "  ", "done": false }
+                ] }
+            ] }"#,
+        );
+        let scan = scan(&temp.0);
+        assert_eq!(scan.registry_error, None);
+        let milestone = |name: &str, done| Milestone { name: name.into(), done };
+        assert_eq!(scan.projects[0].milestones, [milestone("M1 Scaffold", true), milestone("M2 Batch rename", false)]);
     }
 
     #[test]

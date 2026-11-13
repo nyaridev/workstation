@@ -6,6 +6,7 @@ import { NoticeBanner } from "../../app/NoticeBanner";
 import { useSettings } from "../../app/SettingsProvider";
 import { gitPull, openFolder, openRepoPage } from "../../lib/backend";
 import { HistoryPanel } from "../history/HistoryPanel";
+import { MilestonesPanel } from "../milestones/MilestonesPanel";
 import { STATUSES } from "./fields";
 import {
   ANY,
@@ -54,8 +55,11 @@ export function ProjectList({ root, saved }: Props) {
   const [history, setHistory] = useState<{ path: string; name: string } | null>(null);
   const showHistory = useCallback((path: string, name: string) => setHistory({ path, name }), []);
   const closeHistory = useCallback(() => setHistory(null), []);
+  // The project whose milestones are open, by path, so a rescan shows its newest plan.
+  const [milestonesOf, setMilestonesOf] = useState<string | null>(null);
 
   const projects = useMemo(() => scan?.projects ?? [], [scan]);
+  const planned = projects.find((p) => p.path === milestonesOf);
   // A suite's repos are listed inside the suite's row, not on their own.
   const { top, inside } = useMemo(() => nestProjects(projects), [projects]);
   const edited = useLastEdited(root, top, filters.sort === "edited");
@@ -162,6 +166,7 @@ export function ProjectList({ root, saved }: Props) {
                   onPull={pull}
                   onOpenPage={openPage}
                   onHistory={showHistory}
+                  onMilestones={(project) => setMilestonesOf(project.path)}
                   onSaved={reload}
                 />
               ))}
@@ -193,6 +198,7 @@ export function ProjectList({ root, saved }: Props) {
         </NoticeBanner>
       )}
       {list}
+      {planned && <MilestonesPanel project={planned} onClose={() => setMilestonesOf(null)} />}
       {history && (
         <HistoryPanel
           root={root}
