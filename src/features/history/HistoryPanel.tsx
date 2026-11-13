@@ -1,8 +1,9 @@
 // HistoryPanel: a repo's git overview in a side sheet: branch and upstream, what's unpushed or behind, the
-// uncommitted files, and the latest commits with the unpushed ones marked. Reads only; it never fetches.
+// uncommitted files, and the latest commits with the unpushed ones marked; its header opens the repo's page in the
+// browser. Reads only; it never fetches.
 
-import { Badge, Button, Icon, Notice, SectionTitle, Sheet, Spinner, Timeline, Tooltip } from "iro-ui";
-import { BranchIcon, RefreshIcon } from "iro-ui/icons";
+import { Badge, Button, Icon, IconButton, Notice, SectionTitle, Sheet, Spinner, Timeline, Tooltip } from "iro-ui";
+import { BranchIcon, ExternalLinkIcon, RefreshIcon } from "iro-ui/icons";
 import { useCallback, useEffect, useState } from "react";
 import { gitHistory } from "../../lib/backend";
 import type { GitHistory } from "../../lib/types";
@@ -13,6 +14,8 @@ interface Props {
   /** The repo's path in the workstation (a project, or a repo folder inside one). */
   path: string;
   name: string;
+  /** Opens the repo's remote page; left out when it has no remote. */
+  onOpenPage?: () => void;
   onClose: () => void;
 }
 
@@ -20,7 +23,7 @@ interface Props {
 const LIMIT = 200;
 
 /** Opens from the right; Escape, the close button or a click beside it closes it. */
-export function HistoryPanel({ root, path, name, onClose }: Props) {
+export function HistoryPanel({ root, path, name, onOpenPage, onClose }: Props) {
   const [history, setHistory] = useState<GitHistory | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +52,11 @@ export function HistoryPanel({ root, path, name, onClose }: Props) {
       onOpenChange={(open) => !open && onClose()}
       title={name}
       closeLabel="Close the git overview"
+      actions={
+        onOpenPage && (
+          <IconButton size="sm" icon={<Icon icon={ExternalLinkIcon} />} label="Open in browser" onClick={onOpenPage} />
+        )
+      }
       className="history"
     >
       <div className="history-head">

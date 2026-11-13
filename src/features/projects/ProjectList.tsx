@@ -181,7 +181,15 @@ export function ProjectList({ root }: Props) {
         </NoticeBanner>
       )}
       {list}
-      {history && <HistoryPanel root={root} path={history.path} name={history.name} onClose={closeHistory} />}
+      {history && (
+        <HistoryPanel
+          root={root}
+          path={history.path}
+          name={history.name}
+          onOpenPage={git[history.path]?.owner ? () => openPage(history.path) : undefined}
+          onClose={closeHistory}
+        />
+      )}
     </div>
   );
 }

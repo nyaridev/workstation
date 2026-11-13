@@ -71,7 +71,8 @@ delete that file to see the first run again.
 - [ ] Clicking a repo's row (an app, a suite's repo, a game home's `game/` or `wiki/`) opens its git overview: the
       branch and what it tracks, unpushed and behind counts, uncommitted files, and the latest commits with the
       unpushed ones marked. Compare with `git log --oneline` and `git status`. Refresh, Escape and a click beside the
-      panel work; nothing is fetched or changed.
+      panel work; nothing is fetched or changed. For a repo with a remote, the open-in-browser icon beside × opens
+      its page.
 - [ ] Commit something in a terminal, switch back to the app: the badge updates.
 - [ ] Right-click a repo with a remote (or a repo folder inside a home): **Open in browser** opens its page (GitHub or
       another host, from `origin`, ssh or https). Repos without a remote don't offer it.
