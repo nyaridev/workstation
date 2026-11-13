@@ -33,10 +33,11 @@ export function WorkstationSettings() {
             key={w.root}
             as="li"
             title={
-              <>
-                {w.name} {w.root === listing.open && <Badge tone="accent">Open</Badge>}
+              <span className="settings-ws-title">
+                <span className="settings-ws-name">{w.name}</span>
+                {w.root === listing.open && <Badge tone="accent">Open</Badge>}
                 {!w.available && <Badge tone="warning">Not found</Badge>}
-              </>
+              </span>
             }
             description={<code className="selectable">{w.root}</code>}
             actions={
