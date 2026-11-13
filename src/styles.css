@@ -311,24 +311,26 @@ code {
   margin-left: auto;
 }
 
-/* The gutter takes the rows' right padding, so the rows keep their width when the scrollbar shows. */
+/* Each group is a card, like Settings' sections, inset like the filters; the scrollbar sits in the right inset. */
 .project-scroll {
+  display: grid;
   flex: 1;
+  grid-auto-rows: max-content;
+  gap: var(--iro-space-4);
+  align-content: start;
+  padding: var(--iro-space-4) calc(var(--iro-space-4) - var(--iro-scrollbar-size)) var(--iro-space-4) var(--iro-space-4);
   scrollbar-gutter: stable;
   overflow-y: auto;
 }
 
-/* Stretched rows are positioned (their click areas under the content) and would otherwise paint over the heading. */
-/* Headings and rows keep the header's and filters' inset on both sides; the scrollbar sits in the right one. */
+/* Clips the rows' hover to the card's corners. */
+.group {
+  overflow: hidden;
+}
+
 .group-title {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  padding: var(--iro-space-5) calc(var(--iro-space-4) - var(--iro-scrollbar-size)) var(--iro-space-2) var(--iro-space-4);
-  /* See-through over the backdrop, but rows scrolling under it blur away. */
-  background: color-mix(in oklab, var(--iro-bg) 60%, transparent);
+  padding: var(--iro-space-3) var(--iro-space-4);
   border-bottom: 1px solid var(--iro-line);
-  backdrop-filter: blur(var(--iro-space-3));
 }
 
 .group-name {
@@ -339,7 +341,7 @@ code {
 
 .rows {
   margin: 0;
-  padding: 0 calc(var(--iro-space-4) - var(--iro-scrollbar-size)) 0 var(--iro-space-4);
+  padding: 0 var(--iro-space-2);
   list-style: none;
 }
 

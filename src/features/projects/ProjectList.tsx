@@ -1,6 +1,6 @@
 // ProjectList: the projects of the open workstation, grouped by kind, with search, tag and status filters.
 
-import { Button, CountBubble, EmptyState, Icon, Notice, SectionTitle, Spinner } from "iro-ui";
+import { Button, CountBubble, EmptyState, Icon, Notice, Panel, SectionTitle, Spinner } from "iro-ui";
 import {
   AppWindowIcon,
   ArchiveIcon,
@@ -148,7 +148,13 @@ export function ProjectList({ root }: Props) {
       <div className="project-scroll">
         {groups.length === 0 && <EmptyState title="No project matches these filters." />}
         {groups.map((group) => (
-          <section key={group.label} aria-labelledby={`group-${group.label}`}>
+          <Panel
+            as="section"
+            padded={false}
+            key={group.label}
+            className="group"
+            aria-labelledby={`group-${group.label}`}
+          >
             <SectionTitle
               level={2}
               id={`group-${group.label}`}
@@ -182,7 +188,7 @@ export function ProjectList({ root }: Props) {
                 />
               ))}
             </ul>
-          </section>
+          </Panel>
         ))}
       </div>
       {history && <HistoryPanel root={root} path={history.path} name={history.name} onClose={closeHistory} />}
