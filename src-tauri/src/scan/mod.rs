@@ -38,6 +38,8 @@ pub struct Milestone {
     pub done: bool,
     /// The plan it belongs to when a project has several ("Server", "Rewrite"); None for a project's single plan.
     pub track: Option<String>,
+    /// A short line on what it covers; None without one.
+    pub description: Option<String>,
 }
 
 /// A project as the UI sees it.
@@ -87,8 +89,15 @@ fn milestones_of(entry: &Entry) -> Vec<Milestone> {
         .filter_map(|item| {
             let name = item.get("name")?.as_str()?.trim();
             let done = item.get("done").and_then(Value::as_bool).unwrap_or(false);
-            let track = item.get("track").and_then(Value::as_str).map(str::trim).filter(|t| !t.is_empty());
-            (!name.is_empty()).then(|| Milestone { name: name.to_string(), done, track: track.map(str::to_string) })
+            let text = |key: &str| {
+                item.get(key).and_then(Value::as_str).map(str::trim).filter(|t| !t.is_empty()).map(str::to_string)
+            };
+            (!name.is_empty()).then(|| Milestone {
+                name: name.to_string(),
+                done,
+                track: text("track"),
+                description: text("description"),
+            })
         })
         .collect()
 }
@@ -279,8 +288,8 @@ mod tests {
             "projects.json",
             r#"{ "version": 1, "projects": [
                 { "name": "Rename", "path": "tools/rename/", "kind": "tool", "milestones": [
-                    { "name": "M1 Scaffold", "done": true },
-                    { "name": "M2 Batch rename", "track": " CLI " },
+                    { "name": "M1 Scaffold", "done": true, "description": " Repo, rules and CI. " },
+                    { "name": "M2 Batch rename", "track": " CLI ", "description": "" },
                     { "done": true },
                     "M3 as a bare string",
                     { "name": "  ", "done": false }
@@ -289,10 +298,18 @@ mod tests {
         );
         let scan = scan(&temp.0);
         assert_eq!(scan.registry_error, None);
-        let milestone = |name: &str, done, track: Option<&str>| Milestone { name: name.into(), done, track: track.map(Into::into) };
+        let milestone = |name: &str, done, track: Option<&str>, description: Option<&str>| Milestone {
+            name: name.into(),
+            done,
+            track: track.map(Into::into),
+            description: description.map(Into::into),
+        };
         assert_eq!(
             scan.projects[0].milestones,
-            [milestone("M1 Scaffold", true, None), milestone("M2 Batch rename", false, Some("CLI"))]
+            [
+                milestone("M1 Scaffold", true, None, Some("Repo, rules and CI.")),
+                milestone("M2 Batch rename", false, Some("CLI"), None),
+            ]
         );
     }
 

@@ -55,6 +55,8 @@ export interface Milestone {
   done: boolean;
   /** The plan it belongs to when a project has several ("Server", "Rewrite"); null for a single plan. */
   track: string | null;
+  /** A short line on what it covers; null without one. */
+  description: string | null;
 }
 
 /** A folder inside a project worth showing: a repo, or one with its own docs or rules (`scan::Folder`). */

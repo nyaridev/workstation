@@ -544,6 +544,14 @@ code {
   font-size: var(--iro-text-xs);
 }
 
+/* The side panels keep their scrollbar in their right padding, like the project list, so their content has even
+   sides whether it scrolls or not. */
+.history .iro-sheet-body,
+.milestones .iro-sheet-body {
+  padding-right: calc(var(--iro-space-4) - var(--iro-scrollbar-size));
+  scrollbar-gutter: stable;
+}
+
 /* The milestones panel (MilestonesPanel): what's being worked on as a card, then every milestone in order. */
 .plan {
   display: grid;
@@ -572,6 +580,10 @@ code {
   font-family: var(--iro-font-display);
   font-size: var(--iro-text-base);
   font-weight: 600;
+}
+
+.plan-description {
+  color: var(--iro-fg-2);
 }
 
 .plan-progress {

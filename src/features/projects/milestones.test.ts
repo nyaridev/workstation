@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { progressOf, tracksOf } from "./milestones";
 
-const m = (name: string, done: boolean, track: string | null = null) => ({ name, done, track });
+const m = (name: string, done: boolean, track: string | null = null) => ({ name, done, track, description: null });
 
 describe("progressOf", () => {
   it("works on the first milestone not done", () => {

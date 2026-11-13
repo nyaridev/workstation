@@ -12,8 +12,12 @@ const base = {
   folders: [],
   milestones: [],
 };
-const plan = (done: number, names: string[], track: string | null = null) =>
-  names.map((name, i) => ({ name, done: i < done, track }));
+// Each milestone as "name: what it covers".
+const plan = (done: number, steps: string[], track: string | null = null) =>
+  steps.map((step, i) => {
+    const [name = step, description = null] = step.split(": ");
+    return { name, done: i < done, track, description };
+  });
 const folder = (path: string, repo = false) => ({ path, name: path.split("/").at(-2) ?? path, repo });
 
 /** A small made-up workstation. */
@@ -28,7 +32,12 @@ export const fakeProjects: Project[] = [
     status: "prototyping",
     description: "Overseer for WORKSTATION folders.",
     tags: ["desktop", "workstation"],
-    milestones: plan(3, ["M15 Settings tabs", "M16 Tray and autostart", "M17 Installers", "M18 Release v0.1.0"]),
+    milestones: plan(3, [
+      "M15 Settings tabs: Workstations and App, each a tab.",
+      "M16 Tray and autostart: start with the system, close to the tray.",
+      "M17 Installers: Windows, macOS and Linux from GitHub Actions.",
+      "M18 Release v0.1.0: check everything by hand, then ship.",
+    ]),
   },
   {
     ...base,
@@ -100,8 +109,28 @@ export const fakeProjects: Project[] = [
     repo: false,
     // Two plans, so the row shows two milestone lines and the panel has tabs.
     milestones: [
-      ...plan(2, ["S1 Login server", "S2 World server", "S3 Combat", "S4 Raids"], "Server"),
-      ...plan(1, ["R1 Engine", "R2 Rendering", "R3 Networking", "R4 UI", "R5 Content", "R6 Launch"], "Rewrite"),
+      ...plan(
+        2,
+        [
+          "S1 Login server: Accounts and the channel list.",
+          "S2 World server: Maps, movement and NPCs.",
+          "S3 Combat: Skills, damage and drops.",
+          "S4 Raids",
+        ],
+        "Server",
+      ),
+      ...plan(
+        1,
+        [
+          "R1 Engine: Window, input and the game loop.",
+          "R2 Rendering: Maps and characters on screen.",
+          "R3 Networking",
+          "R4 UI",
+          "R5 Content",
+          "R6 Launch",
+        ],
+        "Rewrite",
+      ),
     ],
     folders: [
       folder("games/godot/swamp/assets/"),

@@ -27,6 +27,7 @@ function Plan({ track }: { track: Track }) {
       <Panel className="plan-now">
         <span className="plan-label">{progress ? "Working on" : "Finished"}</span>
         <span className="plan-current">{progress ? progress.current.name : "Every milestone is done"}</span>
+        {progress?.current.description && <span className="plan-description">{progress.current.description}</span>}
         <span className="plan-progress">
           <ProgressBar
             size="sm"
@@ -60,6 +61,8 @@ function Plan({ track }: { track: Track }) {
                   )
                 }
                 title={m.name}
+                description={m.description}
+                wrap
                 meta={state === "current" && <Badge tone="accent">now</Badge>}
               />
             );
