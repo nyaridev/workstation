@@ -56,7 +56,7 @@ delete that file to see the first run again.
       show as chips (× removes one); a `#tag` on a row also toggles it. Escape or a click outside closes the list.
 - [ ] Status, Owner and Stack each filter, and turn blue while set. "Needs attention" keeps only flagged projects, as
       does the banner's **Show them**. "Clear filters" resets everything.
-- [ ] **Open folder** opens the project in Explorer.
+- [ ] **Open folder** (the open-folder icon) opens the project in Explorer.
 - [ ] Right-clicking a project or folder row opens a menu with the same actions as its buttons (and Show what's
       inside, Git overview), and each one works.
 
@@ -84,13 +84,14 @@ delete that file to see the first run again.
 
 ## 6. Registering and tags (test workstation)
 
-- [ ] On `tools/hello/` (create it again), **Register…** opens a prefilled form: name, kind `tool`, status, owner,
-      and a stack guessed from its files (add a `Cargo.toml` or `package.json` to see the guess).
+- [ ] On `tools/hello/` (create it again), **Register in projects.json…** (the file-plus icon) opens a prefilled
+      form: name, kind `tool`, status, owner, and a stack guessed from its files (add a `Cargo.toml` or `package.json`
+      to see the guess).
 - [ ] Empty description: the form refuses.
 - [ ] Type "CLI Tool" in tags and press Enter: it becomes `cli-tool`. Suggestions come from tags in use.
 - [ ] **Add to projects.json**: the flag goes, the row shows the description and tags. In `projects.json` the entry
       sits at its place by path, in the documented key order, and the rest of the file is unchanged.
-- [ ] **Edit tags** on a registered project: remove one, add one, save. Only that entry's `tags` changed.
+- [ ] **Edit tags** (the tag icon) on a registered project: remove one, add one, save. Only that entry's `tags` changed.
 - [ ] A repo with a GitHub remote prefills Owner with the remote's owner; a repo without one says `local`.
 
 ## 7. Installers (ADR-0016)

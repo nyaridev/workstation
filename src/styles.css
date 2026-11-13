@@ -348,6 +348,11 @@ code {
   align-items: center;
 }
 
+.group-count {
+  color: var(--iro-fg-4);
+  font-weight: 400;
+}
+
 .rows {
   margin: 0;
   padding: 0 var(--iro-space-2);

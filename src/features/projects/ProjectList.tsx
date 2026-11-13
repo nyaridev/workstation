@@ -1,6 +1,6 @@
 // ProjectList: the projects of the open workstation, grouped by kind, with search, tag and status filters.
 
-import { Button, CountBubble, EmptyState, Icon, Notice, Panel, SectionTitle, Spinner } from "iro-ui";
+import { Button, EmptyState, Icon, Notice, Panel, SectionTitle, Spinner } from "iro-ui";
 import { useCallback, useMemo, useState } from "react";
 import { NoticeBanner } from "../../app/NoticeBanner";
 import { openFolder } from "../../lib/backend";
@@ -116,11 +116,7 @@ export function ProjectList({ root }: Props) {
             >
               <span className="group-name">
                 {group.label}
-                <CountBubble
-                  count={group.projects.length}
-                  tone="accent"
-                  aria-label={`${group.projects.length} projects`}
-                />
+                <span className="group-count">{group.projects.length}</span>
               </span>
             </SectionTitle>
             <ul className="rows">

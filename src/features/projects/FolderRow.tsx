@@ -1,9 +1,9 @@
 // FolderRow: an important folder inside an expanded project (a game home's `game/` or `docs/`): its name, whether
-// it's a repo with its git badges, and Open folder, as an iro-ui ListItem. A repo folder's row opens its git overview;
+// it's a repo with its git badges, and an Open folder button, as an iro-ui ListItem. A repo folder's row opens its git overview;
 // a right click offers the same actions.
 
-import { Button, ContextMenu, Icon, ListItem, type MenuEntry } from "iro-ui";
-import { FolderIcon } from "iro-ui/icons";
+import { ContextMenu, Icon, IconButton, ListItem, type MenuEntry } from "iro-ui";
+import { FolderIcon, FolderOpenIcon } from "iro-ui/icons";
 import type { Folder, GitStatus } from "../../lib/types";
 import { GitBadges } from "./GitBadges";
 
@@ -37,9 +37,12 @@ export function FolderRow({ folder, git, onOpen, onHistory }: Props) {
           meta={<code className="folder-path">{folder.path}</code>}
           onClick={hasHistory ? onHistory : undefined}
           actions={
-            <Button size="sm" variant="ghost" onClick={() => onOpen(folder.path)}>
-              Open folder
-            </Button>
+            <IconButton
+              size="sm"
+              icon={<Icon icon={FolderOpenIcon} />}
+              label="Open folder"
+              onClick={() => onOpen(folder.path)}
+            />
           }
         />
       </ContextMenu>

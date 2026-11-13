@@ -3,7 +3,8 @@
 // A suite or home opens to show the projects and important folders inside it; a repo opens its git overview. A right
 // click offers the same actions.
 
-import { Badge, Button, Chip, ContextMenu, ListItem, type MenuEntry } from "iro-ui";
+import { Badge, Chip, ContextMenu, Icon, IconButton, ListItem, type MenuEntry } from "iro-ui";
+import { FilePlusIcon, FolderOpenIcon, TagIcon } from "iro-ui/icons";
 import { type CSSProperties, useState } from "react";
 import type { GitStatuses, Project } from "../../lib/types";
 import { FolderRow } from "./FolderRow";
@@ -125,18 +126,30 @@ export function ProjectRow(props: Props) {
           actions={
             <>
               {canWrite && !p.registered && !p.archived && (
-                <Button size="sm" onClick={() => setEditing("register")} disabled={editing !== null}>
-                  Register…
-                </Button>
+                <IconButton
+                  size="sm"
+                  icon={<Icon icon={FilePlusIcon} />}
+                  label="Register in projects.json…"
+                  onClick={() => setEditing("register")}
+                  disabled={editing !== null}
+                />
               )}
               {canWrite && p.registered && (
-                <Button size="sm" onClick={() => setEditing("tags")} disabled={editing !== null}>
-                  Edit tags
-                </Button>
+                <IconButton
+                  size="sm"
+                  icon={<Icon icon={TagIcon} />}
+                  label="Edit tags"
+                  onClick={() => setEditing("tags")}
+                  disabled={editing !== null}
+                />
               )}
-              <Button size="sm" disabled={!p.onDisk} onClick={() => onOpen(p.path)}>
-                Open folder
-              </Button>
+              <IconButton
+                size="sm"
+                icon={<Icon icon={FolderOpenIcon} />}
+                label="Open folder"
+                disabled={!p.onDisk}
+                onClick={() => onOpen(p.path)}
+              />
             </>
           }
         />
