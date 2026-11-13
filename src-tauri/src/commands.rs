@@ -20,8 +20,8 @@ use tauri_plugin_opener::OpenerExt;
 // ── Constants ─────────────────────────────
 /// The running app's version (kept equal in Cargo.toml, tauri.conf.json and package.json by the `release` skill).
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-/// How many commits the git overview shows.
-const HISTORY_LIMIT: usize = 200;
+/// The most diffs or commits one call reads (a refresh rereads every page shown).
+const PAGE_LIMIT: usize = 500;
 
 // ── Types ─────────────────────────────────
 /// The running version, the system, and the frame the window got at start.
@@ -134,13 +134,37 @@ pub async fn git_status(root: String, paths: Vec<String>) -> Result<HashMap<Stri
 }
 
 /// The git overview of the repo at `path` (a project, or a repo folder inside one): branch, upstream, uncommitted
-/// files and the latest commits. Reads only; runs off the main thread.
+/// files and how many commits. Reads only; runs off the main thread.
 #[tauri::command]
-pub async fn git_history(root: String, path: String) -> Result<git::History, String> {
+pub async fn git_overview(root: String, path: String) -> Result<git::Overview, String> {
     let folder = scan::folder(Path::new(&root), &path)?;
     tauri::async_runtime::spawn_blocking(move || {
         let repo = git::repo_dir(&folder).ok_or("This folder isn't a git repo.")?;
-        git::history(&repo, HISTORY_LIMIT).ok_or_else(|| "git couldn't read this repo. Is git installed?".to_string())
+        git::overview(&repo).ok_or_else(|| "git couldn't read this repo. Is git installed?".to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// The diffs of some of that repo's uncommitted files (a page of the overview's list).
+#[tauri::command]
+pub async fn git_diffs(root: String, path: String, files: Vec<String>) -> Result<Vec<git::FileDiff>, String> {
+    let folder = scan::folder(Path::new(&root), &path)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let repo = git::repo_dir(&folder).ok_or("This folder isn't a git repo.")?;
+        Ok(git::diffs(&repo, &files[..files.len().min(PAGE_LIMIT)]))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// A page of that repo's commits, newest first: up to `limit` after skipping `skip`.
+#[tauri::command]
+pub async fn git_commits(root: String, path: String, skip: usize, limit: usize) -> Result<Vec<git::Commit>, String> {
+    let folder = scan::folder(Path::new(&root), &path)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let repo = git::repo_dir(&folder).ok_or("This folder isn't a git repo.")?;
+        Ok(git::commits(&repo, skip, limit.min(PAGE_LIMIT)))
     })
     .await
     .map_err(|e| e.to_string())?

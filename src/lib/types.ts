@@ -121,18 +121,28 @@ export interface Commit {
   unpushed: boolean;
 }
 
-/** A repo's overview (`git::History`): where it stands, what isn't committed, and its latest commits. */
-export interface GitHistory {
+/** A repo's overview (`git::Overview`): where it stands, what isn't committed, and how many commits it has. Diffs
+ * and commits come a page at a time (`gitDiffs`, `gitCommits`). */
+export interface GitOverview {
   branch: string;
   /** `origin/main`; null when the branch tracks nothing. */
   upstream: string | null;
   /** Commits behind the upstream as of the last fetch; null without an upstream. */
   behind: number | null;
+  /** Commits not on the upstream (or, without one, on no remote). */
+  unpushed: number;
   /** Uncommitted files: `code` is git's two status letters (` M`, `??`…). */
-  /** `added`/`removed` and `diff` are null for untracked and binary files. */
-  changes: { code: string; path: string; added: number | null; removed: number | null; diff: string | null }[];
-  /** Newest first. */
-  commits: Commit[];
+  changes: { code: string; path: string }[];
+  /** Commits on the branch. */
+  commits: number;
+}
+
+/** One uncommitted file's changes (`git::FileDiff`); all null for untracked files, `diff` null for binary ones. */
+export interface FileDiff {
+  path: string;
+  added: number | null;
+  removed: number | null;
+  diff: string | null;
 }
 
 /**

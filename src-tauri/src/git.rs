@@ -1,13 +1,15 @@
 //! Git: a repo's branch, uncommitted changes, unpushed commits and remote, read with the `git` command, and a
-//! fast-forward pull the user asks for (ADR-0018). Nothing is reported when git isn't installed or a folder isn't a
-//! repo; the list works without it.
+//! fast-forward pull the user asks for (ADR-0018). The overview reads diffs and commits a page at a time, so a big
+//! repo opens as fast as a small one. Nothing is reported when git isn't installed or a folder isn't a repo.
 
 // ── Imports ───────────────────────────────
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
+use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::thread;
+use std::time::{Duration, Instant};
 
 // ── Constants ─────────────────────────────
 /// How many repos are read at the same time.
@@ -17,6 +19,8 @@ const PARALLEL: usize = 8;
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 /// A file's diff past this many lines is cut, so a generated file can't flood the panel.
 const MAX_DIFF_LINES: usize = 400;
+/// How long a pull waits for the remote to answer before saying it can't be reached.
+const REACH_TIMEOUT: Duration = Duration::from_secs(8);
 
 // ── Types ─────────────────────────────────
 /// What git says about one repo.
@@ -57,30 +61,40 @@ pub struct Change {
     /// The two status letters: ` M` changed, `A ` added, `??` untracked…
     pub code: String,
     pub path: String,
-    /// Lines added and removed since the last commit; None for untracked and binary files.
+}
+
+/// One uncommitted file's changes since the last commit.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FileDiff {
+    pub path: String,
+    /// Lines added and removed; None for untracked and binary files.
     pub added: Option<usize>,
     pub removed: Option<usize>,
     /// The file's hunks (`@@ … @@` and their lines), cut at `MAX_DIFF_LINES`; None when git has no text diff.
     pub diff: Option<String>,
 }
 
-/// A repo's overview: where it stands against its upstream, what isn't committed, and its latest commits.
+/// A repo's overview: where it stands against its upstream, what isn't committed, and how many commits it has. Its
+/// diffs and commits are read a page at a time (`diffs`, `commits`).
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct History {
+pub struct Overview {
     pub branch: String,
     /// `origin/main`; None when the branch tracks nothing.
     pub upstream: Option<String>,
     /// Commits behind the upstream as of the last fetch (the app never fetches); None without an upstream.
     pub behind: Option<usize>,
+    /// Commits not on the upstream (or, without one, on no remote at all).
+    pub unpushed: usize,
     pub changes: Vec<Change>,
-    /// Newest first, at most the limit asked for.
-    pub commits: Vec<Commit>,
+    /// Commits on this branch, 0 before the first one.
+    pub commits: usize,
 }
 
 // ── Private helpers ───────────────────────
-// Runs git in `dir`: its output, or what it printed on failure. It never prompts: there's no console to answer in.
-fn run(dir: &Path, args: &[&str]) -> Result<String, String> {
+// git in `dir`, ready to run. It never prompts: there's no console to answer in.
+fn command(dir: &Path, args: &[&str]) -> Command {
     let mut command = Command::new("git");
     command.args(args).current_dir(dir).env("GIT_TERMINAL_PROMPT", "0");
     #[cfg(windows)]
@@ -88,7 +102,14 @@ fn run(dir: &Path, args: &[&str]) -> Result<String, String> {
         use std::os::windows::process::CommandExt;
         command.creation_flags(CREATE_NO_WINDOW);
     }
-    let output = command.output().map_err(|_| "git isn't installed, or isn't on the PATH.".to_string())?;
+    command
+}
+
+const NO_GIT: &str = "git isn't installed, or isn't on the PATH.";
+
+// Runs git in `dir`: its output, or what it printed on failure.
+fn run(dir: &Path, args: &[&str]) -> Result<String, String> {
+    let output = command(dir, args).output().map_err(|_| NO_GIT.to_string())?;
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout).into_owned())
     } else {
@@ -104,6 +125,53 @@ fn git_raw(dir: &Path, args: &[&str]) -> Option<String> {
 // The same, trimmed.
 fn git(dir: &Path, args: &[&str]) -> Option<String> {
     git_raw(dir, args).map(|out| out.trim().to_string())
+}
+
+// Runs git in `dir` for at most `limit`, its output thrown away: Ok when it succeeds, its reason when it fails, and
+// Err(None) when it's still running at the limit (it's stopped then, so use it only for commands safe to stop).
+fn run_within(dir: &Path, args: &[&str], limit: Duration) -> Result<(), Option<String>> {
+    let mut child = command(dir, args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|_| Some(NO_GIT.to_string()))?;
+    let started = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait().map_err(|e| Some(e.to_string()))? {
+            if status.success() {
+                return Ok(());
+            }
+            let mut reason = String::new();
+            if let Some(mut stderr) = child.stderr.take() {
+                let _ = stderr.read_to_string(&mut reason);
+            }
+            return Err(Some(reason.trim().to_string()));
+        }
+        if started.elapsed() >= limit {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(None);
+        }
+        thread::sleep(Duration::from_millis(50));
+    }
+}
+
+// git's reason, one line, without its "fatal: " prefixes.
+fn reason_of(reason: &str) -> String {
+    let lines: Vec<&str> = reason.lines().map(|line| line.trim_start_matches("fatal: ").trim()).collect();
+    if lines.is_empty() { "git couldn't pull this repo.".to_string() } else { lines.join(" ") }
+}
+
+// Whether the repo's remote answers within `limit`. `ls-remote` only reads, so stopping it early is safe.
+fn reach(repo: &Path, limit: Duration) -> Result<(), String> {
+    run_within(repo, &["ls-remote", "--quiet", "--heads"], limit).map_err(|reason| match reason {
+        Some(reason) => reason_of(&reason),
+        None => format!(
+            "Couldn't reach the remote in {} seconds. Check the connection, then try again.",
+            limit.as_secs()
+        ),
+    })
 }
 
 // `git diff --numstat` as path → (added, removed); "-" (a binary file) reads as None.
@@ -193,12 +261,18 @@ pub fn web_url(repo: &Path) -> Option<String> {
 
 /// Fast-forwards the repo to its upstream branch with `git pull --ff-only` and returns how many commits came in. Never
 /// merges: git refuses when local changes would be overwritten or the branches have split, and its reason comes back.
+/// It first checks the remote answers within `REACH_TIMEOUT`, so an unreachable one fails fast instead of hanging.
 pub fn pull(repo: &Path) -> Result<usize, String> {
+    pull_within(repo, REACH_TIMEOUT)
+}
+
+// `pull`, with the time the remote gets to answer.
+fn pull_within(repo: &Path, limit: Duration) -> Result<usize, String> {
+    git(repo, &["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
+        .ok_or("This branch doesn't track a remote branch, so there's nothing to pull from.")?;
+    reach(repo, limit)?;
     let before = git(repo, &["rev-parse", "HEAD"]);
-    run(repo, &["pull", "--ff-only", "--quiet"]).map_err(|reason| {
-        let reason: Vec<&str> = reason.lines().map(|line| line.trim_start_matches("fatal: ").trim()).collect();
-        if reason.is_empty() { "git couldn't pull this repo.".to_string() } else { reason.join(" ") }
-    })?;
+    run(repo, &["pull", "--ff-only", "--quiet"]).map_err(|reason| reason_of(&reason))?;
     let after = git(repo, &["rev-parse", "HEAD"]);
     Ok(match (before, after) {
         (Some(before), Some(after)) if before != after => {
@@ -219,33 +293,67 @@ pub fn status(repo: &Path) -> Option<Status> {
     Some(Status { branch, uncommitted, unpushed, behind, owner, repo: name.flatten() })
 }
 
-/// The overview of one repo with its latest `limit` commits, or None when git can't read it. Reads only: no fetch.
-pub fn history(repo: &Path, limit: usize) -> Option<History> {
+/// A repo's overview, without diffs or commits, or None when git can't read it. Reads only: no fetch.
+pub fn overview(repo: &Path) -> Option<Overview> {
     let branch = git(repo, &["symbolic-ref", "--short", "HEAD"]).or_else(|| git(repo, &["rev-parse", "--short", "HEAD"]))?;
+    let upstream = git(repo, &["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"]);
+    let behind = upstream.as_ref().and_then(|_| git(repo, &["rev-list", "--count", "HEAD..@{u}"])?.parse().ok());
+    let unpushed_args: &[&str] = if upstream.is_some() {
+        &["rev-list", "--count", "@{u}..HEAD"]
+    } else {
+        &["rev-list", "--count", "HEAD", "--not", "--remotes"]
+    };
+    let unpushed = git(repo, unpushed_args).and_then(|n| n.parse().ok()).unwrap_or(0);
+    // Paths unquoted, so they match what `diffs` names.
+    let status = git_raw(repo, &["-c", "core.quotepath=false", "status", "--porcelain"]).unwrap_or_default();
+    let changes = status
+        .lines()
+        .filter(|line| line.len() > 3)
+        .map(|line| Change { code: line[..2].to_string(), path: line[3..].trim_matches('"').to_string() })
+        .collect();
+    let commits = git(repo, &["rev-list", "--count", "HEAD"]).and_then(|n| n.parse().ok()).unwrap_or(0);
+    Some(Overview { branch, upstream, behind, unpushed, changes, commits })
+}
+
+/// The diffs of these uncommitted files (paths as `overview` gives them), one per path, in the same order.
+pub fn diffs(repo: &Path, paths: &[String]) -> Vec<FileDiff> {
+    let mut args = vec![
+        "--literal-pathspecs",
+        "-c",
+        "core.quotepath=false",
+        "diff",
+        "HEAD",
+        "--no-renames",
+        "--no-color",
+        "--no-ext-diff",
+        "--",
+    ];
+    args.extend(paths.iter().map(String::as_str));
+    let counts = if paths.is_empty() { HashMap::new() } else {
+        let mut numstat_args = args.clone();
+        numstat_args.insert(8, "--numstat");
+        numstat(&git_raw(repo, &numstat_args).unwrap_or_default())
+    };
+    let mut patches = if paths.is_empty() { HashMap::new() } else { split_patch(&git_raw(repo, &args).unwrap_or_default()) };
+    paths
+        .iter()
+        .map(|path| {
+            let (added, removed) = counts.get(path).copied().unwrap_or_default();
+            FileDiff { path: path.clone(), added, removed, diff: patches.remove(path) }
+        })
+        .collect()
+}
+
+/// Up to `limit` commits of the branch, newest first, after skipping the newest `skip`.
+pub fn commits(repo: &Path, skip: usize, limit: usize) -> Vec<Commit> {
     let upstream = git(repo, &["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"]);
     let unpushed_args: &[&str] =
         if upstream.is_some() { &["rev-list", "@{u}..HEAD"] } else { &["rev-list", "HEAD", "--not", "--remotes"] };
     let unpushed: HashSet<String> = git(repo, unpushed_args).unwrap_or_default().lines().map(str::to_string).collect();
-    let behind = upstream.as_ref().and_then(|_| git(repo, &["rev-list", "--count", "HEAD..@{u}"])?.parse().ok());
-
-    // Paths unquoted everywhere, so the status and the diff name a file the same way.
-    let status = git_raw(repo, &["-c", "core.quotepath=false", "status", "--porcelain"]).unwrap_or_default();
-    let diff_args = ["-c", "core.quotepath=false", "diff", "HEAD", "--no-renames", "--no-color", "--no-ext-diff"];
-    let counts = numstat(&git_raw(repo, &[&diff_args[..], &["--numstat"]].concat()).unwrap_or_default());
-    let mut patches = split_patch(&git_raw(repo, &diff_args).unwrap_or_default());
-    let changes = status
-        .lines()
-        .filter(|line| line.len() > 3)
-        .map(|line| {
-            let path = line[3..].trim_matches('"').to_string();
-            let (added, removed) = counts.get(&path).copied().unwrap_or_default();
-            Change { code: line[..2].to_string(), added, removed, diff: patches.remove(&path), path }
-        })
-        .collect();
-
     // One commit per line, fields split by the unit separator (subjects can't hold it).
-    let log = git(repo, &["log", &format!("-n{limit}"), "--format=%H%x1f%h%x1f%an%x1f%aI%x1f%s"]).unwrap_or_default();
-    let commits = log
+    let format = "--format=%H%x1f%h%x1f%an%x1f%aI%x1f%s";
+    let log = git(repo, &["log", &format!("--skip={skip}"), &format!("-n{limit}"), format]).unwrap_or_default();
+    log
         .lines()
         .filter_map(|line| {
             let [hash, short, author, date, subject] = line.splitn(5, '\u{1f}').collect::<Vec<_>>()[..] else {
@@ -260,8 +368,7 @@ pub fn history(repo: &Path, limit: usize) -> Option<History> {
                 date: date.to_string(),
             })
         })
-        .collect();
-    Some(History { branch, upstream, behind, changes, commits })
+        .collect()
 }
 
 /// The status of every repo among `projects` (project path → folder), read a few at a time. Plain folders are left out.
@@ -377,7 +484,7 @@ mod tests {
         };
 
         commit("a.txt", "First");
-        assert!(history(&repo, 50).unwrap().commits[0].unpushed, "no remote: nothing is pushed");
+        assert!(commits(&repo, 0, 50)[0].unpushed, "no remote: nothing is pushed");
 
         git(&repo, &["remote", "add", "origin", &remote.to_string_lossy()]).unwrap();
         git(&repo, &["push", "-q", "-u", "origin", "main"]).unwrap();
@@ -385,19 +492,28 @@ mod tests {
         temp.file("tool/a.txt", "Changed\nAnd added");
         temp.file("tool/new.txt", "x");
 
-        let history = history(&repo, 50).unwrap();
-        assert_eq!(history.branch, "main");
-        assert_eq!(history.upstream.as_deref(), Some("origin/main"));
-        assert_eq!(history.behind, Some(0));
-        let [changed, new] = &history.changes[..] else { panic!("{:?}", history.changes) };
-        assert_eq!((changed.code.as_str(), changed.path.as_str()), (" M", "a.txt"));
-        assert_eq!((changed.added, changed.removed), (Some(2), Some(1)));
+        let overview = overview(&repo).unwrap();
+        assert_eq!(overview.branch, "main");
+        assert_eq!(overview.upstream.as_deref(), Some("origin/main"));
+        assert_eq!(overview.behind, Some(0));
+        assert_eq!((overview.commits, overview.unpushed), (2, 1));
+        let change = |code: &str, path: &str| Change { code: code.into(), path: path.into() };
+        assert_eq!(overview.changes, [change(" M", "a.txt"), change("??", "new.txt")]);
+
+        // Only the files asked for, in that order; an untracked one has no diff.
+        let [new, changed] = &diffs(&repo, &["new.txt".into(), "a.txt".into()])[..] else { panic!() };
+        assert_eq!(*new, FileDiff { path: "new.txt".into(), added: None, removed: None, diff: None });
+        assert_eq!((changed.path.as_str(), changed.added, changed.removed), ("a.txt", Some(2), Some(1)));
         let diff = changed.diff.as_deref().unwrap();
         assert!(diff.starts_with("@@") && diff.contains("-First") && diff.contains("+And added"), "{diff}");
-        assert_eq!(*new, Change { code: "??".into(), path: "new.txt".into(), added: None, removed: None, diff: None });
-        let commits: Vec<(&str, &str, bool)> =
-            history.commits.iter().map(|c| (c.subject.as_str(), c.author.as_str(), c.unpushed)).collect();
-        assert_eq!(commits, [("Second | with a pipe", "Tester", true), ("First", "Tester", false)]);
+        assert!(diffs(&repo, &[]).is_empty());
+
+        let page = |skip, limit| -> Vec<(String, bool)> {
+            commits(&repo, skip, limit).into_iter().map(|c| (c.subject, c.unpushed)).collect()
+        };
+        assert_eq!(page(0, 1), [("Second | with a pipe".to_string(), true)]);
+        assert_eq!(page(1, 5), [("First".to_string(), false)], "the next page after the first");
+        assert_eq!(commits(&repo, 0, 5)[0].author, "Tester");
     }
 
     #[test]
@@ -434,6 +550,31 @@ mod tests {
         git(&there, &["push", "-q"]).unwrap();
         commit("here", "e.txt");
         assert!(pull(&here).is_err(), "split branches are never merged");
-        assert!(history(&here, 10).unwrap().commits.iter().all(|c| c.subject != "d.txt"));
+        assert!(commits(&here, 0, 10).iter().all(|c| c.subject != "d.txt"));
+    }
+
+    #[test]
+    fn a_remote_that_never_answers_fails_fast() {
+        let temp = Temp::new();
+        if git(&temp.0, &["--version"]).is_none() {
+            return; // git isn't installed here
+        }
+        let here = temp.dir("here");
+        git(&here, &["init", "-q", "-b", "main"]).unwrap();
+        temp.file("here/a.txt", "a");
+        git(&here, &["add", "a.txt"]).unwrap();
+        git(&here, &["-c", "user.name=Tester", "-c", "user.email=t@example.com", "commit", "-qm", "a"]).unwrap();
+        // A remote whose "server" waits on input forever, like a host that never answers.
+        git(&here, &["config", "protocol.ext.allow", "always"]).unwrap();
+        git(&here, &["remote", "add", "origin", "ext::git cat-file --batch"]).unwrap();
+        git(&here, &["config", "branch.main.remote", "origin"]).unwrap();
+        git(&here, &["config", "branch.main.merge", "refs/heads/main"]).unwrap();
+        // As a clone has it from its last fetch.
+        git(&here, &["update-ref", "refs/remotes/origin/main", "HEAD"]).unwrap();
+
+        let started = Instant::now();
+        let reason = pull_within(&here, Duration::from_secs(1)).unwrap_err();
+        assert!(reason.starts_with("Couldn't reach the remote in 1 seconds"), "{reason}");
+        assert!(started.elapsed() < Duration::from_secs(5), "stopped at the limit, not git's own timeout");
     }
 }

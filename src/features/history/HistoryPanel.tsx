@@ -1,6 +1,6 @@
 // HistoryPanel: a repo's git overview in a side sheet: branch and upstream, what's unpushed or behind, the
-// uncommitted files, and the latest commits with the unpushed ones marked; its header opens the repo's page in the
-// browser. Reads only; it never fetches.
+// uncommitted files with their diffs, and the commits with the unpushed ones marked, both a page at a time
+// (useGitOverview); its header opens the repo's folder and page. Reads only; it never fetches.
 
 import {
   Accordion,
@@ -16,11 +16,9 @@ import {
   Tooltip,
 } from "iro-ui";
 import { BranchIcon, ExternalLinkIcon, FolderOpenIcon, RefreshIcon } from "iro-ui/icons";
-import { useCallback, useEffect, useState } from "react";
-import { gitHistory } from "../../lib/backend";
-import type { GitHistory } from "../../lib/types";
 import { ChangeDiff } from "./ChangeDiff";
 import { ago, changeLabel } from "./format";
+import { PAGE, useGitOverview } from "./useGitOverview";
 
 interface Props {
   root: string;
@@ -34,36 +32,15 @@ interface Props {
   onClose: () => void;
 }
 
-/** How many commits Rust sends at most (`HISTORY_LIMIT` in commands.rs). */
-const LIMIT = 200;
-/** Uncommitted files shown at first, and added by each "Load more". */
-const PAGE = 20;
+// The "Load more" button's text for `left` more items.
+const moreLabel = (left: number) => (left > PAGE ? `Load ${PAGE} more (${left} left)` : `Load the last ${left}`);
 
 /** Opens from the right; Escape, the close button or a click beside it closes it. */
 export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClose }: Props) {
-  const [history, setHistory] = useState<GitHistory | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [shown, setShown] = useState(PAGE);
-
-  const load = useCallback(() => {
-    gitHistory(root, path).then(
-      (result) => {
-        setHistory(result);
-        setError(null);
-      },
-      (e) => setError(String(e)),
-    );
-  }, [root, path]);
-
-  useEffect(() => {
-    setHistory(null);
-    setShown(PAGE);
-    load();
-    window.addEventListener("focus", load);
-    return () => window.removeEventListener("focus", load);
-  }, [load]);
-
-  const unpushed = history?.commits.filter((c) => c.unpushed).length ?? 0;
+  const { overview, diffs, commits, shown, loadingCommits, error, refresh, moreFiles, moreCommits } = useGitOverview(
+    root,
+    path,
+  );
 
   return (
     <Sheet
@@ -91,7 +68,7 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
         <code className="muted small selectable path-end">
           <bdi>{path}</bdi>
         </code>
-        <Button size="sm" variant="ghost" icon={<Icon icon={RefreshIcon} />} onClick={load}>
+        <Button size="sm" variant="ghost" icon={<Icon icon={RefreshIcon} />} onClick={refresh}>
           Refresh
         </Button>
       </div>
@@ -101,64 +78,64 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
           {error}
         </Notice>
       )}
-      {!history && !error && <Spinner label="Reading the repo" />}
-      {history && (
+      {!overview && !error && <Spinner label="Reading the repo" />}
+      {overview && (
         <>
           <section aria-label="Branch" className="badges">
             <Badge className="mono" icon={<Icon icon={BranchIcon} size={12} />}>
-              {history.branch}
+              {overview.branch}
             </Badge>
             <span className="muted small">
-              {history.upstream ? `tracks ${history.upstream}` : "tracks no remote branch"}
+              {overview.upstream ? `tracks ${overview.upstream}` : "tracks no remote branch"}
             </span>
-            {unpushed > 0 && <Badge tone="info">{unpushed} unpushed</Badge>}
-            {(history.behind ?? 0) > 0 && <Badge tone="accent">{history.behind} behind (as of the last fetch)</Badge>}
+            {overview.unpushed > 0 && <Badge tone="info">{overview.unpushed} unpushed</Badge>}
+            {(overview.behind ?? 0) > 0 && <Badge tone="accent">{overview.behind} behind (as of the last fetch)</Badge>}
           </section>
 
           <section aria-labelledby="history-changes">
-            <SectionTitle id="history-changes">Uncommitted ({history.changes.length})</SectionTitle>
-            {history.changes.length === 0 ? (
+            <SectionTitle id="history-changes">Uncommitted ({overview.changes.length})</SectionTitle>
+            {overview.changes.length === 0 ? (
               <p className="muted small">Nothing to commit.</p>
             ) : (
               <Accordion
                 multiple
                 className="changes"
-                items={history.changes.slice(0, shown).map((change) => ({
-                  value: change.path,
-                  title: (
-                    <span className="change-title">
-                      <span className="change-code">{changeLabel(change.code)}</span>
-                      <code className="change-path path-end">
-                        <bdi>{change.path}</bdi>
-                      </code>
-                      {change.added !== null && (
-                        <span className="change-count">
-                          <span className="count-add">+{change.added}</span>{" "}
-                          <span className="count-del">−{change.removed}</span>
-                        </span>
-                      )}
-                    </span>
-                  ),
-                  content: <ChangeDiff change={change} />,
-                }))}
+                items={overview.changes.slice(0, shown).map((change) => {
+                  const diff = diffs.get(change.path);
+                  return {
+                    value: change.path,
+                    title: (
+                      <span className="change-title">
+                        <span className="change-code">{changeLabel(change.code)}</span>
+                        <code className="change-path path-end">
+                          <bdi>{change.path}</bdi>
+                        </code>
+                        {diff?.added != null && (
+                          <span className="change-count">
+                            <span className="count-add">+{diff.added}</span>{" "}
+                            <span className="count-del">−{diff.removed}</span>
+                          </span>
+                        )}
+                      </span>
+                    ),
+                    content: <ChangeDiff code={change.code} diff={diff} />,
+                  };
+                })}
               />
             )}
-            {history.changes.length > shown && (
-              <Button size="sm" variant="ghost" className="load-more" onClick={() => setShown(shown + PAGE)}>
-                {history.changes.length - shown > PAGE
-                  ? `Load ${PAGE} more (${history.changes.length - shown} left)`
-                  : `Load the last ${history.changes.length - shown}`}
+            {overview.changes.length > shown && (
+              <Button size="sm" variant="ghost" className="load-more" onClick={moreFiles}>
+                {moreLabel(overview.changes.length - shown)}
               </Button>
             )}
           </section>
 
           <section aria-labelledby="history-commits">
-            <SectionTitle id="history-commits">
-              Commits ({history.commits.length === LIMIT ? `${LIMIT}+` : history.commits.length})
-            </SectionTitle>
-            {history.commits.length === 0 && <p className="muted small">No commits yet.</p>}
+            <SectionTitle id="history-commits">Commits ({overview.commits})</SectionTitle>
+            {overview.commits === 0 && <p className="muted small">No commits yet.</p>}
+            {!commits && overview.commits > 0 && <Spinner label="Reading the commits" />}
             <Timeline
-              items={history.commits.map((commit) => ({
+              items={(commits ?? []).map((commit) => ({
                 id: commit.hash,
                 title: (
                   <>
@@ -178,7 +155,11 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
                 tone: commit.unpushed ? "info" : "neutral",
               }))}
             />
-            {history.commits.length === LIMIT && <p className="muted small">The latest {LIMIT} commits.</p>}
+            {commits && overview.commits > commits.length && (
+              <Button size="sm" variant="ghost" className="load-more" loading={loadingCommits} onClick={moreCommits}>
+                {moreLabel(overview.commits - commits.length)}
+              </Button>
+            )}
           </section>
         </>
       )}

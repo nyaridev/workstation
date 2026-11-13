@@ -75,7 +75,9 @@ delete that file to see the first run again.
       remote, the open-in-browser icon opens its page.
 - [ ] In the overview, each changed file shows +added −removed and opens to its diff (compare with `git diff HEAD`);
       an untracked or binary file says why it has none, and a huge one is cut with "… N more lines". Line numbers
-      match the file; long paths show their end. Past 20 files, "Load 20 more" adds the next ones.
+      match the file; long paths show their end. Past 20 files, "Load 20 more" adds the next ones, and past 20
+      commits the same. A repo with hundreds of changed files and thousands of commits still opens quickly: the
+      branch and file list first, then the first diffs and commits.
 - [ ] Drag the overview's left edge to widen or narrow it; a double-click on the edge puts it back.
 - [ ] Commit something in a terminal, switch back to the app: the badge updates.
 - [ ] Right-click a repo with a remote (or a repo folder inside a home): **Open in browser** opens its page (GitHub or
@@ -85,7 +87,7 @@ delete that file to see the first run again.
       one, switch back: Pull shows. Pull: "Pulled 1 commit into …", the files are there, and the button goes away.
       With a local commit the remote doesn't have and a new remote commit, Pull refuses with
       git's reason and changes nothing. A private repo without saved credentials fails with git's reason, never a
-      hang.
+      hang. Offline (unplug or turn off Wi-Fi), Pull says it couldn't reach the remote within about 8 seconds.
 
 ## 5. Live updates (test workstation)
 

@@ -23,6 +23,8 @@ in `.claude/rules/architecture/overview.md`). A pull changes a repo's files and 
   `git pull --ff-only` in the repo (a game home's `game/`), with git's own credentials and no prompt in a console
   (`GIT_TERMINAL_PROMPT=0`). Fast-forward only: it never merges or rebases, and git refuses when local
   changes would be overwritten or the branches have split; the app shows git's reason. Nothing pulls on its own.
+  It first asks the remote for its branches (`git ls-remote`, read-only) and stops waiting after 8 seconds, so an
+  unreachable remote fails fast instead of hanging until the system's own network timeout.
 - **The rules change:** besides `projects.json` and kit files, the app may run `git pull --ff-only` in a repo when the
   user clicks Pull; besides the updater, the only network traffic is git's own during that pull.
 

@@ -10,7 +10,9 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { fakeProjects } from "./fakeProjects";
 import type {
   AppInfo,
-  GitHistory,
+  Commit,
+  FileDiff,
+  GitOverview,
   GitStatuses,
   Listing,
   Look,
@@ -225,48 +227,54 @@ export async function gitPull(root: string, path: string): Promise<number> {
   return path.includes("fish-dive") ? 0 : 3;
 }
 
-/** The git overview of the repo at `path`: branch, upstream, uncommitted files and the latest commits. */
-export async function gitHistory(root: string, path: string): Promise<GitHistory> {
-  if (inTauri) return invoke("git_history", { root, path });
+// Fake overview data: enough files and commits that both lists page.
+const FAKE_CHANGES = [
+  { code: " M", path: "src/app/App.tsx" },
+  { code: "??", path: "docs/notes.md" },
+  ...Array.from({ length: 22 }, (_, i) => ({ code: "??", path: `assets/tiles/tile-${i + 1}.png` })),
+];
+const FAKE_SUBJECTS = [
+  "Open a git overview from a repo's row",
+  "Totals for homes and suites",
+  "Suites open to their repos",
+];
+
+/** The git overview of the repo at `path`: branch, upstream, uncommitted files and how many commits. */
+export async function gitOverview(root: string, path: string): Promise<GitOverview> {
+  if (inTauri) return invoke("git_overview", { root, path });
+  return { branch: "main", upstream: "origin/main", behind: 1, unpushed: 2, changes: FAKE_CHANGES, commits: 45 };
+}
+
+/** The diffs of some of the repo's uncommitted files (a page of the overview's list), in the same order. */
+export async function gitDiffs(root: string, path: string, files: string[]): Promise<FileDiff[]> {
+  if (inTauri) return invoke("git_diffs", { root, path, files });
+  return files.map((file) =>
+    file === "src/app/App.tsx"
+      ? {
+          path: file,
+          added: 2,
+          removed: 1,
+          diff: '@@ -12,4 +12,5 @@ export function App() {\n   const [view, setView] = useState("home");\n-  const drag = frame === "custom";\n+  const drag = frame !== "native";\n+  const mac = frame === "overlay";\n   return (',
+        }
+      : { path: file, added: null, removed: null, diff: null },
+  );
+}
+
+/** A page of the repo's commits, newest first: up to `limit` after skipping `skip`. */
+export async function gitCommits(root: string, path: string, skip: number, limit: number): Promise<Commit[]> {
+  if (inTauri) return invoke("git_commits", { root, path, skip, limit });
   const day = 24 * 60 * 60 * 1000;
-  const commit = (n: number, subject: string, unpushed: boolean) => ({
-    hash: `${n}`.padStart(40, "a"),
-    short: `${n}`.padStart(7, "a"),
-    subject,
-    author: "Nari",
-    date: new Date(Date.now() - n * day).toISOString(),
-    unpushed,
+  return Array.from({ length: Math.max(0, Math.min(limit, 45 - skip)) }, (_, i) => {
+    const n = skip + i;
+    return {
+      hash: `${n}`.padStart(40, "a"),
+      short: `${n}`.padStart(7, "a"),
+      subject: FAKE_SUBJECTS[n % FAKE_SUBJECTS.length] ?? "",
+      author: "Nari",
+      date: new Date(Date.now() - n * day).toISOString(),
+      unpushed: n < 2,
+    };
   });
-  return {
-    branch: "main",
-    upstream: "origin/main",
-    behind: 1,
-    changes: [
-      {
-        code: " M",
-        path: "src/app/App.tsx",
-        added: 2,
-        removed: 1,
-        diff: '@@ -12,4 +12,5 @@ export function App() {\n   const [view, setView] = useState("home");\n-  const drag = frame === "custom";\n+  const drag = frame !== "native";\n+  const mac = frame === "overlay";\n   return (',
-      },
-      { code: "??", path: "docs/notes.md", added: null, removed: null, diff: null },
-      // Enough files that the list needs "Load more".
-      ...Array.from({ length: 22 }, (_, i) => ({
-        code: "??",
-        path: `assets/tiles/tile-${i + 1}.png`,
-        added: null,
-        removed: null,
-        diff: null,
-      })),
-    ],
-    commits: [
-      commit(0, "Open a git overview from a repo's row", true),
-      commit(1, "Totals for homes and suites", true),
-      commit(2, "Suites open to their repos", false),
-      commit(5, "More filters", false),
-      commit(9, "Initial scaffold", false),
-    ],
-  };
 }
 
 /** A guess at a project's stack from its files. */
