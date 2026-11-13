@@ -1,7 +1,8 @@
 // ProjectList: the projects of the open workstation, grouped by kind, with search, tag and status filters.
 
-import { Banner, Button, EmptyState, Notice, SectionTitle, Spinner } from "iro-ui";
+import { Button, EmptyState, Notice, SectionTitle, Spinner } from "iro-ui";
 import { useCallback, useMemo, useState } from "react";
+import { NoticeBanner } from "../../app/NoticeBanner";
 import { openFolder } from "../../lib/backend";
 import { HistoryPanel } from "../history/HistoryPanel";
 import { STATUSES } from "./fields";
@@ -86,12 +87,12 @@ export function ProjectList({ root }: Props) {
   return (
     <div className="projects">
       {[scan.registryError, openError].filter(Boolean).map((message) => (
-        <Banner key={message} tone="danger" role="alert">
-          {message}
-        </Banner>
+        <NoticeBanner key={message} tone="danger" role="alert">
+          <span className="selectable">{message}</span>
+        </NoticeBanner>
       ))}
       {flagged > 0 && (
-        <Banner
+        <NoticeBanner
           tone="warning"
           actions={
             !filters.flagged && (
@@ -102,7 +103,7 @@ export function ProjectList({ root }: Props) {
           }
         >
           {flagged} project{flagged === 1 ? " doesn't" : "s don't"} match projects.json.
-        </Banner>
+        </NoticeBanner>
       )}
       <ProjectFilters
         filters={filters}

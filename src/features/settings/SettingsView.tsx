@@ -1,4 +1,5 @@
-// SettingsView: the look (the liquid background, the system title bar) and which build is running.
+// SettingsView: the saved workstations (ADR-0012), the look (the liquid background, the system title bar) and which
+// build is running.
 
 import { Icon, PropertyList, SectionTitle, Switch } from "iro-ui";
 import { InfoIcon, PaletteIcon } from "iro-ui/icons";
@@ -7,6 +8,7 @@ import { useSettings } from "../../app/SettingsProvider";
 import { appInfo } from "../../lib/backend";
 import type { AppInfo } from "../../lib/types";
 import "./settings.css";
+import { WorkstationSettings } from "./WorkstationSettings";
 
 /** Settings. */
 export function SettingsView() {
@@ -17,6 +19,7 @@ export function SettingsView() {
 
   return (
     <div className="settings">
+      <WorkstationSettings />
       <section className="settings-section">
         <SectionTitle icon={<Icon icon={PaletteIcon} />}>Look</SectionTitle>
         <Switch

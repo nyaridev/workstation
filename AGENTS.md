@@ -10,12 +10,12 @@ compares them with each workstation's `projects.json` (format and entry template
 them by tags, and watches for projects being added, moved or removed. The built app also carries a starter kit that
 sets up a new WORKSTATION. Public: github.com/nyaridev/workstation.
 
-Stage: M12 done, not released. The window draws its own title bar and works like Scrappy's. The app lists a workstation's projects with search, tag, status and "has changes" filters, flags,
-git badges and "Open folder"; rescans on its own when projects or `projects.json` change; registers unregistered
-projects and edits tags; sets up new workstations from the built-in kit (`kit/`). Now: M13–M17 bring Scrappy's header,
-Settings tabs, signed updates, the tray and installers for Windows, macOS and Linux (ADR-0012 to 0016); M18
-releases. In `pnpm dev`, `?update` fakes a newer release,
-`?empty` shows the first-run screen and `?broken` an unreadable `projects.json`.
+Stage: M13 done, not released. The window draws its own title bar and works like Scrappy's. The app lists a
+workstation's projects with search, tag, status and "has changes" filters, flags, git badges and "Open folder";
+rescans on its own when projects or `projects.json` change; registers unregistered projects and edits tags; sets up
+new workstations from the built-in kit (`kit/`). Now: M14–M17 bring Scrappy's Settings tabs, signed updates, the tray
+and installers for Windows, macOS and Linux (ADR-0013 to 0016); M18 releases. In `pnpm dev`, `?update` fakes a
+newer release, `?empty` shows the first-run screen and `?broken` an unreadable `projects.json`.
 
 If the user wants a workstation set up rather than the app built ("set up this workstation for me"), don't install
 Node or Rust: ask which they mean, recommend the kit, and set it up with `setup-kit.ps1` (`README.md` → "The folder

@@ -25,12 +25,14 @@ src-tauri/src/
 └─ test_support.rs     temp folders for tests (test builds only)
 src/
 ├─ app/                the window: header (the title bar), views.ts, window controls, backdrop, settings context,
-│                      first-run screen, workstation switcher, update chip, status banner
+│                      workstation state and context, first-run screen, workstation switcher, update chip,
+│                      NoticeBanner and the status banner
 ├─ features/projects/  ProjectsView and the project list: filter.ts (filters, nesting, grouping), fields.ts (kinds,
 │                      statuses, tags), the list, row (opens to inner projects and FolderRows), filters and
 │                      TagPicker, Register form, tag editor and tag input, useProjects
 ├─ features/history/   a repo's git overview sheet (commits, unpushed, uncommitted files), format.ts
-├─ features/settings/  the Settings view: the look switches and the version (tabs and cards from M14, ADR-0013)
+├─ features/settings/  the Settings view: the workstations, the look switches and the version (tabs and cards from
+│                      M14, ADR-0013)
 ├─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
 └─ styles.css          layout only, with iro-ui's tokens (every control is an iro-ui component, ADR-0008, ADR-0010)
 src-tauri/windows/     the installer's hooks (M16)
@@ -95,22 +97,19 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 | M10 | Window and settings in Rust, the liquid backdrop (ADR-0009) | done (real window: the owner checks the frame and the liquid) |
 | M11 | Scrappy's header, views and the Settings view (ADR-0010) | done (real window: `docs/manual-check.md` → 2) |
 | M12 | Every control from iro-ui: rows, tooltips, context menus (ADR-0010, ADR-0011; iro-ui v1.3.0) | done |
-| M13 | Header and banners like Scrappy's (ADR-0012) | in progress |
-| M14 | Settings in tabs: Workstations, App (ADR-0013) | planned |
+| M13 | Header and banners like Scrappy's (ADR-0012) | done |
+| M14 | Settings in tabs: Workstations, App (ADR-0013) | next |
 | M15 | Updates through Tauri's signed updater, the update banner (ADR-0014) | planned |
 | M16 | Start with the system, close to the tray, one copy (ADR-0015) | planned |
 | M17 | Windows, macOS and Linux: cross-platform fixes, installers, GitHub Actions (ADR-0016) | planned |
 | M18 | Verify and polish, then release | planned |
 
-### M13: Header and banners like Scrappy's
+### M14: Settings in tabs
 
-1. The header takes Scrappy's look: no bottom line, its padding, the mark and name as a plain Home button with a
-   tooltip in a slot that drags, and the name hidden (still read out) under 960 px.
-2. Only the switcher stays in the header: Add, Set up new and Remove from list move to Settings (the Workstations
-   tab, M14; until then a plain section in Settings), and the root path leaves the header.
-3. `src/app/NoticeBanner.tsx`: Scrappy's slim banner in a tone. The status error and notice, the unreadable
-   `projects.json` and the "don't match projects.json" banner use it, under the header.
-4. Check: `pnpm check`, then `pnpm dev` in the browser pane: default, `?broken`, narrow (820 px) and wide.
+1. `SettingsView` holds iro-ui `Tabs`: Workstations and App. Each section a card (`Panel as="section"` with a
+   `SectionTitle`), one component per section: `WorkstationSettings`, `LookSettings`, `AboutSettings`.
+2. Scrappy's settings CSS: the tab bar, cards, the hint line, the switch labels.
+3. Check: `pnpm check`, then `pnpm dev` in the browser pane: both tabs, narrow and wide.
 
 ### M18: Verify and polish, then release
 
@@ -120,9 +119,6 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 3. With the owner's yes: tag `v0.1.0`, let the release workflow build the draft, publish it.
 
 ### Later
-
-- The header's path disappears below about 900 px wide: the switcher's buttons take the room. A narrower switcher
-  (its actions in a menu) would keep it.
 
 - Editing the other fields of an entry (name, status, description, notes) in the app: today only tags.
 - Read the workstation's place rules from a file instead of `scan/layout.rs` if the layout ever differs between

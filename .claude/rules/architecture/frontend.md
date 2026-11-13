@@ -49,8 +49,14 @@ The window shows what Rust sends and passes clicks on. It doesn't read files, de
 - The header is the title bar (ADR-0009, ADR-0010) and follows `AppInfo.frame`: `custom` adds `WindowControls` and
   makes the header the drag area (`data-tauri-drag-region` on the header and its empty parts, never on controls);
   `native` is a plain header.
-- The tabs show only when `MAIN_VIEWS` has two or more views. The mark and name are a button that opens the first
-  main view, so they're not part of the drag area.
+- The tabs show only when `MAIN_VIEWS` has two or more views. The mark and name are a plain button with a "Home"
+  tooltip that opens the first main view, so they're not part of the drag area; under 960 px the name hides (still
+  read out). Only the workstation switcher sits beside them; managing workstations is in Settings (ADR-0012).
+- Notices under the header are `NoticeBanner`s (`src/app/NoticeBanner.tsx`): `accent` for updates, `warning` for
+  projects that don't match, `danger` for errors (their text `selectable`), `success` for done. Never a bare iro-ui
+  `Banner`.
+- `App.tsx` holds the workstation state (`useWorkstationState`) and shares it through `WorkstationsContext`; views
+  read it with `useWorkstations()`.
 - Views stay mounted once opened and hide with `hidden`, so filters and scroll survive switching. Keep a view's
   state in the view, not in module variables.
 - `src/features/<view>/`: one folder per view, `<View>View.tsx` plus its own components and `.ts` helpers.

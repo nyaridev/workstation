@@ -1,6 +1,8 @@
-// StatusBanner: the last error (with an offer to set the folder up when it wasn't a workstation) or the last notice.
+// StatusBanner: the last error (with an offer to set the folder up when it wasn't a workstation) or the last notice,
+// as a NoticeBanner under the header.
 
-import { Banner, Button } from "iro-ui";
+import { Button } from "iro-ui";
+import { NoticeBanner } from "./NoticeBanner";
 
 interface Props {
   error: string | null;
@@ -13,10 +15,9 @@ interface Props {
 export function StatusBanner({ error, notice, offerSetup, onSetup }: Props) {
   if (error) {
     return (
-      <Banner
+      <NoticeBanner
         tone="danger"
         role="alert"
-        className="selectable"
         actions={
           offerSetup && (
             <Button size="sm" onClick={() => onSetup(offerSetup)}>
@@ -25,15 +26,15 @@ export function StatusBanner({ error, notice, offerSetup, onSetup }: Props) {
           )
         }
       >
-        {error}
-      </Banner>
+        <span className="selectable">{error}</span>
+      </NoticeBanner>
     );
   }
   if (notice) {
     return (
-      <Banner tone="success" role="status">
+      <NoticeBanner tone="success" role="status">
         {notice}
-      </Banner>
+      </NoticeBanner>
     );
   }
   return null;

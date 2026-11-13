@@ -1,6 +1,7 @@
-// useWorkstations: the workstation list, the last error or notice, and the actions that change them.
+// useWorkstations: the workstation list, the last error or notice, and the actions that change them. `App` holds the
+// state (`useWorkstationState`) and shares it through `WorkstationsContext`, so Settings can add and remove too.
 
-import { useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import {
   addWorkstation,
   listWorkstations,
@@ -14,8 +15,8 @@ import type { Listing } from "../lib/types";
 // shortcut: recognizes Rust's "isn't a workstation" error by its text; give the command a typed error if it grows more.
 const NOT_A_WORKSTATION = "has no projects.json";
 
-/** Loads the workstation list once and exposes add, set up (pick, then confirm), open and remove. */
-export function useWorkstations() {
+/** Loads the workstation list once and exposes add, set up (pick, then confirm), open and remove. Only `App` calls it. */
+export function useWorkstationState() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -70,4 +71,17 @@ export function useWorkstations() {
   const remove = useCallback((root: string) => run(() => removeWorkstation(root)), [run]);
 
   return { listing, error, notice, offerSetup, pendingSetup, add, setup, confirmSetup, cancelSetup, open, remove };
+}
+
+/** The workstation state `App` holds. */
+export type Workstations = ReturnType<typeof useWorkstationState>;
+
+/** Shares `App`'s workstation state with the views. */
+export const WorkstationsContext = createContext<Workstations | null>(null);
+
+/** The workstation list and its actions. Only inside `WorkstationsContext`. */
+export function useWorkstations(): Workstations {
+  const state = useContext(WorkstationsContext);
+  if (!state) throw new Error("useWorkstations needs WorkstationsContext above it");
+  return state;
 }
