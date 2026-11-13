@@ -16,9 +16,11 @@ import {
   Tooltip,
 } from "iro-ui";
 import { BranchIcon, ExternalLinkIcon, FolderOpenIcon, RefreshIcon } from "iro-ui/icons";
+import { useSettings } from "../../app/SettingsProvider";
 import { ChangeDiff } from "./ChangeDiff";
 import { ago, changeLabel } from "./format";
 import { PAGE, useGitOverview } from "./useGitOverview";
+import "./history.css";
 
 interface Props {
   root: string;
@@ -37,6 +39,7 @@ const moreLabel = (left: number) => (left > PAGE ? `Load ${PAGE} more (${left} l
 
 /** Opens from the right; Escape, the close button or a click beside it closes it. */
 export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClose }: Props) {
+  const { settings, savePanelWidth } = useSettings();
   const { overview, diffs, commits, shown, loadingCommits, error, refresh, moreFiles, moreCommits } = useGitOverview(
     root,
     path,
@@ -49,6 +52,8 @@ export function HistoryPanel({ root, path, name, onOpenPage, onOpenFolder, onClo
       title={name}
       closeLabel="Close the git overview"
       resizable
+      defaultWidth={settings?.panelWidths.history}
+      onWidthChange={(width) => savePanelWidth("history", width)}
       actions={
         <>
           <IconButton size="sm" icon={<Icon icon={FolderOpenIcon} />} label="Open folder" onClick={onOpenFolder} />

@@ -36,7 +36,7 @@ export const fakeProjects: Project[] = [
       "M15 Settings tabs: Workstations and App, each a tab.",
       "M16 Tray and autostart: start with the system, close to the tray.",
       "M17 Installers: Windows, macOS and Linux from GitHub Actions.",
-      "M18 Release v0.1.0: check everything by hand, then ship.",
+      "M18 Release v1.0.0: check everything by hand, then ship.",
     ]),
   },
   {

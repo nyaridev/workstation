@@ -1,0 +1,363 @@
+/* Project list: the filters bar, the group cards and their rows (with milestone lines), and the registry editors. */
+
+.projects {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.filters {
+  display: grid;
+  gap: var(--iro-space-3);
+  padding: var(--iro-space-3) var(--iro-space-4);
+  border-bottom: 1px solid var(--iro-line);
+}
+
+.filters-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iro-space-2);
+  align-items: center;
+}
+
+.search {
+  flex: 1;
+  min-width: 14rem;
+}
+
+.picker {
+  width: 10rem;
+}
+
+.kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iro-space-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* The Filters button wears the search field's outline, and lights up like a dropdown while its menu is open. */
+.filters-button {
+  /* The search field's border sits outside its height; matching that keeps them the same size. */
+  box-sizing: content-box;
+  background: var(--iro-field);
+  border-color: var(--iro-edge);
+}
+
+.filters-button:hover {
+  background: var(--iro-field-hover);
+  border-color: var(--iro-fg-4);
+}
+
+.filters-button[data-popup-open] {
+  border-color: var(--iro-focus);
+  box-shadow: 0 0 0 1px var(--iro-focus);
+}
+
+/* The Filters menu: each filter on its own line, full width. */
+.filters-menu {
+  display: grid;
+  gap: var(--iro-space-3);
+  width: calc(var(--iro-space-6) * 11);
+}
+
+.filters-menu .picker {
+  width: 100%;
+}
+
+.filters-menu-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iro-space-4);
+}
+
+/* Each group is a card, like Settings' sections, inset like the filters; the scrollbar sits in the right inset. */
+.project-scroll {
+  display: grid;
+  flex: 1;
+  grid-auto-rows: max-content;
+  gap: var(--iro-space-4);
+  align-content: start;
+  padding: var(--iro-space-4) calc(var(--iro-space-4) - var(--iro-scrollbar-size)) var(--iro-space-4) var(--iro-space-4);
+  scrollbar-gutter: stable;
+  overflow-y: auto;
+}
+
+/* Clips the rows' hover to the card's corners. */
+.group {
+  overflow: hidden;
+}
+
+.group-title {
+  padding: var(--iro-space-3) var(--iro-space-4);
+  border-bottom: 1px solid var(--iro-line);
+}
+
+.group-name {
+  display: inline-flex;
+  gap: var(--iro-space-2);
+  align-items: center;
+}
+
+.group-count {
+  color: var(--iro-fg-4);
+  font-weight: 400;
+}
+
+.rows {
+  margin: 0;
+  padding: 0 var(--iro-space-2);
+  list-style: none;
+}
+
+.rows.nested {
+  margin: var(--iro-space-1) 0 var(--iro-space-1) var(--iro-space-3);
+  padding: 0;
+  border-left: 1px solid var(--iro-line);
+}
+
+.project + .project {
+  border-top: 1px solid var(--iro-line);
+}
+
+.row-name {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A long name ends in an ellipsis; while its row is hovered it pans to its end, waits, and starts over (ProjectRow
+   sets how far, --name-pan, and how long, --name-time). It stays still when motion is reduced (--iro-move is 0). */
+.project > .iro-list-item:hover .row-name {
+  text-overflow: clip;
+}
+
+.project > .iro-list-item:hover .row-name > span {
+  display: inline-block;
+  animation: name-pan var(--name-time) linear infinite;
+}
+
+@keyframes name-pan {
+  0%,
+  20% {
+    transform: translateX(0);
+  }
+
+  80%,
+  100% {
+    transform: translateX(calc(var(--name-pan) * -1 * var(--iro-move)));
+  }
+}
+
+.status-colored {
+  color: var(--status-ink);
+  background: color-mix(in srgb, var(--status) 18%, transparent);
+}
+
+/* One line per project (ADR-0018): the same columns in every row, the actions at the end. */
+.project-scroll .iro-list-item-title {
+  display: flex;
+  gap: var(--iro-space-2);
+  align-items: center;
+  min-height: var(--row-line);
+}
+
+/* Rows line up to the top, and their first line is what a one-line row holds (--row-line), so a one-line row looks
+   as before and one with a milestone line under it keeps its chevron and buttons beside its first line. */
+.project-scroll {
+  --row-line: calc(var(--iro-control-lg) - var(--iro-space-2) * 2);
+  /* shortcut: rem column widths; they don't follow the text size. Measure them if that starts to matter. */
+  --col-name: 12rem;
+  --col-status: 7.5rem;
+  --col-remote: 12rem;
+}
+
+.project-scroll .iro-list-item,
+.project-scroll .iro-list-item-main {
+  align-items: flex-start;
+}
+
+.project-scroll .iro-list-item-chevron {
+  height: var(--row-line);
+}
+
+.project-scroll .iro-list-item-actions {
+  margin-top: calc(var(--iro-space-2) + (var(--row-line) - var(--iro-control-sm)) / 2);
+}
+
+.row-cells {
+  display: grid;
+  flex: 1;
+  grid-template-columns: var(--col-name) var(--col-status) minmax(0, 1fr) var(--col-remote);
+  gap: var(--iro-space-3);
+  align-items: center;
+  min-width: 0;
+}
+
+.row-cell {
+  display: flex;
+  gap: var(--iro-space-2);
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* The remote's owner/name, at the row's end beside the actions. */
+.row-remote {
+  justify-content: flex-end;
+  color: var(--iro-fg-4);
+  font-size: var(--iro-text-xs);
+  white-space: nowrap;
+}
+
+/* Room for three icon buttons in every row, so the columns before them end in the same place. */
+.project-scroll .iro-list-item-actions {
+  justify-content: flex-end;
+  min-width: calc(var(--iro-control-sm) * 3 + var(--iro-space-1) * 2 + var(--iro-space-2));
+}
+
+/* One milestone line per plan in progress, stacked under the row's cells (ProjectRow). */
+.row-milestones {
+  display: grid;
+  justify-items: start;
+}
+
+/* The milestone line is one ghost button on the row's own columns: the flag and name under the project's name, the
+   bar under the status, the count under the git badges. It's pulled back by its padding and border, so its columns
+   start where the row's do. */
+.row-milestone {
+  display: grid;
+  grid-template-columns: var(--col-name) var(--col-status) auto;
+  gap: var(--iro-space-3);
+  justify-content: start;
+  margin-inline-start: calc((var(--iro-space-2) + 1px) * -1);
+  color: var(--iro-fg-2);
+  font-weight: 400;
+}
+
+/* Quiet for a line of text: hovering only tints its background, and pressing doesn't shrink it. */
+.row-milestone.iro-button:hover {
+  color: var(--iro-fg-2);
+}
+
+.row-milestone.iro-button:active:not(:disabled) {
+  transform: none;
+}
+
+.row-milestone-name {
+  display: flex;
+  gap: var(--iro-space-2);
+  align-items: center;
+  min-width: 0;
+}
+
+.row-milestone-track {
+  color: var(--iro-fg-3);
+}
+
+.row-milestone-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The bar's empty part, outlined in a field's edge so it reads against the row. */
+.row-milestone-bar .iro-progress-track {
+  background: var(--iro-surface-3);
+  box-shadow: inset 0 0 0 1px var(--iro-edge);
+}
+
+.row-milestone-count {
+  flex: none;
+  color: var(--iro-fg-3);
+  font-size: var(--iro-text-xs);
+}
+
+/* The name's tooltip: the description, then the path. */
+.row-tip {
+  display: grid;
+  gap: var(--iro-space-1);
+}
+
+/* The tag dialog: every tag in use, then the new-tag field and the buttons. */
+.tag-dialog-chips {
+  margin-bottom: var(--iro-space-3);
+}
+
+.tag-dialog-buttons {
+  justify-content: flex-end;
+  margin-top: var(--iro-space-4);
+}
+
+/* Rows without a chevron keep its room, so every row's columns line up. shortcut: reaches into iro-ui's ListItem. */
+.project-scroll .iro-list-item-main:not(:has(> .iro-list-item-chevron))::before {
+  flex: none;
+  width: 1.1em;
+  font-size: var(--iro-text-xs);
+  content: "";
+}
+
+.folder-title {
+  display: flex;
+  gap: var(--iro-space-2);
+  align-items: center;
+}
+
+.folder-path {
+  color: var(--iro-fg-4);
+}
+
+/* ── Registry editors ───────────────────── */
+.editor {
+  display: grid;
+  gap: var(--iro-space-3);
+  margin: var(--iro-space-2) var(--iro-space-2) var(--iro-space-3);
+}
+
+.register {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--iro-space-3);
+}
+
+.register .pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--iro-space-3);
+}
+
+.register .wide {
+  grid-column: 1 / -1;
+}
+
+.tag-input {
+  display: grid;
+  gap: var(--iro-space-2);
+}
+
+.tag-picker {
+  display: grid;
+  gap: var(--iro-space-2);
+  width: 16rem;
+}
+
+.tag-list {
+  display: grid;
+  gap: var(--iro-space-1);
+  max-height: 16rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 0;
+}
+
+.tag-option {
+  display: flex;
+  gap: var(--iro-space-2);
+  justify-content: space-between;
+  width: 12rem;
+}

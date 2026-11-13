@@ -1,0 +1,86 @@
+/* Milestones panel: what's being worked on as a card, then every milestone in order. */
+
+.plan {
+  display: grid;
+  gap: var(--iro-space-5);
+}
+
+.milestones .iro-tabs {
+  display: grid;
+  gap: var(--iro-space-4);
+}
+
+.plan-now {
+  display: grid;
+  gap: var(--iro-space-2);
+}
+
+.plan-label {
+  color: var(--iro-fg-3);
+  font-size: var(--iro-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.plan-current {
+  font-family: var(--iro-font-display);
+  font-size: var(--iro-text-base);
+  font-weight: 600;
+}
+
+.plan-description {
+  color: var(--iro-fg-2);
+}
+
+/* The bar's empty part, outlined in a field's edge, like the row's. */
+.plan-progress .iro-progress-track {
+  background: var(--iro-surface-3);
+  box-shadow: inset 0 0 0 1px var(--iro-edge);
+}
+
+.plan-progress {
+  display: flex;
+  gap: var(--iro-space-3);
+  align-items: center;
+}
+
+.plan-count,
+.plan-tab-count {
+  flex: none;
+  color: var(--iro-fg-3);
+  font-size: var(--iro-text-xs);
+}
+
+.plan-steps {
+  margin: 0;
+  padding: 0;
+}
+
+.plan-steps [data-state="done"] .iro-list-item-start {
+  color: var(--iro-success);
+}
+
+.plan-steps [data-state="done"] .iro-list-item-title {
+  color: var(--iro-fg-3);
+}
+
+.plan-steps [data-state="current"] {
+  background: var(--iro-accent-soft);
+  border-radius: var(--iro-radius-md);
+}
+
+.plan-steps [data-state="current"] .iro-list-item-start {
+  color: var(--iro-accent-ink);
+}
+
+.plan-steps [data-state="current"] .iro-list-item-title {
+  font-weight: 600;
+}
+
+.plan-number {
+  width: 1rem;
+  color: var(--iro-fg-4);
+  font-size: var(--iro-text-xs);
+  text-align: center;
+}

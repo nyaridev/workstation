@@ -5,6 +5,7 @@
 // ── Imports ───────────────────────────────
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
@@ -21,6 +22,8 @@ pub struct Settings {
     pub preferences: Preferences,
     /// Each workstation's list filters by its root, kept as the window sends them; the window checks them on load.
     pub filters: Map<String, Value>,
+    /// The width in px the user dragged each side panel to ("history", "milestones"); absent means the default.
+    pub panel_widths: BTreeMap<String, u32>,
 }
 
 /// How the window looks.
@@ -98,6 +101,16 @@ pub fn set_filters(config_dir: &Path, root: &str, filters: Value) -> Result<(), 
     save(config_dir, &settings)
 }
 
+/// Saves a side panel's width, or forgets it (back to the default) with None.
+pub fn set_panel_width(config_dir: &Path, panel: &str, width: Option<u32>) -> Result<(), String> {
+    let mut settings = load(config_dir);
+    match width {
+        Some(width) => settings.panel_widths.insert(panel.to_string(), width),
+        None => settings.panel_widths.remove(panel),
+    };
+    save(config_dir, &settings)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -148,6 +161,15 @@ mod tests {
         assert_eq!(saved.filters["D:/one"], serde_json::json!({ "sort": "name" }), "the newest replaces the old");
         assert_eq!(saved.filters["D:/two"], serde_json::json!({ "sort": "name" }));
         assert_eq!(saved.look, look, "the rest stays");
+    }
+
+    #[test]
+    fn panel_widths_are_saved_and_forgotten() {
+        let temp = Temp::new();
+        set_panel_width(&temp.0, "history", Some(640)).unwrap();
+        set_panel_width(&temp.0, "milestones", Some(480)).unwrap();
+        set_panel_width(&temp.0, "history", None).unwrap();
+        assert_eq!(load(&temp.0).panel_widths, BTreeMap::from([("milestones".to_string(), 480)]));
     }
 
     #[test]

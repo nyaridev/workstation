@@ -26,6 +26,7 @@ import { ProjectRow } from "./ProjectRow";
 import { useGitStatus } from "./useGitStatus";
 import { useLastEdited } from "./useLastEdited";
 import { useProjects } from "./useProjects";
+import "./projects.css";
 
 interface Props {
   root: string;

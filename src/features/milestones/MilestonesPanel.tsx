@@ -5,8 +5,10 @@
 import { Badge, Icon, ListItem, Panel, ProgressBar, SectionTitle, Sheet, Tabs } from "iro-ui";
 import { CheckCircleIcon, FlagIcon } from "iro-ui/icons";
 import { useState } from "react";
+import { useSettings } from "../../app/SettingsProvider";
 import type { Project } from "../../lib/types";
 import { type Track, tracksOf } from "../projects/milestones";
+import "./milestones.css";
 
 interface Props {
   project: Project;
@@ -75,6 +77,7 @@ function Plan({ track }: { track: Track }) {
 
 /** Opens from the right; Escape, the close button or a click beside it closes it. */
 export function MilestonesPanel({ project, track, onClose }: Props) {
+  const { settings, savePanelWidth } = useSettings();
   const tracks = tracksOf(project.milestones);
   const first = tracks.find((t) => t.name === track) ?? tracks.find((t) => t.progress) ?? tracks[0];
   const [tab, setTab] = useState(first ? keyOf(first) : "");
@@ -86,6 +89,8 @@ export function MilestonesPanel({ project, track, onClose }: Props) {
       title={project.name}
       closeLabel="Close the milestones"
       resizable
+      defaultWidth={settings?.panelWidths.milestones}
+      onWidthChange={(width) => savePanelWidth("milestones", width)}
       className="milestones"
     >
       {tracks.length > 1 ? (

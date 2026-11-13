@@ -40,7 +40,9 @@ The window shows what Rust sends and passes clicks on. It doesn't read files, de
 - Accessibility: every control has a label, the keyboard works, and color is never the only signal.
 
 - A view or screen that scrolls keeps its scrollbar in its right padding: `scrollbar-gutter: stable` and a right
-  padding less `--iro-scrollbar-size`, so content keeps its width when the scrollbar shows (`styles.css`).
+  padding less `--iro-scrollbar-size`, so content keeps its width when the scrollbar shows (`styles.css`). iro-ui's
+  `Sheet` does this itself.
+
 ## Layout
 
 - `src/main.tsx`: the iro-ui style import, `IroRoot`, `Toaster`. Nothing else.

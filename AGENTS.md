@@ -14,7 +14,7 @@ Stage: M17 done, not released. The window draws its own title bar and works like
 can start with the system; installers for Windows, macOS and Linux come from GitHub Actions (ADR-0016). The app lists
 a workstation's projects with search, tag, status and "has changes" filters, flags, git badges and "Open folder";
 rescans on its own when projects or `projects.json` change; registers unregistered projects and edits tags; sets up
-new workstations from the built-in kit (`kit/`). Now: M18 verifies and releases v0.1.0. In `pnpm dev`, `?update`
+new workstations from the built-in kit (`kit/`). Now: M18 verifies and releases v1.0.0. In `pnpm dev`, `?update`
 fakes a newer release, `?empty` shows the first-run screen, `?broken` an unreadable `projects.json` and `?mac` the
 macOS frame.
 

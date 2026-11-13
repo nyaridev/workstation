@@ -2,7 +2,7 @@
 
 import { toast } from "iro-ui";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
-import { getSettings, setFilters, setLook, setPreferences } from "../lib/backend";
+import { getSettings, setFilters, setLook, setPanelWidth, setPreferences } from "../lib/backend";
 import type { Look, Preferences, Settings } from "../lib/types";
 
 // ── Types ─────────────────────────────────
@@ -13,6 +13,8 @@ interface SettingsState {
   savePreferences: (preferences: Preferences) => void;
   /** Saves a workstation's list filters; a failure only loses them for the next start, so it stays quiet. */
   saveFilters: (root: string, filters: unknown) => void;
+  /** Saves a side panel's width (null: back to the default); like the filters, a failure stays quiet. */
+  savePanelWidth: (panel: string, width: number | null) => void;
 }
 
 // ── State ─────────────────────────────────
@@ -34,8 +36,20 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setSettings((old) => old && { ...old, filters: { ...old.filters, [root]: filters } });
     void setFilters(root, filters).catch(() => {});
   };
+  const savePanelWidth = (panel: string, width: number | null) => {
+    setSettings((old) => {
+      if (!old) return old;
+      const { [panel]: _old, ...rest } = old.panelWidths;
+      return { ...old, panelWidths: width === null ? rest : { ...rest, [panel]: width } };
+    });
+    void setPanelWidth(panel, width).catch(() => {});
+  };
 
-  return <SettingsContext value={{ settings, saveLook, savePreferences, saveFilters }}>{children}</SettingsContext>;
+  return (
+    <SettingsContext value={{ settings, saveLook, savePreferences, saveFilters, savePanelWidth }}>
+      {children}
+    </SettingsContext>
+  );
 }
 
 /** The settings and ways to save the look, the preferences and the list filters. Only inside `SettingsProvider`. */

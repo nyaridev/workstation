@@ -43,6 +43,7 @@ describe("filterProjects", () => {
     expect(names(filterProjects(fakeProjects, { ...all, owner: "nari-games" }))).toEqual(["Fish Dive"]);
     expect(names(filterProjects(fakeProjects, { ...all, stack: "Tauri" }))).toEqual(["Workstation"]);
     expect(names(filterProjects(fakeProjects, { ...all, flagged: true }))).toEqual(["Old Site", "rename"]);
+    expect(names(filterProjects(fakeProjects, { ...all, planned: true }))).toEqual(["Workstation", "Swamp"]);
   });
 
   it("keeps only repos with changes when asked", () => {

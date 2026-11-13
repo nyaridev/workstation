@@ -195,4 +195,6 @@ export interface Settings {
   preferences: Preferences;
   /** Each workstation's list filters by its root, as the window saved them (`restoreFilters` checks them). */
   filters: Record<string, unknown>;
+  /** The width in px each side panel was dragged to ("history", "milestones"); absent means the default. */
+  panelWidths: Record<string, number>;
 }

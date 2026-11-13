@@ -1,0 +1,136 @@
+/* Git overview: the side panel with the branch, the uncommitted files and their diffs, and the commits. */
+
+.history {
+  width: min(560px, 100%);
+}
+
+/* One column no wider than the panel, so a long line inside can't push it sideways. */
+.history section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--iro-space-2);
+  margin-top: var(--iro-space-5);
+}
+
+.history-head {
+  display: flex;
+  gap: var(--iro-space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.history-head > button {
+  flex: none;
+}
+
+/* A long path keeps its end, cut from the start; the <bdi> inside keeps it reading left to right. */
+.path-end {
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+}
+
+.history .badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iro-space-2);
+  align-items: center;
+}
+
+/* Each uncommitted file opens to its diff (ChangeDiff). */
+.changes .iro-accordion-trigger {
+  min-height: 0;
+  padding-block: var(--iro-space-2);
+  font-weight: 400;
+}
+
+.change-title {
+  display: flex;
+  gap: var(--iro-space-3);
+  align-items: baseline;
+  min-width: 0;
+}
+
+.change-code {
+  flex-shrink: 0;
+  width: 6rem;
+  color: var(--iro-warning);
+  font-size: var(--iro-text-xs);
+}
+
+.change-path {
+  flex: 1;
+}
+
+.load-more {
+  justify-self: start;
+}
+
+.change-count {
+  flex: none;
+  font-size: var(--iro-text-xs);
+}
+
+.count-add {
+  color: var(--iro-success);
+}
+
+.count-del {
+  color: var(--iro-danger);
+}
+
+/* A diff as an editor shows it (ChangeDiff): old and new line numbers, then the sign, on tinted rows that run from
+   edge to edge, top and bottom too (the copy button sits in the title bar above). */
+.diff .iro-code-block-pre {
+  padding: 0;
+}
+
+.diff .iro-code-block-line:has(> .diff-add) {
+  background: var(--iro-success-soft);
+}
+
+.diff .iro-code-block-line:has(> .diff-del) {
+  background: var(--iro-danger-soft);
+}
+
+.diff .iro-code-block-line:has(> .diff-hunk) {
+  background: var(--iro-info-soft);
+}
+
+.diff-hunk,
+.diff-note {
+  color: var(--iro-fg-3);
+}
+
+.diff-num {
+  display: inline-block;
+  box-sizing: content-box;
+  width: calc(var(--diff-digits) * 1ch);
+  padding: 0 var(--iro-space-2);
+  color: var(--iro-fg-4);
+  text-align: end;
+}
+
+.diff-num:first-child {
+  padding-left: 0;
+}
+
+.diff-num::before {
+  content: attr(data-n);
+}
+
+.diff-sign {
+  display: inline-block;
+  width: 2ch;
+}
+
+.diff-add > .diff-sign {
+  color: var(--iro-success);
+}
+
+.diff-del > .diff-sign {
+  color: var(--iro-danger);
+}

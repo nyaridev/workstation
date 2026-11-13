@@ -4,15 +4,15 @@
 // opens to show the projects and important folders inside it; a repo opens its git overview. A right click offers the
 // same actions.
 
-import { Badge, Button, ContextMenu, Icon, IconButton, ListItem, type MenuEntry, ProgressBar, Tooltip } from "iro-ui";
-import { ArrowDownIcon, FilePlusIcon, FlagIcon, FolderOpenIcon, TagIcon } from "iro-ui/icons";
+import { Badge, ContextMenu, Icon, IconButton, ListItem, type MenuEntry, Tooltip } from "iro-ui";
+import { ArrowDownIcon, FilePlusIcon, FolderOpenIcon, TagIcon } from "iro-ui/icons";
 import { type CSSProperties, useRef, useState } from "react";
 import type { GitStatuses, Project } from "../../lib/types";
 import { FolderRow } from "./FolderRow";
 import { statusColor } from "./fields";
 import { gitOf, registryFlag } from "./filter";
 import { GitBadges } from "./GitBadges";
-import { tracksOf } from "./milestones";
+import { MilestoneLines } from "./MilestoneLines";
 import { RegisterForm } from "./RegisterForm";
 import { TagDialog } from "./TagDialog";
 
@@ -71,8 +71,6 @@ export function ProjectRow(props: Props) {
     onSaved,
   } = props;
   // The milestone being worked on; none once the last one is done, and then the row has no second line.
-  // One line per plan still in progress; none once every milestone is done.
-  const working = tracksOf(p.milestones).filter((t) => t.progress);
   const [editing, setEditing] = useState<"register" | null>(null);
   // The tag dialog is open.
   const [tagsOpen, setTagsOpen] = useState(false);
@@ -160,37 +158,7 @@ export function ProjectRow(props: Props) {
               <span className="row-cell row-remote">{remote}</span>
             </span>
           }
-          description={
-            working.length > 0 && (
-              <span className="row-milestones">
-                {working.map(({ name: track, progress }) =>
-                  progress ? (
-                    // One button from the flag to the count, so a click anywhere on the line opens that plan.
-                    <Button
-                      key={track ?? ""}
-                      size="sm"
-                      variant="ghost"
-                      className="row-milestone"
-                      aria-label={`${track ?? "Milestones"}: ${progress.current.name}, ${progress.done} of ${progress.total} done`}
-                      onClick={() => onMilestones(p, track)}
-                    >
-                      <span className="row-milestone-name">
-                        <Icon icon={FlagIcon} />
-                        <span className="row-milestone-text">
-                          {track && <span className="row-milestone-track">{track} · </span>}
-                          {progress.current.name}
-                        </span>
-                      </span>
-                      <ProgressBar size="sm" value={progress.done / progress.total} className="row-milestone-bar" />
-                      <span className="row-milestone-count">
-                        {progress.done} of {progress.total} done
-                      </span>
-                    </Button>
-                  ) : null,
-                )}
-              </span>
-            )
-          }
+          description={<MilestoneLines milestones={p.milestones} onOpen={(track) => onMilestones(p, track)} />}
           actions={
             <>
               {canWrite && !p.registered && !p.archived && (

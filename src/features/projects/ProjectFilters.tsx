@@ -1,6 +1,7 @@
 // ProjectFilters: the bar above the list. One line holds the search and a square Filters button whose menu has the
-// order (name or last edited), tags, status, owner, stack, "has changes" and "needs attention" (lit while a filter is
-// set); the kind chips go under it, then the filters in use as removable chips, only when there are any.
+// order (name or last edited), tags, status, owner, stack, "has changes", "needs attention" and "milestones in
+// progress" (lit while a filter is set); the kind chips go under it, then the filters in use as removable chips, only
+// when there are any.
 
 import { Button, Checkbox, Chip, Field, Icon, IconButton, Popover, Segmented, Select, TextField } from "iro-ui";
 import { SearchIcon, SlidersIcon } from "iro-ui/icons";
@@ -37,6 +38,9 @@ export function ProjectFilters(props: Props) {
       .map((p) => ({ key: p.key, label: `${p.label}: ${p.value}`, remove: () => set({ [p.key]: ANY }) })),
     ...(filters.changed ? [{ key: "changed", label: "Has changes", remove: () => set({ changed: false }) }] : []),
     ...(filters.flagged ? [{ key: "flagged", label: "Needs attention", remove: () => set({ flagged: false }) }] : []),
+    ...(filters.planned
+      ? [{ key: "planned", label: "Milestones in progress", remove: () => set({ planned: false }) }]
+      : []),
   ];
   const inMenu = picked.length + filters.tags.length;
 
@@ -100,6 +104,11 @@ export function ProjectFilters(props: Props) {
               label="Needs attention"
               checked={filters.flagged}
               onCheckedChange={(flagged) => set({ flagged })}
+            />
+            <Checkbox
+              label="Milestones in progress"
+              checked={filters.planned}
+              onCheckedChange={(planned) => set({ planned })}
             />
           </div>
         </Popover>

@@ -57,12 +57,13 @@ let fakeSettings: Settings = {
   look: { nativeFrame, liquidBackground: true },
   preferences: { checkForUpdates: true, startWithSystem: false, closeToTray: true },
   filters: {},
+  panelWidths: {},
 };
 
 const updateFlag = new URLSearchParams(location.search).get("update");
 let fakeUpdate: UpdateStatus = {
-  current: "0.1.0",
-  latest: updateFlag === null ? null : "0.2.0",
+  current: "1.0.0",
+  latest: updateFlag === null ? null : "1.1.0",
   step: updateFlag === "downloading" ? "downloading" : null,
   progress: updateFlag === "downloading" ? 0.4 : null,
   error: updateFlag === "error" ? "Couldn't check for updates: GitHub didn't answer." : null,
@@ -90,7 +91,7 @@ export async function appInfo(): Promise<AppInfo> {
   if (inTauri) return invoke("app_info");
   const mac = new URLSearchParams(location.search).has("mac");
   return {
-    version: "0.1.0",
+    version: "1.0.0",
     os: mac ? "macos" : "windows",
     frame: nativeFrame ? "native" : mac ? "overlay" : "custom",
   };
@@ -161,6 +162,13 @@ export async function scanWorkstation(root: string): Promise<Scan> {
 export async function setFilters(root: string, filters: unknown): Promise<void> {
   if (inTauri) return invoke("set_filters", { root, filters });
   fakeSettings = { ...fakeSettings, filters: { ...fakeSettings.filters, [root]: filters } };
+}
+
+/** Saves the width a side panel was dragged to, or forgets it (null: back to the default). */
+export async function setPanelWidth(panel: string, width: number | null): Promise<void> {
+  if (inTauri) return invoke("set_panel_width", { panel, width });
+  const { [panel]: _old, ...rest } = fakeSettings.panelWidths;
+  fakeSettings = { ...fakeSettings, panelWidths: width === null ? rest : { ...rest, [panel]: width } };
 }
 
 /** When each of these projects was last edited, in Unix seconds; paths without a time are left out. */

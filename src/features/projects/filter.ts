@@ -40,6 +40,8 @@ export interface Filters {
   changed: boolean;
   /** Only projects that don't match projects.json (`registryFlag`). */
   flagged: boolean;
+  /** Only projects with a milestone not done yet (`progressOf`). */
+  planned: boolean;
   /** Not a filter: the order inside each group. */
   sort: SortBy;
 }
@@ -66,6 +68,7 @@ export const NO_FILTERS: Filters = {
   stack: ANY,
   changed: false,
   flagged: false,
+  planned: false,
   sort: "name",
 };
 
@@ -74,7 +77,7 @@ export const NO_FILTERS: Filters = {
 export function restoreFilters(saved: unknown): Filters {
   const s: Record<string, unknown> = saved && typeof saved === "object" ? (saved as Record<string, unknown>) : {};
   const text = (key: "group" | "status" | "owner" | "stack") => (typeof s[key] === "string" ? s[key] : NO_FILTERS[key]);
-  const flag = (key: "changed" | "flagged") => (typeof s[key] === "boolean" ? s[key] : NO_FILTERS[key]);
+  const flag = (key: "changed" | "flagged" | "planned") => (typeof s[key] === "boolean" ? s[key] : NO_FILTERS[key]);
   return {
     query: "",
     group: text("group"),
@@ -84,6 +87,7 @@ export function restoreFilters(saved: unknown): Filters {
     stack: text("stack"),
     changed: flag("changed"),
     flagged: flag("flagged"),
+    planned: flag("planned"),
     sort: s.sort === "edited" ? "edited" : "name",
   };
 }
@@ -158,6 +162,7 @@ export function filterProjects(
     if (filters.stack !== ANY && !p.stack.includes(filters.stack)) return false;
     if (filters.changed && !hasChanges(gitOf(p, git, inside))) return false;
     if (filters.flagged && registryFlag(p) === null) return false;
+    if (filters.planned && p.milestones.every((m) => m.done)) return false;
     if (!filters.tags.every((tag) => p.tags.includes(tag))) return false;
     const text = [p.name, p.path, p.description, p.notes ?? "", ...p.tags, ...p.stack].join(" ").toLowerCase();
     return words.every((word) => text.includes(word));

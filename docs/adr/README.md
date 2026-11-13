@@ -19,7 +19,8 @@ src-tauri/src/
 │                      click (ADR-0018). Never fetches on its own
 ├─ kit.rs              the embedded starter kit and "set up here" (never overwrites)
 ├─ update.rs           the app's own updates through Tauri's signed updater: status, checks, install (ADR-0014)
-├─ settings.rs         the app's settings in settings.json: the look, the preferences (updates, start, tray)
+├─ settings.rs         the app's settings in settings.json: the look, the preferences (updates, start, tray), each
+│                      workstation's list filters and the side panels' widths
 ├─ window.rs           builds the main window with the frame the settings pick; brings it forward
 ├─ tray.rs, start.rs   the tray and close-to-tray; the start entry and the installer's choice (ADR-0015)
 └─ test_support.rs     temp folders for tests (test builds only)
@@ -29,12 +30,16 @@ src/
 │                      NoticeBanner and the status banner
 ├─ features/projects/  ProjectsView and the project list: filter.ts (filters, nesting, grouping), fields.ts (kinds,
 │                      statuses, tags), the list, row (opens to inner projects and FolderRows), filters and
-│                      TagPicker, Register form, tag editor and tag input, useProjects
-├─ features/history/   a repo's git overview sheet (commits, unpushed, uncommitted files), format.ts
+│                      TagPicker, Register form, tag dialog and tag input, milestones.ts and MilestoneLines,
+│                      useProjects, useGitStatus, useLastEdited; projects.css
+├─ features/history/   a repo's git overview sheet read in pages (useGitOverview): uncommitted files with their
+│                      diffs (ChangeDiff, diff.ts), commits; format.ts; history.css
+├─ features/milestones/ a project's milestones sheet, a tab per track; milestones.css
 ├─ features/settings/  Settings in tabs (ADR-0013): Workstations (WorkstationSettings) and App (LookSettings,
 │                      AboutSettings: the build, updates, start and tray), each section a card
 ├─ lib/                backend.ts (every invoke/listen), fakeProjects.ts (browser data), types.ts
-└─ styles.css          layout only, with iro-ui's tokens (every control is an iro-ui component, ADR-0008, ADR-0010)
+└─ styles.css          the window's layout, with iro-ui's tokens; each feature's looks are in its own .css
+                       (every control is an iro-ui component, ADR-0008, ADR-0010)
 src-tauri/windows/     the installer's hooks: the "Start Workstation with Windows" box (ADR-0015)
 .github/workflows/     check.yml, release.yml (M17, ADR-0016)
 kit/                   the starter workstation (stored as dot-* and *.kit.md), embedded at build time
@@ -131,7 +136,7 @@ assets/brand/          icon.svg (the app icon and header mark), the README's ban
 1. The owner goes through `docs/manual-check.md` in the real app on Windows (and macOS or Linux when at hand); fix
    what it turns up.
 2. The owner reviews `kit/` and the parts left out.
-3. With the owner's yes: tag `v0.1.0`, let the release workflow build the draft, publish it.
+3. With the owner's yes: tag `v1.0.0`, let the release workflow build the draft, publish it.
 
 ### Later
 

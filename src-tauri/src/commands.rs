@@ -82,6 +82,12 @@ pub fn set_filters(app: AppHandle, root: String, filters: serde_json::Value) -> 
     settings::set_filters(&config_dir(&app)?, &root, filters)
 }
 
+/// Saves the width a side panel was dragged to, or forgets it (None: back to the default).
+#[tauri::command]
+pub fn set_panel_width(app: AppHandle, panel: String, width: Option<u32>) -> Result<(), String> {
+    settings::set_panel_width(&config_dir(&app)?, &panel, width)
+}
+
 /// Turns the start entry on or off, then saves how the app behaves and returns the settings. When the system refuses
 /// the entry, nothing is saved and the reason comes back (ADR-0015).
 #[tauri::command]

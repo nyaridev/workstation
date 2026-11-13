@@ -51,6 +51,7 @@ pub fn run() {
             commands::set_look,
             commands::set_preferences,
             commands::set_filters,
+            commands::set_panel_width,
             commands::last_edited,
             commands::list_workstations,
             commands::add_workstation,
